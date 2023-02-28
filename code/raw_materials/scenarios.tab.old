@@ -1,0 +1,37 @@
+valence	set	numberWithinSet	placeName	actionName	observation	prevalenceQuestion	acceptabilityQuestionThirdParty	acceptabilityQuestionFirstParty
+bad	tbd	tbd	Marjy	disabledParking	Noah saw this person park in a priority disabled parking space without displaying a blue badge.	park in priority disabled parking spaces?	park in disabled parking spaces?	park in priority disabled parking spaces?
+bad	tbd	tbd	Bruff	punchOfficer	Noah walked along the high street and saw this person punch a police officer.	punch police officers?	punch police officers?	punch police officers?
+bad	tbd	tbd	Quai	skipQueue	Noah went to the cinema and this person would skip the queue.	skip queues?	skip queues?	skip queues?
+bad	tbd	tbd	Sephy	passLight	Noah walked to the train station and saw this person cycle past a red traffic light on her bike.	cycle past red lights?	cycle past red lights?	cycle past red lights?
+bad	tbd	tbd	Freezington	pillageCorn	Noah passed a farm and saw this person pillage corn from a field.	pillage corn from a field?	pillage corn from a field?	pillage corn from a field?
+bad	tbd	tbd	Glistinir	shoutDriver	Noah took the bus and saw this person lower their window to shout at the driver next to them.	shout at other drivers?	shout at other drivers?	shout at other drivers?
+bad	tbd	tbd	Zlefwood	litterCanal	Noah walked along the canal and saw this person littering in the canals.	litter in canals?	litter in canals?	litter in canals?
+bad	tbd	tbd	Cluakpus	smokingMarijuana	Noah went to the bakery and saw this person smoking marijuana in front of the bakery.	smoke marijuana?	smoke marijuana?	smoke marijuana?
+bad	tbd	tbd	Faylight	Gossiping	Noah overheard this person gossiping badly about a friend.	gossip badly?	gossip badly?	gossip badly?
+bad	tbd	tbd	Everfell	packageTheft	Noah was walking to a friend's house. He saw this person steal a package from his friend's doorstep and drive away with it.	steal packages from a doorstep?	steal packages from a doorstep?	steal a package from a doorstep?
+bad	tbd	tbd	Lakebrook	loudNoise	Noah was returning a book and this person made loud noises at the library.	make loud noises at the library?	make loud noises at the library?	make loud noises at the library?
+bad	tbd	tbd	Newdale	avoidFare	Noah saw this person avoiding paying tube fares by jumping over the gate.	avoid paying tube fares by jumping over a gate?	avoid paying tube fares by jumping over a gate?	avoid paying tube fares by jumping over a gate?
+good	tbd	tbd	Therntuthern	returnWallet	Noah dropped his wallet from his back pocket after paying for the bus fare and this person returned the wallet by calling him and handing it over.	return wallets?	return wallets?	return wallets?
+good	tbd	tbd	Wrury	lostDirections	"Noah got lost and when he asked this person for directions, he received a helpful answer."	give directions?	give directions?	give directions?
+good	tbd	tbd	Gralens	helpElderly	Noah passed in front of the retirement home and saw this person help an elderly person across the road.	help the elderly cross a road?	help the elderly cross a road?	help the elderly cross a road?
+good	tbd	tbd	Vali	saveBird	Noah passed through the main square and saw this person run to save a baby bird from being run over by a car.	save baby birds?	save baby birds?	save baby birds?
+good	tbd	tbd	Styl	offerSeat	Noah used the bus and saw this person offer their seat to a pregnant lady?	offer their seat to pregnant women?	offer their seat to pregnant women?	offer their seat to pregnant women?
+good	tbd	tbd	Pastel	buyCoffee	Noah visited the local cafe and saw this person buying coffee for their workplace colleagues.	buy coffee for their colleagues?	buy coffee for their colleagues?	buy coffee for their colleagues?
+good	tbd	tbd	Tiare	shareFruit	Noah went for a jog in a park and saw this person at the playground giving their own children fruit and then inviting other families to join in.	invite other families to share fruit?	invite other families to share fruit?	invite other families to share fruit?
+good	tbd	tbd	Windon	moneyCharity	Noah went to the local train station and saw this person putting money in a bucket for a children's charity.	donate to children's charities?	donate to children's charities?	donate to children's charities?
+good	tbd	tbd	Orkfield	holdDoor	Noah saw this person hold the elevator door open for people rushing to get the elevator.	hold elevator doors for others?	hold elevator doors for others?	hold elevator doors for others?
+good	tbd	tbd	Isondiff	largeTip	Noah saw this person at the restaurant leave a generous tip to the server.	leave a generous tip to the server?	leave a generous tip to the server?	leave a generous tip to the server?
+good	tbd	tbd	Clego	heavyGroceries	Noah went to a supermarket and saw this person stop handing out leaflets to help an elderly with carrying heavy groceries to the bus stop.	help elderly carry heavy groceries?	help elderly carry heavy groceries?	help elderly carry heavy groceries?
+good	tbd	tbd	Hifvine	trippedChild	Noah was waiting at a red light in his car and saw this person stepping on the street to block the cars so a child could cross the street more safely	block streets to allow children to cross them?	block streets to allow children to cross them?	block streets to allow children to cross them?
+neutral	tbd	tbd	Qrita	wearSunglasses	"Noah saw this person at the bus stop, and they would wear sunglasses."	wear sunglasses?	wear sunglasses?	wear sunglasses?
+neutral	tbd	tbd	Krark	walkSwimsuit	Noah went to the harbor and saw this person walking with their swimsuit on the street.	wear swimsuits on the streets?	wear swimsuits on the streets?	wear swimsuits on the streets?
+neutral	tbd	tbd	Caco	doingAcrobatics	Noah was passing through the park and saw this person doing kurafi	do kurafi ?	do kurafi ?	do kurafi ?
+neutral	tbd	tbd	Elder	Pantomime	Noah passed through the train station and saw this person pantomiming.	pantomime?	pantomime?	pantomime?
+neutral	tbd	tbd	Yooley	workBike	Noah had breakfast in the cafeteria of the newspaper agency and saw this person arriving at work by bike.	bike to work?	bike to work?	bike to work?
+neutral	tbd	tbd	Kurk	drinkWine	Noah went to the local pub and saw this person drinking a glass of wine.	drink wine?	drink wine?	drink wine?
+neutral	tbd	tbd	Aserad	runCars	Noag took the bus to the city centre and saw this person running alongside cars.	run alongside cars?	run alongside cars?	run alongside cars?
+neutral	tbd	tbd	Ozmendir	eatingBroccoli	Noah passed in front of the post office and saw this person eating raw broccoli for lunch.	eat raw broccoli?	eat raw broccoli?	eat raw broccoli?
+neutral	tbd	tbd	Slesa	walkingCat	Noah was waiting for a taxi and saw this person walking their pet cat on the street.	walk their pet cats on the street?	walk their pet cats on the street?	walk pet cats on the street?
+neutral	tbd	tbd	Qrosa	dressedMascot	Noah was at a theme park and saw this person dressed as a mascot.	dress as a mascot?	dress as a mascot?	dress as a mascot?
+neutral	tbd	tbd	Pirsea	pickingNose	Noah was at the footwear shop and saw this person picking their nose	pick their nose?	pick their nose?	pick your nose?
+neutral	tbd	tbd	Phando	barefootPark	Noah was sitting on a bench at the park and saw this person walk barefoot on the street	walk barefoot on the grass?	walk barefoot on the grass?	walk barefoot on the grass?

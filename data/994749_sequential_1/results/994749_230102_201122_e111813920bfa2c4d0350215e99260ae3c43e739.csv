@@ -1,0 +1,4 @@
+subjectGroup,GMT_timestamp,local_timestamp,trial_file_version,link,age,gender,tallies,duration_s
+3,2023-01-02_20:09:46,2023-01-02_20:09:46,2022-12-21_12:02:10,https://www.testable.org/experiment/2286/994749/start?sona_id=e111813920bfa2c4d0350215e99260ae3c43e739,18,woman,"day : 0; ",99.252
+rowNo,type,stim1,stimFormat,button1,button2,button3,pageBreak,required,if,then,feedback,myPhase,tallies,timestamp,response,RT
+5,test,"What is the name of the person whose travel journal you are about to read?",word,Moses,Noah,Fred,1,1,!2,end,"1: This is not correct, the experiment will end now.;2: This is correct.; 3: This is not correct, the experiment will end now.",attentionTest,"day : 0; ",91911,1,7341

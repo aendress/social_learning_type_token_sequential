@@ -1,0 +1,52 @@
+This is BibTeX, Version 0.99d (TeX Live 2021)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: social_learning_type_token_sequential.aux
+The style file: plainnat.bst
+Database file #1: /Users/endress/ansgar.bib
+Reallocated buffer (elt_size=1) to 40000 items from 20000.
+Reallocated sv_buffer (elt_size=1) to 40000 items from 20000.
+Reallocated ex_buf (elt_size=1) to 40000 items from 20000.
+Reallocated out_buf (elt_size=1) to 40000 items from 20000.
+Reallocated name_tok (elt_size=4) to 40000 items from 20000.
+Reallocated name_sep_char (elt_size=1) to 40000 items from 20000.
+You've used 3 entries,
+            2773 wiz_defined-function locations,
+            623 strings with 5587 characters,
+and the built_in function-call counts, 1527 in all, are:
+= -- 152
+> -- 72
+< -- 2
++ -- 24
+- -- 21
+* -- 130
+:= -- 241
+add.period$ -- 15
+call.type$ -- 3
+change.case$ -- 16
+chr.to.int$ -- 3
+cite$ -- 6
+duplicate$ -- 61
+empty$ -- 120
+format.name$ -- 28
+if$ -- 313
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 3
+newline$ -- 30
+num.names$ -- 12
+pop$ -- 20
+preamble$ -- 2
+purify$ -- 13
+quote$ -- 0
+skip$ -- 46
+stack$ -- 0
+substring$ -- 81
+swap$ -- 4
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 33
+warning$ -- 0
+while$ -- 15
+width$ -- 0
+write$ -- 59

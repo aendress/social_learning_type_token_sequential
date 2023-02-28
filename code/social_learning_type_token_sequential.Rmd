@@ -1,0 +1,1243 @@
+---
+title: "Social learning by type-token frequency - stimulus preparation"
+author: |
+  | Ansgar D. Endress
+  | City, University of London
+bibliography: /Users/endress/ansgar.bib
+output:
+  pdf_document:
+    citation_package: natbib
+    toc: no
+    number_sections: yes
+    keep_tex: yes
+    fig_caption: yes
+    highlight: tango
+  html_notebook:
+    theme: spacelab
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    fig_caption: yes
+    highlight: tango
+  html_document:
+    theme: spacelab
+    number_sections: yes
+    df_print: paged
+    toc: yes
+    toc_float: yes
+    fig_caption: yes
+    highlight: tango
+csl: /Users/endress/csl_files/science.csl
+keywords: Keywords
+abstract: Abstract (to be written)
+---
+
+```{r setup, echo = FALSE, include=FALSE}
+rm (list=ls())
+
+options (digits = 3)
+knitr::opts_chunk$set(
+    # Run the chunk
+    eval = TRUE,
+    # Don't include source code
+    echo = FALSE, 
+    # Print warnings to console rather than the output file
+    warning = FALSE,  
+    # Stop on errors
+    error = FALSE,
+    # Print message to console rather than the output file
+    message = FALSE,
+    # Include chunk output into output
+    include = TRUE,
+    # Don't reformat R code
+    tidy = FALSE,
+    # Center images
+    fig.align = 'center',
+    # Default image width
+    out.width = '80%')
+
+# other knits options are here:
+# https://yihui.name/knitr/options/
+```
+
+
+```{r load-libraries, include = FALSE, message = TRUE, warning = TRUE}
+
+if (Sys.info()[["user"]] %in% c("ansgar", "endress")){
+    source ("/Users/endress/R.ansgar/ansgarlib/R/tt.R")
+    source ("/Users/endress/R.ansgar/ansgarlib/R/null.R")
+    #source ("helper_functions.R")
+} else {
+    # Note that these will probably not be the latest versions
+    source("http://endress.org/progs/tt.R")
+    source("http://endress.org/progs/null.R")
+}
+
+library (knitr)
+library (kableExtra)
+```
+
+```{r set-parameters}
+DATA.DIR <- "../results/"
+OUTPUT.DIR <- "output/"
+FIG.DIR <- "figs/"
+
+
+
+
+FILTER.BY.ATTRACTIVENESS <- FALSE    
+MIN.ATTRACTIVENESS.QUANTILE <- .25
+MAX.ATTRACTIVENESS.QUANTILE <- 1
+
+# Parameters for analysis
+IGNORE.COL.PREFIXES <- c("ITI_", "presTime_", "ISI_")
+
+PRINT.INDIVIDUAL.FIGURES <- FALSE
+PRINT.INDIVIDUAL.TABLES <- FALSE
+
+REMOVE.BAD.SUBJ <- TRUE
+
+
+# Should we remove participants who take excessively long/short?
+DURATION.REMOVAL.THRESHOLD.Z <- 3
+
+# Stimulus parameters
+# PRESTIME <- 4000
+# ITI <- 1000
+PRESTIME <- 4500
+ITI <- 500
+
+
+N.REPETITIONS.PER.ACTION <- 6
+# Number of face stimuli required
+N.FACES.PER.GENDER <- 3 * 4 * 3 * N.REPETITIONS.PER.ACTION
+
+VALENCE.IS.BETWEEN.SUBJECTS <- TRUE
+
+# Set seed to Cesar's birthday
+set.seed (1207100)
+```
+
+```{r helper-functions}
+
+
+```
+
+# Stimulus selection
+
+## Faces
+We selected the stimuli from the 2,222 annotated face images in [@Bainbridge2013]. For each gender and valency, we need 4 (sets) $\times$ 3 (actions per set) $\times$ `r N.REPETITIONS.PER.ACTION` (actions) = 120 faces. We thus need 360 faces per gender. 
+
+
+```{r load-face-attributes-nonfamous}
+dat.face.attributes <- left_join(
+    # Demographic attributes
+    # We use the following columns: 
+    # Filename
+    # Image.Id 
+    # "Image quality"" (as filter > 4)
+    # "Is this person famous?" (as filter == 0)
+    # Emotion (as filter == 0)
+    # Age 
+    # Race 
+    # 
+    # Complete description of columns:
+    # Age 
+	#	1 = < 20 years
+	#	2 = 20 - 30 years
+	#	3 = 30 - 45 years
+	#	4 = 45 - 60 years
+	#	5 = 60+ years
+    # Attractive: 1 (unattractive) - 5 (attractive)
+    # "Is this person famous?" 0 = No, 1 = Maybe, 2 = Yes
+    # Common
+    #   How common is this face?: 1 (uncommon) - 5 (common)
+    # "How much emotion is in this face?": 1 (little) - 5 (a lot)
+    # Emotion?
+	#	0 = Neutral
+	#	1 = Happiness
+	#	2 = Sadness
+	#	3 = Anger
+	#	4 = Fear
+	#	5 = Surprise
+	#	6 = Disgust
+    # "Eyes direction?"
+	#	1 = At you
+	#	2 = Up
+	#	3 = Down
+	#	4 = Left (of screen)
+	#	5 = Right (of screen)
+    # "Face direction?"
+	#	1 = At you
+	#	2 = Up
+	#	3 = Down
+	#	4 = Left (of screen)
+	#	5 = Right (of screen)
+    # "Facial hair?" ", 0 = None, 1 = A little, 2 = A lot
+    # Friendly: (very unfriendly - 5 (very friendly)
+    # "Makeup?" ", 0 = None, 1 = A little, 2 = A lot
+    # Gender: 0 = Female		1 = Male
+    # "Would you cast this person as the star of a movie?""
+	#	0 = No			1 = Maybe			2 = Yes
+    # Would this be a good profile picture?
+    #   0 = No			1 = Maybe			2 = Yes
+    # "Image quality" 1 (poor) - 5 (very good)
+    # Race
+	#	0 = Other
+	#	1 = White
+	#	2 = Black
+	#	3 = East Asian
+	#	4 = South Asian
+	#	5 = Hispanic
+	#	6 = Middle Eastern
+    # Memorable: 1 (forgettable) - 5 (memorable)
+    # "At what speed do you think this expression is happening?"" 1 (slowly) - 5 (quickly)
+    # "How much teeth is showing?" 0 = None, 1 = A little, 2 = A lot
+    readxl::read_excel (
+        '~/Experiments/other_race_effect_predictability/stimuli/10k US Adult Faces Database/Full Attribute Scores/demographic & others labels/demographic-others-labels.xlsx',
+        # Data collated across participants
+        sheet = "Final Values") %>%
+        # Don't keep rater information
+        dplyr::select(-starts_with(c("sub", "catch"))) %>% 
+        # Avoid problems with # character
+        dplyr::rename("Image.Id" = "Image #"),
+    
+    # Memorability
+    readxl::read_excel ("~endress/Experiments/other_race_effect_predictability/stimuli/10k US Adult Faces Database/Memorability Scores/memorability-scores.xlsx",
+                        sheet = "Memorability-Scores") %>% 
+        mutate (A = purrr::map2_dbl(
+            .x = `Hit Rate (HR)`,
+            .y = `False Alarm Rate (FAR)`,
+            .f = ~ {A.zhang.mueller (.x, .y)}
+        )) %>% 
+        dplyr::select (Filename, A),
+    
+    # Psychological attributes (e.g., personality, social, emotional traits)
+    # Not currently used 
+    # readxl::read_excel (
+    #     'stimuli/10k US Adult Faces Database/Full Attribute Scores/psychology attributes/psychology-attributes.xlsx',
+    #     # Data collated across participants
+    #     sheet = "Final Values") %>%
+    #     # Don't keep rater information
+    #     dplyr::select(-starts_with(c("sub", "catch"))) %>% 
+    #     # Avoid problems with # character
+    #     dplyr::rename("Image.Id" = "Image #")
+    
+    
+    ) %>% 
+    mutate (across (c(`Is this person famous?`, `Image quality`, `Emotion?`, Race, Gender, Age, A), 
+                    as.numeric)) %>% 
+    # Remove file ending for testable
+    mutate (Filename = gsub (".jpg$", "", Filename, ignore.case = TRUE))
+
+    # We will do this conversion after plotting
+    # mutate (Gender = ifelse (Gender==0, "female", "male"))
+    
+```
+
+
+```{r filter-face-attributes-nonfamous}
+dat.face.attributes %>% 
+    filter (Gender %in% 0:1,
+            `Is this person famous?` == 0,
+            `Image quality` >= 3.5,
+            # between 20 and 60
+            between (Age, 2, 4),
+            between (A, quantile (A, .25), quantile(A, .85)),
+            between (Race, -1, 99), 
+            between (`Emotion?`, -1, 99)
+            ) ->
+    dat.face.attributes.filtered
+    
+
+```
+
+```{r filter-face-attributes-attractiveness, eval = FALSE}
+dat.face.attributes.filtered %>% 
+    mutate (Attractive = as.numeric (Attractive)) %>% 
+    filter (is.finite (Attractive)) %>% 
+    mutate (Attrative.Filter = between (Attractive, 
+                                        quantile (Attractive, MIN.ATTRACTIVENESS.QUANTILE), 
+                                        quantile (Attractive, MAX.ATTRACTIVENESS.QUANTILE))) ->
+    dat.face.attributes.filtered
+    
+
+if (FILTER.BY.ATTRACTIVENESS){
+    dat.face.attributes.filtered %>% 
+        filter (Attrative.Filter) -> dat.face.attributes.filtered
+    
+}
+```
+
+We selected face photographs for non-famous persons with an image quality rating of at least 3, an estimated age between 20 and 60, and memorability (operationalized as [@ZhangMueller2005] version of $A^\prime$) between the 25% and 85% quantile. This yielded `r dat.face.attributes.filtered  %>% group_by (Gender) %>% summarize (N = n()) %>% pull(N) %>% knitr::combine_words()` pictures for females and males, respectively.We then randomly selected the required number of faces from this initial set. `r N.FACES.PER.GENDER` faces were randomly selected for each gender.
+
+```{r random-select-faces}
+
+dat.face.attributes.filtered %>% 
+    group_by(Gender) %>% 
+    slice_sample(n = N.FACES.PER.GENDER) %>% 
+    ungroup -> dat.face.attributes.filtered
+
+```    
+
+The distribution of various properties of the faces is shown in Figure \ref{fig:plot-face-attributes-nonfamous}.
+
+
+```{r plot-face-attributes-nonfamous, fig.cap="Distribution of various properties of the faces in the database after filtering. See main text for the filters."}
+
+dat.face.attributes.filtered %>% 
+    pivot_longer(cols = c("Age", "Race", "Gender", "A"),
+                 names_to = "measure",
+                 values_to = "value") %>% 
+    ggplot (aes (x = value)) +
+    geom_histogram() +
+    scale_y_continuous(trans='log10') + 
+    facet_wrap( ~ measure, scales = "free")
+    
+```
+
+
+```{r rename-gender-labels-faces-nonfamous}
+dat.face.attributes.filtered %>% 
+    mutate (Gender = case_when (
+        Gender == 0 ~ "female", 
+        Gender == 1 ~ "male",
+        TRUE ~ as.character (Gender))) -> dat.face.attributes.filtered
+
+
+```
+
+
+```{r copy-stimuli}
+
+dat.face.attributes.filtered %>% 
+    group_by (Gender) %>% 
+    dplyr::mutate (rownumber = dplyr::row_number()) %>% 
+    tidyr::unite(stimFileName, Gender, rownumber) %>% 
+    dplyr::mutate (cmd = purrr::map2_chr (
+        Filename, stimFileName,
+        ~ str_c ('cp \"/Users/endress/Experiments/other_race_effect_predictability/stimuli/10k US Adult Faces Database/10k US Adult Faces Database/Face Images/',
+                .x,
+                '.jpg\" ../stim/faces/',
+                .y,
+                '.jpg'))) %>% 
+    pull (cmd) %>% 
+    walk (~ system (.x))
+            
+    
+
+      
+```
+
+`r clearpage()`
+
+# Counterbalancing
+We will use behaviors performed `r N.REPETITIONS.PER.ACTION` times by the same individual or once by `r N.REPETITIONS.PER.ACTION` different individuals, as well as an action performed once by one individual. To make sure that responses are not based on prior estimates of the prevalence of individual actions, the behaviors will be counterbalanced across participants. 
+
+We need 12 actions per valency. If we use 3 actions per trial, this gives us 4 trials. As shown in Table \ref{tab:counterbalancing-frequency-conditions-print}, the role of the actions in the trials will be counterbalanced within participants. Further, valency will be counterbalanced across participants, with each participant seenig only one valency.
+
+```{r counterbalancing-frequency-conditions-print}
+
+chunk.vector(1:12, 
+             chunk.number = 4, 
+             return.df = FALSE) %>% 
+    purrr::map (function (l) purrr::map (0:2, 
+                           ~ cyclic.shift (l, .x))) %>% 
+    purrr::map (~ unlist (.x)) %>% 
+    as.data.frame %>% 
+    setNames (str_c ("Set ", 1:4)) %>% 
+    dplyr::mutate (across (dplyr::everything(), ~ str_c ("Action ", .x))) %>% 
+    dplyr::mutate (Condition = str_c ("Condition ", rep (1:3, each = 3)),
+            Role = rep (c("High Type-Frequency", "Low Type-Frequency", "Single occurrence"), 
+                        times = 3),
+            .before = 1) %>% 
+    kable.packed("Condition", caption="Counterbalancing of the roles of actions. Separately for each valency, actions were organized into 4 sets. Across blocks, each action of a set was presented as the high type-frequency, low type-frequency and single occurrence action.", booktabs = TRUE) %>% 
+    kableExtra::kable_classic()
+
+    
+```
+We will administer all three conditions to all participants; all 12 blocks appear in random order. Additionally, for each participant, half the blocks will use female face, and half male faces. For half of the participants, Sets 1 and 2 will be presented with male faces and Sets 3 and 4 with female faces. For the remaining participants, this will be inverted.
+
+```{r counterbalancing-gender-define}
+
+dat.counterbalancing.gender <- dplyr::tribble(
+    ~genderSubjectGroup, ~set, ~faceGender,
+    1, 1, "male",
+    1, 2, "male",
+    1, 3, "female",
+    1, 4, "female",
+    
+    2, 1, "female",
+    2, 2, "female",
+    2, 3, "male",
+    2, 4, "male"
+) %>% 
+    ungroup
+    
+
+if (VALENCE.IS.BETWEEN.SUBJECTS){
+    dat.counterbalancing <- dplyr::tribble(
+        ~valence,
+        "bad",
+        "neutral",
+        "good") %>% 
+        dplyr::arrange (valence) %>% 
+        dplyr::mutate (valenceSubjectGroup = 1:n())
+} else {
+    dat.counterbalancing <- dplyr::tribble(
+        ~valenceSubjectGroup, ~valence,
+        1, NA_character_)
+}
+    
+dat.counterbalancing <- 
+    dat.counterbalancing %>% 
+    dplyr::mutate (data = map (1:n(), 
+                       ~ dat.counterbalancing.gender)) %>% 
+    unnest %>% 
+    dplyr::mutate (subjectGroup = 
+                       (valenceSubjectGroup - 1) * (nlevels2 (genderSubjectGroup)) + genderSubjectGroup,
+                   .before = 1)
+
+
+dat.counterbalancing %>% 
+    dplyr::mutate(subjectGroup = str_c ("Participant Group ", subjectGroup)) %>% 
+    kable.packed("subjectGroup", caption = "Counterbalancing. The valency of the action is counter-balanced across participants. Within each valency, the gender of the face the actions are combined to is counterbalanced across participants, giving 3 groups in total.", booktabs = TRUE) %>% 
+    kableExtra::kable_classic()
+
+```
+
+`r clearpage()`
+
+# Stimulus generation
+## Experiment 
+```{r read-scenarios}
+
+# The scenario has different columns for the prevalenceQuestion, acceptabilityQuestionThirdParty and acceptabilityQuestionFirstParty because some differ in the pronouns that will be used
+dat.scenarios <- read.delim("raw_materials/scenarios.tab", 
+                            header = TRUE,
+                            stringsAsFactors = FALSE) %>% 
+    # Remove trailing space from character columns
+    dplyr::mutate (dplyr::across (where (is.character), str_trim)) %>% 
+    # Turn the following columns to numeric and set to NA
+    dplyr::mutate (dplyr::across (c(set, numberWithinSet), ~ NA_integer_))
+
+# Repeat rows for debug purposes
+# dat.scenarios <- 
+#     dplyr::bind_rows(
+#         dat.scenarios %>% 
+#             slice(rep(1:n(), 
+#                       each = 4)),
+#         dat.scenarios %>% 
+#             dplyr::mutate(valence="neutral") %>% 
+#             slice(rep(1:n(), 
+#                       each = 4)),
+#         dat.scenarios %>% 
+#             dplyr::mutate(valence="good") %>% 
+#             slice(rep(1:n(), 
+#                       each = 4))
+#     )
+
+    
+
+# Shuffle scenarios by valence
+dat.scenarios <- dat.scenarios %>%
+    group_by (valence) %>%
+    slice_sample(prop = 1, replace = FALSE) %>%
+    ungroup
+```
+
+For each action, we first generate we add `r N.REPETITIONS.PER.ACTION` faces to each action. We thus add `r 2*N.REPETITIONS.PER.ACTION` new columns to the data frame.
+
+The scenarios are given in Table \ref{tab:print-scenarios}.
+
+```{r print-scenarios}
+
+dat.scenarios %>% 
+    dplyr::select(valence, observation, matches ("Question")) %>% 
+    dplyr::mutate(valence = factor (valence, levels = c("good", "neutral", "bad"))) %>% 
+    kable.packed("valence", caption = "Actions",
+                 col.names = c("Observation",
+                               "How likely are people in [city] to...",
+                               "Would people in [city] consider it morally acceptable to...", 
+                               "Would you consider it morally acceptable to..."),
+                 booktabs = TRUE, longtable = TRUE) %>% 
+    kableExtra::kable_styling(latex_options = c("striped", "repeat_header")) %>% 
+    kableExtra::column_spec(1, width = "6.5cm") %>% 
+    kableExtra::column_spec(2:4, width = "2.5cm") %>% 
+    kableExtra::add_footnote(str_c ("Place names: ", 
+                                    str_c (dat.scenarios$placeName, collapse = ", ")),
+                             notation = "none") %>% 
+    kableExtra::kable_classic()
+```
+
+```{r add-faces-to-actions}
+
+# Add columns with face stimuli to scenarios
+dat.scenarios <- dplyr::bind_cols(
+    dat.scenarios,
+    
+    # Male face stimuli
+    chunk.vector (str_c ("stimuli/male_", sample.int (N.FACES.PER.GENDER), ".jpg"),
+                  chunk.number = N.REPETITIONS.PER.ACTION,
+                  col.names = str_c ("face.male.", 1:N.REPETITIONS.PER.ACTION)),
+    
+    # Female face stimuli
+    chunk.vector (str_c ("stimuli/female_", sample.int (N.FACES.PER.GENDER), ".jpg"),
+                  chunk.number = N.REPETITIONS.PER.ACTION,
+                  col.names = str_c ("face.female.", 1:N.REPETITIONS.PER.ACTION)))
+    
+
+
+```
+
+We next add the set id and number within sets
+
+```{r add-set-ids}
+
+dat.scenarios <- dat.scenarios %>% 
+    group_by(valence) %>% 
+    dplyr::mutate(
+        set = 1 + ((dplyr::row_number() - 1) %/% 3)) %>% 
+    group_by(valence, set) %>%
+    dplyr::mutate(numberWithinSet = dplyr::row_number()) %>% 
+    ungroup
+
+
+```
+We first initialize the trial file according to 
+| randomBlock | type | stim | option  |
+| --- | --- | --- | --- |
+| 1 1 | learn | list with 9 occurrences of the two high token frequency actions  | randomize |
+| 1 1 | learn | list with 1 occurrence of all three actions in a block | randomize |
+| 1 1 | form | 3 questions in fixed order for single occurrence action | header = &nbsp; or “In <place>” |
+| 1 1 | form | 3 questions in fixed order for low type frequency action | header = &nbsp; or “In <place>” |
+| 1 1 | form | 3 questions in fixed order for high type frequency action | header = &nbsp; or “In <place>” |
+
+<aside>
+!!! We might add a second condition where the order of the forms is inverted
+</aside>
+
+
+
+```{r initialize-trial-file}
+
+dat.trials <- data.frame (
+    subjectGroup = numeric(),
+    myGenderSubjectGroup = numeric (),
+    myFaceGender = character (),
+    myValence = character(),
+    myPlaceName = character (),
+    mySet = numeric(),
+    # action 123, 231... 
+    myAssignmentCondition = numeric(),
+    myHighTypeFreqAction = character(),
+    myLowTypeFreqAction = character(),
+    mySingletonAction = character(),
+    randomBlock = character(),
+    myPhase = character(),
+    type = character(),
+    stim = character(),
+    stim1 = character(),
+    stimFormat = character(),
+    listOptions = character(),
+    title = character (),
+    content = character (),
+    head = character(),
+    body = character (),
+    button1 = character (),
+    button2 = character (),
+    button3 = character (),
+    presTime = numeric (),
+    ITI = numeric (),
+    script = character()
+)
+
+```
+
+```{r add-instructions}
+dat.trials <- 
+    dplyr::bind_rows(
+        dat.trials,
+        data.frame (
+            subjectGroup = 0,
+            type = "instructions",
+            myPhase = "instructionsExperiment",
+            title = "Noah\'s travel journal",
+            content = c(
+                "<p style=\'text-align:left;\'>Noah is studying journalism at university. He decides to take a gap year to explore some countries and cities that have always interested him.<br><br>He usually stays 13 days in each place. In each place, Noah makes some interesting observations.<br><br>We will now share 12 of these stories.</p><br>Press NEXT to continue&hellip;",
+
+                "<p style=\'text-align:left;\'>For each of these stories, we will ask you to guess how widespread and morally acceptable the events in the story are, in the place Noah visits.Your task is to indicate on a 4-point scale how widespread and morally acceptable these events are:<br><ul><li>\'1\' means that the events are very rare or completely unacceptable (depending on the question)</li><li>\'4\' means that the events are very common or completely acceptable (depending on the question)</li></ul></p><br>Press NEXT to continue&hellip;",
+
+                "<p style=\'text-align:left;\'>We are interested in your gut reaction, so please answer with the first idea that comes to your mind after reading the stories.</p><br>Press NEXT to continue&hellip;"),
+            button1 = "NEXT",
+            script = "%day%=0"
+        )
+    )
+
+```
+
+```{r add-attention-test}
+
+dat.trials <- 
+    dplyr::bind_rows(
+        dat.trials,
+        data.frame (
+            subjectGroup = 0,
+            type = "test",
+            myPhase = "attentionTest",
+            stim1 = "What is the name of the person whose travel journal you are about to read?",
+            stimFormat = "word",
+            button1 = "Moses",
+            button2 = "Noah",
+            button3 = "Fred",
+            pageBreak = 1,
+            required = 1,
+            # Correct trial file: if column comes out as if.
+            `if` = "!2",
+            then = "end",
+            feedback = "1: This is not correct, the experiment will end now.;2: This is correct.; 3: This is not correct, the experiment will end now.")
+    )
+            
+            
+            
+            
+```            
+
+
+<p style=\'text-align:left;\'>
+We are interested in your gut reaction, so please answer with the first idea that comes to your mind after reading the stories. 
+
+</p><br>Press NEXT to continue&hellip;
+
+
+```{r make-trials}
+
+make_stim_list_lines <- function (...){
+    
+    args <- list (...)
+    
+    map (args,
+         function (l) {
+             map2_chr (rep (l$observation, length (l$faces)),
+                       l$faces,
+                       ~ str_c (
+                           "<p style=\'text-align:left;width:900px;\'><img src=\'",
+                           .y,
+                           "\' height=\'300\' style=\'padding: 0 10px 10px 0; float:left;\'  /><br><br>",
+#                           "On day %day% of his visit in ", l$placeName, ", ",
+                           "<b>Day %day% in ", l$placeName, "</b><br><br>",
+                           .x,
+                           "</p>"))
+         }) %>% 
+        unlist
+    
+    
+}
+
+
+
+
+random.block.counter <- 0
+
+for (current.genderSubjectGroup in 1:2){
+    
+    for (cond in 1:3){
+        
+        row.offsets <- cyclic.shift(0:2, cond-1)
+        
+        for (i in seq (1, nrow(dat.scenarios), by = 3)){
+            
+            random.block.counter <- random.block.counter + 1
+            
+            dat.current.scenarios <- dat.scenarios %>% 
+                slice (i + row.offsets) 
+            
+            if (VALENCE.IS.BETWEEN.SUBJECTS){
+                            
+                current.subjectGroup <- dat.counterbalancing %>% 
+                    dplyr::filter (genderSubjectGroup == current.genderSubjectGroup) %>%
+                    dplyr::filter (valence == dat.current.scenarios$valence[1]) %>% 
+                    pull (subjectGroup) %>% 
+                    unique
+                
+            } else {
+                
+                current.subjectGroup <- current.genderSubjectGroup
+            }
+            
+            current.faceGender <- dat.counterbalancing.gender %>% 
+                dplyr::filter (genderSubjectGroup == current.genderSubjectGroup) %>% 
+                dplyr::filter (set == dat.current.scenarios$set[1]) %>% 
+                pull (faceGender)
+            
+            
+            # Make list for the 9 first presentations of the high frequency actions 
+            # Print in file set<set>_<action1>_<action2>_<action 3>_<cond#>_<gender>_list1.csv
+            # For example, set1_action1_action2_action3_cond1_male_list1.csv would contain
+            # - action1_male_face1.jpg …. action1_male_face9.jpg
+            # - 9 $\times$ action2_male_face1.jpg
+            
+            stimList1.name <- str_c (
+                current.faceGender,
+                dat.current.scenarios$valence[1],
+                str_c("set", dat.current.scenarios$set[1]),
+                str_c("cond", cond),
+                dat.current.scenarios$placeName[1],
+                "list1",
+                str_c(dat.current.scenarios$actionName, collapse = "_"),
+                sep = "_"
+            )
+
+            current.stim.list.lines1 <- make_stim_list_lines (
+                # 9 occurrences of the high type frequency action
+                list (
+                    placeName = dat.current.scenarios$placeName[1],
+                    observation = dat.current.scenarios$observation[1],
+                    faces = dat.current.scenarios %>% 
+                        slice (1) %>% 
+                        dplyr::select(str_c("face", current.faceGender, 1:(N.REPETITIONS.PER.ACTION-1), sep = ".")) %>% 
+                        t %>% 
+                        as.vector
+                ), 
+                # 9 occurrences of the low type frequency action
+                list (
+                    # Place name is taken from the high type frequency action
+                    placeName = dat.current.scenarios$placeName[1],
+                    observation = dat.current.scenarios$observation[2],
+                    faces = dat.current.scenarios %>% 
+                        slice (2) %>% 
+                        dplyr::select(str_c("face", current.faceGender, N.REPETITIONS.PER.ACTION, sep = ".")) %>% 
+                        t %>% 
+                        as.vector %>% 
+                        rep (N.REPETITIONS.PER.ACTION-1)
+                )
+            )
+            
+            # Make list for the last presentation of all 3 actions 
+            # This will be identical for all conditions, but we keep the list separate for clarity
+            # - set<set>_<action1>_<action2>_<action 3>_<gender>_list2.csv
+            # - For example, set1__action1_action2_action3_male_list2.csv would contain
+            # - action1_male_face1.jpg
+            # - action2_male_face1.jpg
+            # - action3_male_face1.jpg
+            
+            stimList2.name <- str_c (
+                current.faceGender,
+                dat.current.scenarios$valence[1],
+                str_c("set", dat.current.scenarios$set[1]),
+                str_c("cond", cond),
+                dat.current.scenarios$placeName[1],
+                "list2",
+                str_c(dat.current.scenarios$actionName, collapse = "_"),
+                sep = "_"
+            )
+
+            
+            current.stim.list.lines2 <- make_stim_list_lines (
+                # 1 occurrence of the high type frequency action
+                list (
+                    placeName = dat.current.scenarios$placeName[1],
+                    observation = dat.current.scenarios$observation[1],
+                    faces = dat.current.scenarios %>% 
+                          slice (1) %>% 
+                          pull(str_c("face", current.faceGender, N.REPETITIONS.PER.ACTION, sep = ".")) 
+                ), 
+                
+                # 1 occurrence of the low type frequency action
+                list (
+                    # Place name is taken from the high type frequency action
+                    placeName = dat.current.scenarios$placeName[1],
+                    observation = dat.current.scenarios$observation[2],
+                    faces = dat.current.scenarios %>% 
+                        slice (2) %>% 
+                        pull(str_c("face", current.faceGender, N.REPETITIONS.PER.ACTION, sep = ".")) 
+                ),
+                
+                # 1 occurrence of the low type and token action (i.e., the singleton action)
+                list (
+                    # Place name is taken from the high type frequency action
+                    placeName = dat.current.scenarios$placeName[1],
+                    observation = dat.current.scenarios$observation[3],
+                    faces = dat.current.scenarios %>% 
+                        slice (3) %>% 
+                        pull(str_c("face", current.faceGender, N.REPETITIONS.PER.ACTION, sep = ".")) 
+                )
+            )
+            
+            # Print testable rows
+            dat.trials <- 
+                dplyr::bind_rows(
+                    dat.trials,
+                    
+                    # Present the announcement of the visit and the two lists
+                    data.frame (
+                        subjectGroup = current.subjectGroup,
+                        myGenderSubjectGroup = current.genderSubjectGroup,
+                        myFaceGender = current.faceGender,
+                        mySet = dat.current.scenarios$set[1],
+                        myAssignmentCondition = cond,
+                        myPhase = "experiment",
+                        myValence = dat.current.scenarios$valence[1],
+                        myPlaceName = dat.current.scenarios$placeName[1],
+                        myHighTypeFreqAction = dat.current.scenarios$actionName[1],
+                        myLowTypeFreqAction = dat.current.scenarios$actionName[2],
+                        mySingletonAction = dat.current.scenarios$actionName[3],
+                        myQueriedAction = NA_character_,
+                        myQueriedActionStatus = NA_character_,
+                        randomBlock = random.block.counter %>% 
+                            as.character(),
+                        type = "learn",
+                        stim = c("",
+                                 stimList1.name, 
+                                 stimList2.name),
+                        stim1 = c(
+                            str_c ("<p style=\'text-align:left;width:900px;\'>",
+                                   "<font color=\'red\'>Noah will now visit a new city.</font><br><br>",
+                                   "You will now read about Noah\'s visit in ",
+                                   dat.current.scenarios$placeName[1],
+                                   ".</p>"),
+                                   "", ""),
+                        stimFormat = c("word", "list", "list"),
+                        listOptions = c("", "random", "random"),
+                        presTime = PRESTIME,
+                        ITI = ITI,
+                        script = c("%day%=0",
+                                   "%day%+=1",
+                                   "%day%+=1")
+                    ),
+                    
+                    # Present the surveys
+                    data.frame (
+                        myQueriedAction = dat.current.scenarios$actionName,
+                        myQueriedActionStatus = c("highTypeFreq",
+                                                  "lowTypeFreq",
+                                                  "single"),
+                        randomBlock = random.block.counter %>% 
+                            as.character(),
+                        type = "form",
+                        head = str_c ("<h1>Noah in ", dat.current.scenarios$placeName[1],"</h1>"),
+                        responseType = "radio",
+                        responseRows = dat.current.scenarios %>% 
+                            dplyr::mutate (prevalenceQuestion = str_c ("How likely are people in ", dat.current.scenarios$placeName[1], " to <b>",  prevalenceQuestion, "</b>")) %>% 
+                            dplyr::mutate (acceptabilityQuestionThirdParty = str_c ("Would <i><b>people in ", dat.current.scenarios$placeName[1], "</b></i> consider it morally acceptable to <b>",  acceptabilityQuestionThirdParty, "</b>")) %>% 
+                            dplyr::mutate (acceptabilityQuestionFirstParty = str_c ("Would <i><b>you</b></i> consider it morally acceptable to <b>",  acceptabilityQuestionFirstParty, "</b>")) %>% 
+                            dplyr::mutate(across (matches("Questions"), 
+                                                  ~ str_c ("<p style=\'text-align:left;\'>",
+                                                           .x,
+                                                           "</p>"))) %>% 
+                            tidyr::unite(responseRows, matches ("Question"), sep = ";") %>% 
+                            pull (responseRows),
+                        responseOptions = "Not at all;Not really;Somewhat;Very Much so",
+                        pageBreak = 1,
+                        required = 1
+                    )
+                ) 
+            
+            
+            # Print lists to file
+            write.table(data.frame(current.stim.list.lines1),
+                       file=str_c("../lists/", stimList1.name, ".csv"),
+                       row.names = FALSE,
+                       col.names = FALSE,
+                       quote=TRUE,
+                       sep = ",",
+                       na = "")
+            
+            write.table(data.frame(current.stim.list.lines2),
+                       file=str_c("../lists/", stimList2.name, ".csv"),
+                       row.names = FALSE,
+                       col.names = FALSE,
+                       quote=TRUE,
+                       sep = ",",
+                       na = "")
+        }# for (i in seq (1, nrow(dat.scenarios), by = 3)
+    } # for (cond in 1:3){
+} # for (gender in v.genders){
+
+
+dat.trials <- dat.trials %>% 
+                tidyr::fill (subjectGroup, myGenderSubjectGroup, myPhase, myFaceGender, myValence, myPlaceName, mySet, myAssignmentCondition, myHighTypeFreqAction, myLowTypeFreqAction, mySingletonAction, .direction = "down")
+
+```
+
+## SD3
+We next add the Short Dark Triad (SD3) questions from \cite{Jones2014}. The survey starts with the question 
+
+    > Please indicate how much you agree with each of the following statements.
+
+The head on each page is then 
+
+    > How much do you agree with this statement?
+
+Items should be kept in the same order.
+
+
+```{r read-sd3}
+
+
+dat.sd3 <- read.csv("raw_materials/sd3.csv",
+                    header  = TRUE,
+                    comment = "#") %>% 
+    dplyr::mutate(subjectGroup = 0)
+
+
+```
+
+```{r add-sd3-to-trials}
+
+dat.trials <- 
+    dplyr::bind_rows(
+        dat.trials,
+        data.frame (
+            subjectGroup = 0,
+            type = "instructions",
+            myPhase = "instructionsSD3",
+            title = "Please tell us more about you.",
+            content = "<p style=\'text-align:left;\'>We will now ask you some questions about yourself.<br><br>Please indicate how much you agree with each of the following statements.</p><br>Press NEXT to continue&hellip;",
+            button1 = "NEXT"
+        ),
+        dat.sd3)
+
+    
+
+```
+
+
+```{r write-trial-file}
+
+write.table (dat.trials,
+             file = str_c ("../social_learning_type_token_sequential_trials.csv"),
+             row.names = FALSE,
+             quote=TRUE,
+             sep = ",",
+             na = "")
+
+```
+
+`r clearpage()`
+
+```{r up-to-here}
+knitr::knit_exit()
+
+```
+
+```{r mistake}
+xxx
+```
+
+### Familiarization 
+We next created the data frame for familiarization on testable. All faces were presented `r N.PRESENTATION.FAM` times. We have two groups of participants, depending on whether the majority is male or female. 
+
+
+```{r create-familiarization-for-testable}
+
+prepare.df.for.familiarization %<a-% {
+    . %>% 
+        # Rename columns from the various database so we know they don't affect the testable flow
+        rename_with( ~ paste0("stimulus.Attrib.", .x), 
+                     .cols = -c(used.as.sample, used.as.test, Gender, Filename, Name)) %>% 
+        # Rename columns used for analysis
+        rename_with( ~ paste0("my.", .x), 
+                     .cols = c(used.as.sample, used.as.test, Gender)) %>%
+        rename(c(stim1 = Filename, 
+                 trialText = Name)) %>% 
+        add_column(trialTextPos = "below",
+                   .after = "trialText")
+}
+
+rep.df <- function (dat = . , times = 1){
+    
+    dat %>% 
+        slice (rep (1:nrow(dat), times = times))
+}
+
+# Circular shift for a vector 
+shifter <- function(x, n = 1) {
+  if (n == 0) {
+      x
+  } else {
+      c(tail(x, -n),
+           head(x, n))
+  }
+}
+
+
+
+# Female majority: Create N.PRESENTATION.FAM repetitions of the faces relevant for the female majority presentation
+dat.faces.testable.fam <- 
+    dat.face.attributes.selected %>% 
+    filter (stim.selection.col %in% 
+                c("Gender:female-Test:0",
+                  "Gender:female-Test:1",
+                  "Gender:male-Test:1")) %>% 
+    prepare.df.for.familiarization %>% 
+    # Add testable columns
+    add_column(my.phase = "familiariziation", 
+               type = "learn",
+               my.majority.gender = "female",
+               subjectGroup = 1,
+               random = NA, 
+               .before = 1) %>% 
+    # Repeat this selection N.PRESENTATION.FAM times, we will deal with the random column later
+    rep.df (N.PRESENTATION.FAM)
+    
+
+# Male majority: Create N.PRESENTATION.FAM repetitions of the faces relevant for the male majority presentation
+dat.faces.testable.fam <- 
+    bind_rows(
+        dat.faces.testable.fam,
+        
+        dat.face.attributes.selected %>% 
+            filter (stim.selection.col %in% 
+                        c("Gender:male-Test:0",
+                          "Gender:male-Test:1",
+                          "Gender:female-Test:1")) %>% 
+            prepare.df.for.familiarization %>% 
+            # Add testable columns
+            add_column(my.phase = "familiariziation", 
+                       type = "learn",
+                       my.majority.gender = "male",
+                       subjectGroup = 2,
+                       random = NA, 
+                       .before = 1) %>% 
+            # Repeat this selection N.PRESENTATION.FAM times, we will deal with the random column later
+            rep.df (N.PRESENTATION.FAM)
+    )
+
+
+dat.faces.testable.fam %>% 
+    mutate (random = 1 + (-1 + row_number()) %/% (n () / (2*N.PRESENTATION.FAM))) %>% 
+    add_column (stimFormat = ".jpg",
+                presTime = as.character (PRES.TIME),
+                ITI = as.character (ITI),
+                .after = "trialTextPos") -> dat.faces.testable.fam
+
+```
+
+### Test
+
+Following the familiarization, participants completed the 20-item prosopagnosia index [@PI20] as a distractor task. 
+
+During the test phase, participants view two same-gender faces side by side as well as a name, and had to click on the face corresponding to the name. Each picture appeared an equal number of times on either side of the screen as the correct choice; each picture thus in 4 trials. 
+
+```{r create-test-for-testable}
+# As the order of the pictures is already randomized, we create random pairings by combining
+# picture i with picture i + 1 for the correct choice on the left hand side, and with picture 
+# i + 2 for the correct choice on the right hand side. Indices are grouped by gender. 
+dat.faces.testable.test.base <- 
+    bind_rows (
+        # Correct choice on the left
+        dat.face.attributes.selected %>% 
+            filter (used.as.test == 1) %>% 
+            prepare.df.for.familiarization %>% 
+            # We rename stim1 to stim0 as this will be the column from which we will take the stimuli below
+            rename (stim0 = stim1, trialText0 = trialText) %>% 
+            add_column(stim1 = "", 
+                       stim2 = "", 
+                       trialText = "",
+                       key = "stim1",
+                       .after = "stim0") %>% 
+            group_by (my.Gender) %>% 
+            mutate (stim1 = stim0,
+                    stim2 = shifter (stim0, 1),
+                    trialText = trialText0),
+        
+        # Correct choice on the right
+        dat.face.attributes.selected %>% 
+            filter (used.as.test == 1) %>% 
+            prepare.df.for.familiarization %>% 
+            # We rename stim1 to stim0 as this will be the column from which we will take the stimuli below
+            rename (stim0 = stim1, trialText0 = trialText) %>% 
+            add_column(stim1 = "", 
+                       stim2 = "", 
+                       trialText = "",
+                       key = "stim2",
+                       .after = "stim0") %>% 
+            group_by (my.Gender) %>% 
+            mutate (stim1 = stim0,
+                    stim2 = shifter (stim0, 2),
+                    trialText = shifter (trialText0, 2))
+    ) %>% 
+    dplyr::select (-c(stim0, trialText0))
+
+
+# Now repeat this data frame for the two participant groups
+dat.faces.testable.test <- 
+    bind_rows(
+        dat.faces.testable.test.base %>% 
+            add_column(my.phase = "test", 
+                       type = "test",
+                       my.majority.gender = "female",
+                       subjectGroup = 1,
+                       # We will have the questionnaire between familiarization and test
+                       random = max (dat.faces.testable.fam$random) + 2 + 1, 
+                       .before = 1) %>% 
+            add_column (stimFormat = ".jpg",
+                        presTime = "",
+                        ITI = as.character (ITI),
+                        .after = "trialText"),
+        
+        dat.faces.testable.test.base %>% 
+            add_column(my.phase = "test", 
+                       type = "test",
+                       my.majority.gender = "male",
+                       subjectGroup = 2,
+                       # We will have the questionnaire between familiarization and test
+                       random = max (dat.faces.testable.fam$random) + 2 + 2, 
+                       .before = 1) %>% 
+            add_column (stimFormat = ".jpg",
+                        presTime = "",
+                        ITI = as.character (ITI),
+                        .after = "trialText")
+    )
+
+
+```
+
+We used the 20-item prosopagnosia index [@PI20] both to screen for prosopagnosia and as a filled retention interval. According to [@PI20], "PI20 scores in the ranges 65–74, 75–84, 85–100 may be broadly indicative of mild, moderate and severe DP, respectively."
+
+The following questions are rated on a 5 point scale, with 1 indicating strong disagreement and 5 strong agreement. 
+
+```{r define-instructions}
+    # Place holderfor initial instructions
+dat.instructions.general <- tribble(
+        ~my.phase, ~type, ~my.majority.gender, ~ subjectGroup, ~ITI, ~presTime, ~title, ~content, ~keyboard,
+        "instructions.general", "instructions", "", 0, "500", "", "Viewing faces", "Add instructions here. Press g to continue", "g",
+        "instructions.general", "instructions", "", 0, "500", "2000", "Viewing faces", "We will start in 2 seconds &hellip;", "",
+    )
+
+dat.instructions.pi20 <- tribble(
+        ~my.phase, ~type, ~my.majority.gender, ~ subjectGroup, ~ITI, ~presTime, ~title, ~content, ~keyboard,
+        "instructions.general", "instructions", "", 0, "500", "", "Viewing faces", "Add instructions here. Press g to continue", "g",
+        "instructions.general", "instructions", "", 0, "500", "2000", "Viewing faces", "We will start in 2 seconds &hellip;", "",
+    )    
+
+dat.instructions.test <- tribble(
+        ~my.phase, ~type, ~my.majority.gender, ~ subjectGroup, ~ITI, ~presTime, ~title, ~content, ~keyboard,
+        "instructions.general", "instructions", "", 0, "500", "", "Viewing faces", "Add instructions here. Press g to continue", "g",
+        "instructions.general", "instructions", "", 0, "500", "2000", "Viewing faces", "We will start in 2 seconds &hellip;", "",
+    )
+
+```
+
+```{r load-pi20}
+
+dat.pi20.testable <- read.csv("../stimuli/pi20_testable.csv",
+                              header  = TRUE) %>% 
+    mutate (subjectGroup = 0)
+
+```
+
+```{r combine-familiarization-and-test-for-testable}
+
+dat.faces.testable <- bind_rows(
+    # Make sure columns are in the order we want them
+    dat.faces.testable.fam %>% 
+        slice (n=0),
+    dat.faces.testable.test %>% 
+        slice (n=0),
+    
+    # First instructions
+    dat.instructions.general,
+    
+    # Familiarization
+    dat.faces.testable.fam %>% 
+        add_column(stim2 = "", .after = "stim1") %>% 
+        add_column(key = "", .after = "trialText"),
+    
+    # Instructions before PI20
+    dat.instructions.pi20,
+    
+    # PI20
+    dat.pi20.testable,
+    
+    # Instructions before test
+    dat.instructions.test,
+
+    # Test
+    dat.faces.testable.test
+) %>% 
+    add_column(button = "") %>% 
+    add_column(my.experimentID = "male.female.majority.naming", .before = 1)
+    
+
+# Write it
+write.csv (dat.faces.testable,
+           file = "../exps/exp1/exp1.majority.csv",
+           append = FALSE,
+           quote = FALSE,
+           sep = ",",
+           na = "",
+           row.names = FALSE)
+```
+
+```{r save-stimuli-for-testable}
+
+dat.faces.testable %>% 
+    dplyr::select (stim1, stim2) %>% 
+    pivot_longer(everything (),
+                 names_to = NULL,
+                 values_to = "Filename") %>% 
+    filter (str_length (Filename) > 0) %>% 
+    distinct %>% 
+    pull (Filename) %>% 
+    walk (~  system ( 
+        paste0 ('cp "../stimuli/10k US Adult Faces Database/10k US Adult Faces Database/Face Images/',
+                .x,
+                '.jpg\" ../exps/exp1/stim'))
+    ) -> l.all.faces.nonfamous 
+
+      
+```
+
+
+
+### Demos
+Demo for Experiments 1a and 1b are available at https://tstbl.co/555-905 and https://tstbl.co/700-864, respectively.
+
+## Experiment 2: Random selection of stimuli in Experiment 1
+In Experiment 2, participants have to memorize tattoos (rather than names) that go with the faces. We use a reduced number of stimuli as this task is likely more difficult. We use `r N.FACES.MAJORITY.TATTOO`` faces per gender, of which `r N.FACES.MINORITY.TATTOO` will be used for test.
+
+```{r select-subset-of-stimuli-for-tattoo-version}
+bind_rows(
+    dat.face.attributes.selected %>% 
+        filter (used.as.test == 0) %>% 
+        group_by (Gender) %>% 
+        slice_sample(n = N.FACES.MAJORITY.TATTOO - N.FACES.MINORITY.TATTOO),
+    dat.face.attributes.selected %>% 
+        filter (used.as.test == 1) %>% 
+        group_by (Gender) %>% 
+        slice_sample(n = N.FACES.MINORITY.TATTOO)
+) %>% 
+    ungroup -> dat.face.attributes.selected.tattoo 
+```
+
+```{r write-subset-of-stimuli-for-tattoo-version}
+
+write.csv (dat.face.attributes.selected.tattoo,
+           file = "../exps/exp2/exp2.selection.csv",
+           append = FALSE,
+           quote = FALSE,
+           sep = ",",
+           na = "",
+           row.names = FALSE)
+```
+
+```{r copy-files-subset-of-stimuli-for-tattoo-version}
+
+
+dat.face.attributes.selected.tattoo %>% 
+    filter (used.as.test == 0) %>% 
+    mutate (Filename = paste0 ("cp \"../stimuli/10k US Adult Faces Database/10k US Adult Faces Database/Face Images/", Filename, ".jpg\" ../exps/exp2/stim.exp2.fam.vs.test/familiarization_only")) %>% 
+    pull (Filename) %>% 
+    walk (~ system (.x))
+    
+
+dat.face.attributes.selected.tattoo %>% 
+    filter (used.as.test == 1) %>% 
+    mutate (Filename = paste0 ("cp \"../stimuli/10k US Adult Faces Database/10k US Adult Faces Database/Face Images/", Filename, ".jpg\" ../exps/exp2/stim.exp2.fam.vs.test/test")) %>% 
+    pull (Filename) %>% 
+    walk (~ system (.x))
+
+```
+
