@@ -137,7 +137,7 @@ dat.social.type.token.sequential.raw <- read.testable.results("../data/994749_se
 ```{r check-attention-test}
 
 dat.social.type.token.sequential.bad.subj.attention <- dat.social.type.token.sequential.raw %>% 
-    dplyr::filter (myPhase == "attentionTest") %>% 
+    dplyr::filter(myPhase == "attentionTest") %>% 
     dplyr::select(filename, myPhase, response) %>% 
     dplyr::filter(response !=2)
 
@@ -161,21 +161,62 @@ We next analyze the SD and combine the results with the data frame for the main 
 ```{r analyze-sd3}
 
 dat.social.type.token.sequential.sd3 <- dat.social.type.token.sequential.raw %>% 
-    dplyr::filter (myPhase == "SD3") %>% 
-    dplyr::mutate (max.response = str_count (responseOptions, ";") + 1) %>% 
-    dplyr::mutate (responseCode = as.numeric (responseCode)) %>% 
+    dplyr::filter(myPhase == "SD3") %>% 
+    dplyr::mutate(max.response = str_count(responseOptions, ";") + 1) %>% 
+    dplyr::mutate(responseCode = as.numeric(responseCode)) %>% 
     # Don't know if it's logical or not
-    dplyr::mutate (mySD3reversed = as.character (mySD3reversed)) %>% 
-    dplyr::mutate (responseCode = ifelse (mySD3reversed == "TRUE",
+    dplyr::mutate(mySD3reversed = as.character(mySD3reversed)) %>% 
+    dplyr::mutate(responseCode = ifelse(mySD3reversed == "TRUE",
                                           max.response + 1 - responseCode,
                                           responseCode)) %>% 
-    dplyr::group_by (filename, myPhase, mySD3subScale) %>% 
-    dplyr::summarize (score = sum (responseCode)) %>% 
+    dplyr::group_by(filename, myPhase, mySD3subScale) %>% 
+    dplyr::summarize(score = sum(responseCode)) %>% 
     tidyr::pivot_wider(id_cols = c(filename, myPhase),
                        names_from = mySD3subScale,
-                       values_from = score)
+                       values_from = score) %>% 
+    dplyr::ungroup()
     
-                       
+```
+
+```{r analyze-sd3-add-median-split}
+    
+dat.social.type.token.sequential.sd3 <- 
+    dat.social.type.token.sequential.sd3 %>% 
+    dplyr::mutate(dplyr::across(where(is.numeric),
+                                ~ dplyr::case_when(
+                                    .x > median(.x) ~ "high",
+                                    .x < median (.x) ~ "low",
+                                    TRUE ~ NA_character_),
+                                .names = "{.col}.group"))
+
+
+
+# Verify the number of participants on the median
+dat.social.type.token.sequential.sd3.counts <-
+    dat.social.type.token.sequential.sd3 %>%  
+    dplyr::select(ends_with("group")) %>% 
+    tidyr::pivot_longer(ends_with("group"),
+                        names_to = "scale",
+                        values_to = "group") %>% 
+    dplyr::mutate(scale = str_remove(scale, ".group")) %>% 
+    janitor::tabyl(scale, group)
+    
+
+
+dplyr::left_join(
+    dat.social.type.token.sequential.sd3.counts,
+    dat.social.type.token.sequential.sd3.counts %>% 
+        janitor::adorn_percentages("row"),
+    by = "scale",
+    suffix = c(".N", ".P")) %>% 
+    knitr::kable(caption = "Number of participants in each group of the SD3 scales",
+                 booktabs = TRUE,
+                 col.names = str_remove(names(.), "\\..$")) %>% 
+    kableExtra::add_header_above(c(" " = 1, "N" = 3, "Percentage" = 3), bold = TRUE) %>% 
+    kableExtra::kable_classic()
+    
+
+    
 ```
 
 ```{r combine-with-sd3}
@@ -183,7 +224,7 @@ dat.social.type.token.sequential.sd3 <- dat.social.type.token.sequential.raw %>%
 dat.social.type.token.sequential <- 
     left_join(
         dat.social.type.token.sequential.raw %>% 
-            dplyr::filter (myPhase == "experiment"),
+            dplyr::filter(myPhase == "experiment"),
         dat.social.type.token.sequential.sd3 %>% 
             dplyr::select(-c(myPhase)),
         by = "filename") 
@@ -198,20 +239,20 @@ dat.social.type.token.sequential <-
 
 dat.social.type.token.sequential <- 
     dat.social.type.token.sequential %>% 
-    dplyr::mutate (max.response = str_count (responseOptions, ";") + 1) %>% 
+    dplyr::mutate(max.response = str_count(responseOptions, ";") + 1) %>% 
     tidyr::separate(responseCode, 
                     c("prevalence_raw", "third.party.acceptability_raw", "first.party.acceptablity_raw"),
                     convert = TRUE) %>% 
-    dplyr::mutate (dplyr::across (ends_with("raw"),
+    dplyr::mutate(dplyr::across(ends_with("raw"),
                                   ~ 1 * (.x > max.response/2), 
                                   .names = "{.col}_bin")) %>% 
-    dplyr::rename_with (~ str_replace (.x, "raw_bin", "bin"), ends_with("bin")) %>% 
+    dplyr::rename_with(~ str_replace (.x, "raw_bin", "bin"), ends_with("bin")) %>% 
     tidyr::pivot_longer(c(ends_with("raw"), ends_with("bin")),
                         names_to = "question",
                         values_to = "rating") %>% 
     tidyr::separate(question, c("question", "scoring"), "_") %>% 
-    dplyr::mutate (question = factor (question, levels = c("prevalence", "third.party.acceptability", "first.party.acceptablity"))) %>% 
-    dplyr::mutate (myValence = factor (myValence, levels = c("bad", "neutral", "good")))
+    dplyr::mutate(question = factor(question, levels = c("prevalence", "third.party.acceptability", "first.party.acceptablity"))) %>% 
+    dplyr::mutate(myValence = factor(myValence, levels = c("bad", "neutral", "good")))
     
     
 
@@ -220,9 +261,12 @@ dat.social.type.token.sequential <-
 ```{r make-averages}
 
 dat.social.type.token.sequential.m <- dat.social.type.token.sequential %>% 
-    dplyr::group_by (filename, age, gender, Machiavellianism, Narcissism, Psychopathy, myQueriedActionStatus, myValence, question, scoring) %>% 
-    dplyr::summarize (rating = mean (rating)) %>% 
-    dplyr::arrange (filename, scoring, myValence, myQueriedActionStatus, question)
+    dplyr::group_by(filename, age, gender, 
+                    Machiavellianism, Narcissism, Psychopathy, 
+                    Machiavellianism.group, Narcissism.group, Psychopathy.group, 
+                    myQueriedActionStatus, myValence, question, scoring) %>% 
+    dplyr::summarize(rating = mean(rating)) %>% 
+    dplyr::arrange(filename, scoring, myValence, myQueriedActionStatus, question)
 
 
 
@@ -230,7 +274,7 @@ dat.social.type.token.sequential.m <- dat.social.type.token.sequential %>%
 
 ```{r make-wide}
 
-make.diff.score <- function (x, y, relative = TRUE){
+make.diff.score <- function(x, y, relative = TRUE){
     
     if (relative) {
         
@@ -243,66 +287,77 @@ make.diff.score <- function (x, y, relative = TRUE){
 }
 
 dat.social.type.token.sequential.m.wide <- dat.social.type.token.sequential.m %>% 
-    tidyr::pivot_wider(id_cols = c(filename, age, gender, Machiavellianism, Narcissism, Psychopathy, myValence),
+    tidyr::pivot_wider(id_cols = c(filename, age, gender, 
+                                   Machiavellianism, Narcissism, Psychopathy, 
+                                   Machiavellianism.group, Narcissism.group, Psychopathy.group,
+                                   myValence),
                        names_from = c(myQueriedActionStatus, question, scoring),
                        values_from = rating) %>% 
     # Difference scores compared to single occurrence
-    dplyr::mutate (
+    dplyr::mutate(
         # Difference scores high type frequency vs single - binary
-        d.vs.single_highTypeFreq_prevalence_bin = make.diff.score (highTypeFreq_prevalence_bin,
+        d.vs.single_highTypeFreq_prevalence_bin = make.diff.score(highTypeFreq_prevalence_bin,
                                                                    single_prevalence_bin),
-        d.vs.single_highTypeFreq_third.party.acceptability_bin = make.diff.score (highTypeFreq_third.party.acceptability_bin,
+        d.vs.single_highTypeFreq_third.party.acceptability_bin = make.diff.score(highTypeFreq_third.party.acceptability_bin,
                                                                                   single_third.party.acceptability_bin),
-        d.vs.single_highTypeFreq_first.party.acceptablity_bin = make.diff.score (highTypeFreq_first.party.acceptablity_bin,
+        d.vs.single_highTypeFreq_first.party.acceptablity_bin = make.diff.score(highTypeFreq_first.party.acceptablity_bin,
                                                                                  single_first.party.acceptablity_bin),
         
         
         # Difference scores low type frequency vs single - binary
-        d.vs.single_lowTypeFreq_prevalence_bin = make.diff.score (lowTypeFreq_prevalence_bin,
+        d.vs.single_lowTypeFreq_prevalence_bin = make.diff.score(lowTypeFreq_prevalence_bin,
                                                                   single_prevalence_bin),
-        d.vs.single_lowTypeFreq_third.party.acceptability_bin = make.diff.score (lowTypeFreq_third.party.acceptability_bin,
+        d.vs.single_lowTypeFreq_third.party.acceptability_bin = make.diff.score(lowTypeFreq_third.party.acceptability_bin,
                                                                                  single_third.party.acceptability_bin),
-        d.vs.single_lowTypeFreq_first.party.acceptablity_bin = make.diff.score (lowTypeFreq_first.party.acceptablity_bin,
+        d.vs.single_lowTypeFreq_first.party.acceptablity_bin = make.diff.score(lowTypeFreq_first.party.acceptablity_bin,
                                                                                 single_first.party.acceptablity_bin),
         
         # Difference scores high type frequency vs single - raw
-        d.vs.single_highTypeFreq_prevalence_raw = make.diff.score (highTypeFreq_prevalence_raw,
+        d.vs.single_highTypeFreq_prevalence_raw = make.diff.score(highTypeFreq_prevalence_raw,
                                                                    single_prevalence_raw),
-        d.vs.single_highTypeFreq_third.party.acceptability_raw = make.diff.score (highTypeFreq_third.party.acceptability_raw,
+        d.vs.single_highTypeFreq_third.party.acceptability_raw = make.diff.score(highTypeFreq_third.party.acceptability_raw,
                                                                                   single_third.party.acceptability_raw),
-        d.vs.single_highTypeFreq_first.party.acceptablity_raw = make.diff.score (highTypeFreq_first.party.acceptablity_raw,
+        d.vs.single_highTypeFreq_first.party.acceptablity_raw = make.diff.score(highTypeFreq_first.party.acceptablity_raw,
                                                                                  single_first.party.acceptablity_raw),
         
         # Difference scores low type frequency vs single - raw
-        d.vs.single_lowTypeFreq_prevalence_raw = make.diff.score (lowTypeFreq_prevalence_raw,
+        d.vs.single_lowTypeFreq_prevalence_raw = make.diff.score(lowTypeFreq_prevalence_raw,
                                                                   single_prevalence_raw),
-        d.vs.single_lowTypeFreq_third.party.acceptability_raw = make.diff.score (lowTypeFreq_third.party.acceptability_raw,
+        d.vs.single_lowTypeFreq_third.party.acceptability_raw = make.diff.score(lowTypeFreq_third.party.acceptability_raw,
                                                                                  single_third.party.acceptability_raw),
-        d.vs.single_lowTypeFreq_first.party.acceptablity_raw = make.diff.score (lowTypeFreq_first.party.acceptablity_raw,
+        d.vs.single_lowTypeFreq_first.party.acceptablity_raw = make.diff.score(lowTypeFreq_first.party.acceptablity_raw,
                                                                                 single_first.party.acceptablity_raw)
     ) %>% 
     
     # Difference scores high vs. low type frequency
-    dplyr::mutate (
+    dplyr::mutate(
      # Difference scores high type frequency vs low type frequency - binary
-        d.high.vs.low.TypeFreq_prevalence_bin = make.diff.score (highTypeFreq_prevalence_bin,
+        d.high.vs.low.TypeFreq_prevalence_bin = make.diff.score(highTypeFreq_prevalence_bin,
                                                                    lowTypeFreq_prevalence_bin),
-        d.high.vs.low.TypeFreq_third.party.acceptability_bin = make.diff.score (highTypeFreq_third.party.acceptability_bin,
+        d.high.vs.low.TypeFreq_third.party.acceptability_bin = make.diff.score(highTypeFreq_third.party.acceptability_bin,
                                                                                   lowTypeFreq_third.party.acceptability_bin),
-        d.high.vs.low.TypeFreq_first.party.acceptablity_bin = make.diff.score (highTypeFreq_first.party.acceptablity_bin,
+        d.high.vs.low.TypeFreq_first.party.acceptablity_bin = make.diff.score(highTypeFreq_first.party.acceptablity_bin,
                                                                                  lowTypeFreq_first.party.acceptablity_bin),
         
         
         # Difference scores high type frequency vs low type frequency - raw
-        d.high.vs.low.TypeFreq_prevalence_raw = make.diff.score (highTypeFreq_prevalence_raw,
+        d.high.vs.low.TypeFreq_prevalence_raw = make.diff.score(highTypeFreq_prevalence_raw,
                                                                    single_prevalence_raw),
-        d.high.vs.low.TypeFreq_third.party.acceptability_raw = make.diff.score (highTypeFreq_third.party.acceptability_raw,
+        d.high.vs.low.TypeFreq_third.party.acceptability_raw = make.diff.score(highTypeFreq_third.party.acceptability_raw,
                                                                                   single_third.party.acceptability_raw),
-        d.high.vs.low.TypeFreq_first.party.acceptablity_raw = make.diff.score (highTypeFreq_first.party.acceptablity_raw,
+        d.high.vs.low.TypeFreq_first.party.acceptablity_raw = make.diff.score(highTypeFreq_first.party.acceptablity_raw,
                                                                                  single_first.party.acceptablity_raw)
     )
 
+```
 
+```{r add-per-valency-averages}
+dat.social.type.token.sequential.m.wide <- dat.social.type.token.sequential.m.wide %>% 
+    dplyr::rowwise() %>% 
+    # Select columns that don't start with d
+    dplyr::mutate(mean.prevalence_raw = mean(dplyr::c_across(tidyr::matches("^[^d].*prevalence_raw"))),
+                  mean.third.party.acceptability_raw = mean(dplyr::c_across(tidyr::matches("^[^d].*third.party.acceptability_raw"))),
+                  mean.first.party.acceptablity_raw = mean(dplyr::c_across(tidyr::matches("^[^d].*first.party.acceptablity_raw")))) 
 ```
 
 ```{r save-for-students}
@@ -332,11 +387,17 @@ xlsx::write.xlsx (
     row.names=FALSE,
     sheetName="Binary ratings",
     append=TRUE)
+
 ```
 
 `r clearpage()`
 
 # Summary
+## References for the moral/conventional distinction.
+
+[@Machery2022;@Hauser2010]
+
+
 ## Ratings
 
 ### Prevalence
@@ -351,7 +412,7 @@ The interaction was not significant.
 
 We observed a main effect of valency, suggesting that good actions were judged better than neutral actions, which were judged better than neutral actions. 
 
-We also observed a main effect of Action Status, suggesting that single occurence actions were judged as worse than low frequency actions, which we judged as worse than high type frequency actions. 
+We also observed a main effect of Action Status, suggesting that single occurrence actions were judged as worse than low frequency actions, which we judged as worse than high type frequency actions. 
 
 These factors did not interact.
 
@@ -420,10 +481,10 @@ dat.social.type.token.sequential.m %>%
 ```{r plot-ratings-raw, fig.cap = "Raw ratings"}
 
 dat.social.type.token.sequential.m %>% 
-    dplyr::filter (scoring == "raw") %>% 
-    dplyr::mutate (myQueriedActionStatus = str_wrap(myQueriedActionStatus, 10)) %>% 
-    dplyr::mutate (question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::mutate (question = str_wrap(question, 20)) %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    dplyr::mutate(myQueriedActionStatus = str_wrap(myQueriedActionStatus, 10)) %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_wrap(question, 20)) %>% 
     ggplot (aes (x = myQueriedActionStatus, y = rating)) +
         theme_light(14) +
     theme (axis.title.x = element_blank(),
@@ -467,7 +528,7 @@ dat.social.type.token.sequential.prevalence.sw %>%
 As shown in Table \ref{tab:city-prevalence-sw}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
 
 
-```{r city-typrevalence-aov-calculate}
+```{r city-prevalence-aov-calculate}
 
 aov.social.type.token.sequential.prevalence <- aov(
     rating ~ myQueriedActionStatus * myValence + 
@@ -565,9 +626,10 @@ dat.aov.social.type.token.sequential.prevalence.followup.actionStatus <-
 
 
 ```    
-Finally, Table \ref{tab:city-prevalence-aov-show} shows separate two way ANOVAs leaving out one of the Action Statuses. In all ANOVAs, we observed the expected main effect of Valency. We also observed a main effect of Action Status for all comparisons, suggesting that both an increased token frequency and an increased type frequency affect first party acceptability. 
 
-Finally, the interaction between Action Status and Valency failed to reach significance .
+Finally, Table \ref{tab:city-prevalence-aov-show} shows separate two way ANOVAs leaving out one of the Action Statuses. In all ANOVAs, we observed the expected main effect of Valency. We also observed a main effect of Action Status for all comparisons, suggesting that both an increased token frequency and an increased type frequency affect prevalence. 
+
+Finally, the interaction between Action Status and Valency failed to reach significance.
 
 ```{r city-prevalence-aov-show}
 
@@ -592,7 +654,7 @@ dplyr::bind_rows(
 ) %>%  
     setNames(replace_default_column_labels(names (.))) %>%
     kable.packed("model.type",
-                  caption = "ANOVA for prevalence judgments and unprocessed ratings. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.",
+                  caption = "ANOVA for prevalence judgments and unprocessed ratings. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for prevalence ratings. (Bottom). Follow-up ANOVAs leaving out one of the frequency conditions. Prevalence judgements were affected by Valency and the Frequency Condition. The latter effect reached significance for all valencies separately. Prevalence judgments different across all frequency conditions.",
                   booktabs = TRUE, escape = FALSE) %>%
             kable_styling(latex_options =
                               c("hold_position", "striped", "scale_down")) %>%
@@ -722,6 +784,7 @@ dat.aov.social.type.token.sequential.acceptability.other.followup.actionStatus <
 
     
 ```    
+
 Finally, Table \ref{tab:city-acceptability-other-aov-show} shows separate two way ANOVAs leaving out one of the Action Statuses. In all ANOVAs, we observed the expected main effect of Valency. We also observed a main effect of Action Status for all comparisons, suggesting that both an increased token frequency and an increased type frequency affect first party acceptability. 
 
 Finally, the interactions between Action Status and Valency failed to reach significance.
@@ -749,7 +812,7 @@ dplyr::bind_rows(
 ) %>%  
     setNames(replace_default_column_labels(names (.))) %>%
     kable.packed("model.type",
-                  caption = "ANOVA for third-person acceptability. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.",
+                  caption = "ANOVA for third-person acceptability. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Follow-up ANOVAs leaving out one of the frequency conditions. Third party acceptability was affected by Valency and by the Frequency Condition. The effect of frequency condition reach significant for all valencies, but was stronger for neutral scenarios. The the effect of frequency condition was significant for all pairs of frequency conditions.",
                   booktabs = TRUE, escape = FALSE) %>%
             kable_styling(latex_options =
                               c("hold_position", "striped", "scale_down")) %>%
@@ -911,7 +974,7 @@ dplyr::bind_rows(
 ) %>%  
     setNames(replace_default_column_labels(names (.))) %>%
     kable.packed("model.type",
-                  caption = "ANOVA for first-person acceptability. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.",
+                  caption = "ANOVA for first-person acceptability. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Follow-up ANOVAs leaving out one of the frequency conditions. First party-acceptability were affected by both valency and Frequency Condition. An interaction between these factors suggested that the effect of the frequency condition was not significant for bad actions, and much stronger for neutral actions than for good actions. All frequency conditions differed from one another.",
                   booktabs = TRUE, escape = FALSE) %>%
             kable_styling(latex_options =
                               c("hold_position", "striped", "scale_down")) %>%
@@ -1004,8 +1067,8 @@ dat.social.type.token.sequential.m.d <- dplyr::bind_rows(
 dat.social.type.token.sequential.m.d %>% 
     dplyr::filter(scoring == "raw") %>% 
     dplyr::filter(Contrast == "d.vs.single") %>% 
-    dplyr::mutate (question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::mutate (question = str_wrap(question, 20)) %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_wrap(question, 20)) %>% 
     ggplot (aes (x = myQueriedActionStatus, y = d)) +
         theme_light(14) +
     theme (axis.title.x = element_blank(),
@@ -1029,7 +1092,7 @@ dat.social.type.token.sequential.m.d %>%
 dat.social.type.token.sequential.m.d %>% 
     dplyr::filter(scoring == "raw") %>% 
     dplyr::filter(Contrast == "d.vs.single") %>% 
-    dplyr::mutate (question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
     dplyr::group_by(question, myValence, myQueriedActionStatus) %>% 
     dplyr::summarize(N = n(),
                      M = mean(d),
@@ -1052,8 +1115,8 @@ dat.social.type.token.sequential.m.d %>%
 dat.social.type.token.sequential.m.d %>% 
     dplyr::filter(scoring == "raw") %>% 
     dplyr::filter(Contrast != "d.vs.single") %>% 
-    dplyr::mutate (question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::mutate (question = str_wrap(question, 20)) %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_wrap(question, 20)) %>% 
     ggplot (aes (x = question, y = d)) +
         theme_light(14) +
     theme (axis.title.x = element_blank(),
@@ -1077,7 +1140,7 @@ dat.social.type.token.sequential.m.d %>%
 dat.social.type.token.sequential.m.d %>% 
     dplyr::filter(scoring == "raw") %>% 
     dplyr::filter(Contrast != "d.vs.single") %>% 
-    dplyr::mutate (question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
     dplyr::group_by(question, myValence) %>% 
     dplyr::summarize(N = n(),
                      M = mean(d),
@@ -1943,7 +2006,7 @@ dplyr::bind_rows(
 
 
 l.dat.social.type.token.sequential.corr.vs.single <- dat.social.type.token.sequential.m.wide %>% 
-    dplyr::group_by (myValence, Machiavellianism, Narcissism, Psychopathy) %>% 
+    dplyr::group_by(myValence, Machiavellianism, Narcissism, Psychopathy) %>% 
     dplyr::select(starts_with(fixed ("d.vs.single_"))) %>% 
     dplyr::select(-ends_with(fixed ("_bin"))) %>%
     dplyr::rename_with(~ .x %>% 
@@ -1975,20 +2038,20 @@ l.dat.social.type.token.sequential.corr.vs.single %>%
              tibble::rownames_to_column ("var") %>% 
              dplyr::select(-v.predictors) %>% 
              dplyr::rowwise() %>% 
-             dplyr::mutate (keep.row = any (dplyr::c_across(-c("var")) <= .05, na.rm= TRUE)) %>% 
-             dplyr::filter (keep.row) %>% 
+             dplyr::mutate(keep.row = any (dplyr::c_across(-c("var")) <= .05, na.rm= TRUE)) %>% 
+             dplyr::filter(keep.row) %>% 
              dplyr::select (-keep.row) %>% 
-             dplyr::filter (var %in% v.predictors) %>% 
+             dplyr::filter(var %in% v.predictors) %>% 
              tibble::column_to_rownames("var") %>% 
              tdf %>% 
              tibble::rownames_to_column("var") %>% 
              dplyr::rowwise() %>% 
-             dplyr::mutate (keep.row = any (dplyr::c_across(-c("var")) <= .05, na.rm= TRUE)) %>% 
-             dplyr::filter (keep.row) %>% 
+             dplyr::mutate(keep.row = any (dplyr::c_across(-c("var")) <= .05, na.rm= TRUE)) %>% 
+             dplyr::filter(keep.row) %>% 
              dplyr::select (-keep.row) %>% 
-             dplyr::mutate (myValence = .x$myValence, .before = 1)) %>% 
+             dplyr::mutate(myValence = .x$myValence, .before = 1)) %>% 
     dplyr::bind_rows() %>% 
-    dplyr::mutate (var = str_replace_all (var, fixed ("\n"), " ")) %>%
+    dplyr::mutate(var = str_replace_all (var, fixed ("\n"), " ")) %>%
     kable.packed (
         "myValence",
         caption = "P values of significant correlations between dark triad predictors and difference scores comparing ratings to the equivalent ratings in the single occurrence condition,",
@@ -2003,7 +2066,7 @@ kableExtra::kable_classic()
 
 
 l.dat.social.type.token.sequential.corr.high.vs.low <- dat.social.type.token.sequential.m.wide %>% 
-    dplyr::group_by (myValence, Machiavellianism, Narcissism, Psychopathy) %>% 
+    dplyr::group_by(myValence, Machiavellianism, Narcissism, Psychopathy) %>% 
     dplyr::select(starts_with(fixed ("d.high.vs.low.TypeFreq_"))) %>% 
     dplyr::select(-ends_with(fixed ("_bin"))) %>%
     dplyr::rename_with(~ .x %>% 
@@ -2034,20 +2097,20 @@ l.dat.social.type.token.sequential.corr.high.vs.low %>%
              tibble::rownames_to_column ("var") %>% 
              dplyr::select(-v.predictors) %>% 
              dplyr::rowwise() %>% 
-             dplyr::mutate (keep.row = any (dplyr::c_across(-c("var")) <= .05, na.rm= TRUE)) %>% 
-             dplyr::filter (keep.row) %>% 
+             dplyr::mutate(keep.row = any (dplyr::c_across(-c("var")) <= .05, na.rm= TRUE)) %>% 
+             dplyr::filter(keep.row) %>% 
              dplyr::select (-keep.row) %>% 
-             dplyr::filter (var %in% v.predictors) %>% 
+             dplyr::filter(var %in% v.predictors) %>% 
              tibble::column_to_rownames("var") %>% 
              tdf %>% 
              tibble::rownames_to_column("var") %>% 
              dplyr::rowwise() %>% 
-             dplyr::mutate (keep.row = any (dplyr::c_across(-c("var")) <= .05, na.rm= TRUE)) %>% 
-             dplyr::filter (keep.row) %>% 
+             dplyr::mutate(keep.row = any (dplyr::c_across(-c("var")) <= .05, na.rm= TRUE)) %>% 
+             dplyr::filter(keep.row) %>% 
              dplyr::select (-keep.row) %>% 
-             dplyr::mutate (myValence = .x$myValence, .before = 1)) %>% 
+             dplyr::mutate(myValence = .x$myValence, .before = 1)) %>% 
     dplyr::bind_rows() %>% 
-    dplyr::mutate (var = str_replace_all (var, fixed ("\n"), " ")) %>%
+    dplyr::mutate(var = str_replace_all (var, fixed ("\n"), " ")) %>%
     kable.packed (
         "myValence",
         caption = "P values of significant correlations between dark triad predictors and difference scores comparing comparing the high and the low type frequency conditions.",
@@ -2158,10 +2221,10 @@ dat.social.type.token.sequential.m %>%
 ```{r plot-acurracy-bin, fig.cap = "Bin ratings"}
 
 dat.social.type.token.sequential.m %>% 
-    dplyr::filter (scoring == "bin") %>% 
-    dplyr::mutate (myQueriedActionStatus = str_wrap(myQueriedActionStatus, 10)) %>% 
-    dplyr::mutate (question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::mutate (question = str_wrap(question, 20)) %>% 
+    dplyr::filter(scoring == "bin") %>% 
+    dplyr::mutate(myQueriedActionStatus = str_wrap(myQueriedActionStatus, 10)) %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_wrap(question, 20)) %>% 
     ggplot (aes (x = myQueriedActionStatus, y = rating)) +
         theme_light(14) +
     theme (axis.title.x = element_blank(),
@@ -2354,12 +2417,12 @@ dat.social.type.token.sequential.m.wide %>%
     tidyr::pivot_longer(-c(myValence),
                         names_to = "Contrast",
                         values_to = "d") %>% 
-    dplyr::mutate (Contrast = Contrast %>% 
+    dplyr::mutate(Contrast = Contrast %>% 
                        str_remove ("_bin$") %>% 
                        str_remove ("^d\\.vs\\.single\\_")) %>% 
     tidyr::separate(Contrast, c("myQueriedActionStatus", "question"), sep = "_") %>% 
-    dplyr::mutate (question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::mutate (question = str_wrap(question, 20)) %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_wrap(question, 20)) %>% 
     ggplot (aes (x = myQueriedActionStatus, y = d)) +
         theme_light(14) +
     theme (axis.title.x = element_blank(),
@@ -2389,11 +2452,11 @@ dat.social.type.token.sequential.m.wide %>%
     tidyr::pivot_longer(-c(myValence),
                         names_to = "question",
                         values_to = "d") %>%
-    dplyr::mutate (question = question %>% 
+    dplyr::mutate(question = question %>% 
                        str_remove ("_bin$") %>% 
                        str_remove ("^d\\.high\\.vs\\.low\\.TypeFreq_")) %>% 
-    dplyr::mutate (question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::mutate (question = str_wrap(question, 20)) %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_wrap(question, 20)) %>% 
     ggplot (aes (x = question, y = d)) +
         theme_light(14) +
     theme (axis.title.x = element_blank(),
