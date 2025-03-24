@@ -1,0 +1,5 @@
+subjectGroup,browser,version,screenWidth,screenHeight,OS,OS_lang,GMT_timestamp,local_timestamp,trial_file_version,mindsCode,batchID,link,age,gender,tallies,duration_s
+"4",Chrome,115.0.0.0,1280,720,Windows,en-US,2023-08-16_14:03:00,2023-08-16_16:03:00,2023-08-15_14:13:36,f3105bba82d2a1ff4df4c77f36280c8d5d398583,TYTTKD-02,https://www.testable.org/experiment/2286/159771/start?participant=M782410&batch_id=TYTTKD-02,"31",woman,"day : 0; ",2822.9
+
+rowNo,type,stim1,stimFormat,button1,button2,button3,pageBreak,required,if,then,feedback,myPhase,tallies,timestamp,response,RT
+"5",test,What is the name of the person whose travel journal you are about to read?,word,Moses,Noah,Fred,"1","1",!2,end,"1: This is not correct, the experiment will end now.;2: This is correct.; 3: This is not correct, the experiment will end now.",attentionTest,"day : 0; ",2810982,"1",11918

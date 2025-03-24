@@ -1,0 +1,157 @@
+# Summary
+
+## first party acceptability
+
+In the analyses entailing three frequency conditions, the frequency effect is unrealiable. No effect for testable, only high TF is affected for City
+
+In the analyses entail two frequency conditions, the high type frequency actions were rated higher only for the city population
+
+As expected good actions are rated better than neutral actions, and neutral actions better than bad actions in both analyses
+
+
+An ANOVA on difference scores (see XXX) yielded results main effects of valency (only city) and frequency condition. Following up an interaction between valence and type frequency (3 frequency conditions) revealed that the main effect of action status was significant only when restricting neutral and good actions (only neutral actions for testable), but not bad actions. This reflects the result that difference scores tend to be positive only for the high type frequency condition. 
+
+
+## third party acceptability
+
+
+In the analyses entailing three frequency conditions, the low type frequency actions were rated higher than the single actions, and the high type frequency actions were rated still higher.  This was confirmed in the analyses entailing two frequency conditions. 
+
+THERE WAS A COMPEX SET OF INTERACTIONS TO LOOK AT.
+
+As expected good actions are rated better than neutral actions, and neutral actions better than bad actions in both analyses
+
+xxx
+
+An ANOVA on difference scores (see XXX) yielded results main effect of frequency condition, but not of valency. Following up an interaction between valence and type frequency (3 frequency conditions) revealed that the main effect of valency was significant only when restricting the analyses to the high type frequency condition and the single occurrence condition, but not when restricting the analyses to the low type frequency condition and the single occurrence condition (city) or had a much larger effect size for the higher tf condition (testable). This reflects the result that difference scores tend to be positive only for the high type frequency condition. 
+
+The two condition difference scores yielded many effects of valency; for city participants, the effect was much higher when comparing bad vs. good and bad vs. neutral actions, but not when comparing bad vs neutral actions.  
+
+
+## prevalence
+
+In the analyses entailing three frequency conditions, the low type frequency actions were rated higher than the single actions, and the high type frequency actions were rated still higher.  This was confirmed in the analyses entailing two frequency conditions. 
+
+THERE WAS A COMPEX SET OF INTERACTIONS TO LOOK AT.
+
+As expected good actions are rated better than neutral actions, and neutral actions better than bad actions in both analyses
+
+An ANOVA on difference scores (see XXX) yielded results main effect of frequency condition and of valency for city students. Following up an interaction between valence and type frequency (3 frequency conditions) revealed that the main effect of valency was significant only when restricting the analyses to the high type frequency condition and the single occurrence condition, but not when restricting the analyses to the low type frequency condition and the single occurrence condition (city) or had a much larger effect size for the higher tf condition (testable). This reflects the result that difference scores tend to be much lsrger for the high type frequency condition. 
+
+The two condition difference scores yielded many effects of valency;
+
+# 3 freq cond 
+
+## first party acceptability
+
+
+
+
+### City
+
+* increase for high type frequency, but not low type frequency
+* decrease for bad 
+* increase for good
+
+### Testable
+
+* no effect of type frequency 
+* decrease for bad 
+* increase for good
+
+
+## Third party acceptability
+
+### City
+
+* increase for low type freq
+* bigger increase for high type freq
+* decrease for bad 
+* increase for good
+* interactions 
+	- myQueriedActionStatuslowTypeFreq:myValencegood (beta = .8): There was a higher increase for low tf compared to singles for good actions
+
+### Testable
+
+* increase for low type freq
+* bigger increase for high type freq
+* decrease for bad 
+* increase for good
+* interactions
+	- myQueriedActionStatuslowTypeFreq:myValencebad (beta = .9)
+	- myQueriedActionStatushighTypeFreq:myValencebad (beta = 1.17)
+	- myQueriedActionStatuslowTypeFreq:myValencegood (beta = .829)
+
+
+## Prevalence
+
+### City
+
+* increase for low tf, bigger increase for high tf
+* increase for good
+* interactions
+	- myQueriedActionStatuslowTypeFreq:myValencebad (+)
+	- myQueriedActionStatushighTypeFreq:myValencebad (+)
+	- myQueriedActionStatuslowTypeFreq:myValencegood (+)
+	
+
+
+### Testable
+
+* increase for low tf, bigger increase for high tf
+* increase for good
+* 
+	- myQueriedActionStatuslowTypeFreq:myValencegood (+)
+	- myQueriedActionStatushighTypeFreq:myValencegood (-)
+
+
+
+# Two factor thing
+
+## first party
+
+### City
+
+* increase for high tf
+* decrease for bad 
+* increase for good
+
+
+### Testable
+
+* NO increase for high tf
+* decrease for bad 
+* increase for good
+
+
+
+
+## third party
+
+### City
+
+* increase for high tf
+* decrease for bad 
+* increase for good
+
+
+### Testable
+
+* increase for high tf
+* decrease for bad 
+* increase for good
+
+# prevalence
+
+## Prevalence
+
+### City
+
+* increase for high tf
+* increase for good
+
+### Testable
+
+* increase for high tf
+* increase for good
+* myQueriedActionStatushighTypeFreq:myValencegood (+)a

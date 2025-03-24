@@ -5,16 +5,19 @@
 \documentclass[
 ]{article}
 \usepackage{amsmath,amssymb}
-\usepackage{lmodern}
 \usepackage{iftex}
 \ifPDFTeX
   \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
   \usepackage{textcomp} % provide euro and other symbols
 \else % if luatex or xetex
-  \usepackage{unicode-math}
+  \usepackage{unicode-math} % this also loads fontspec
   \defaultfontfeatures{Scale=MatchLowercase}
   \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
 \fi
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -34,17 +37,29 @@
 \makeatother
 \usepackage{xcolor}
 \usepackage[margin=1in]{geometry}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
 \usepackage{graphicx}
 \makeatletter
-\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
-\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
-\makeatother
-% Scale images if necessary, so that they will not overflow the page
-% margins by default, and it is still possible to overwrite the defaults
-% using explicit options in \includegraphics[width, height, ...]{}
-\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
 % Set default figure placement to htbp
-\makeatletter
 \def\fps@figure{htbp}
 \makeatother
 \setlength{\emergencystretch}{3em} % prevent overfull lines
@@ -65,14 +80,11 @@
 \usepackage[normalem]{ulem}
 \usepackage{makecell}
 \usepackage{xcolor}
-\ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
-\fi
 \usepackage[]{natbib}
 \bibliographystyle{plainnat}
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\usepackage{bookmark}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\urlstyle{same} % disable monospaced font for URLs
+\urlstyle{same}
 \hypersetup{
   pdftitle={Social learning by type-token frequency - stimulus preparation},
   pdfkeywords={Keywords},
@@ -90,26 +102,24 @@ City, University of London}
 Abstract (to be written)
 \end{abstract}
 
-\hypertarget{stimulus-selection}{%
-\section{Stimulus selection}\label{stimulus-selection}}
+\section{Materials}\label{materials}
 
-\hypertarget{faces}{%
-\subsection{Faces}\label{faces}}
+\subsection{Faces}\label{faces}
 
 We selected the stimuli from the 2,222 annotated face images in
-\citep{Bainbridge2013}. For each gender and valency, we need 4 (sets)
-\(\times\) 3 (actions per set) \(\times\) 6 (actions) = 120 faces. We
-thus need 360 faces per gender.
+\citep{Bainbridge2013}. For each gender and valency, we selected 4
+(sets) \(\times\) 3 (actions per set) \(\times\) 6 (actions) \(\times\)
+3 (occurrences per set) = 216 faces per gender.
 
-We selected face photographs for non-famous persons with an image
-quality rating of at least 3, an estimated age between 20 and 60, and
+We selected photographs of non-famous faces with an image quality rating
+of at least 3.5, an estimated age between 20 and 60 years, and
 memorability (operationalized as \citep{ZhangMueller2005} version of
-\(A^\prime\)) between the 25\% and 85\% quantile. This yielded 278 and
-380 pictures for females and males, respectively.We then randomly
-selected the required number of faces from this initial set. 216 faces
-were randomly selected for each gender.
+\(A^\prime\)) between the 25\% and 85\% percentiles This yielded 278 and
+380 photoes for female and male faces, respectively. I then randomly
+selected the required number of faces from this initial set, with 216
+faces being chosen for each gender.
 
-The distribution of various properties of the faces is shown in Figure
+The distribution of various face properties is shown in Figure
 \ref{fig:plot-face-attributes-nonfamous}.
 
 \begin{figure}
@@ -121,29 +131,109 @@ The distribution of various properties of the faces is shown in Figure
 \caption{Distribution of various properties of the faces in the database after filtering. See main text for the filters.}\label{fig:plot-face-attributes-nonfamous}
 \end{figure}
 
+\subsection{Vignettes}\label{vignettes}
+
+We created 12 actions for each valence. Good and bad actions were
+designed to be clearly identifiable as good or bad, while avoiding
+actions that would be unlikely to be performed by the general population
+(e.g., unlike self-sacrifice or mass murder). The scenarios are given in
+Table \ref{tab:print-scenarios2}.
+
+\begin{longtable}[t]{>{\raggedright\arraybackslash}p{6.5cm}>{\raggedright\arraybackslash}p{2.5cm}>{\raggedright\arraybackslash}p{2.5cm}>{\raggedright\arraybackslash}p{2.5cm}}
+\caption{\label{tab:print-scenarios}Actions}\\
+\toprule
+Observation & How likely are people in [city] to... & Would people in [city] consider it morally acceptable to... & Would you consider it morally acceptable to...\\
+\midrule
+\endfirsthead
+\caption[]{Actions \textit{(continued)}}\\
+\toprule
+Observation & How likely are people in [city] to... & Would people in [city] consider it morally acceptable to... & Would you consider it morally acceptable to...\\
+\midrule
+\endhead
+
+\endfoot
+\bottomrule
+\endlastfoot
+\addlinespace[0.3em]
+\multicolumn{4}{l}{\textbf{bad}}\\
+\cellcolor{gray!10}{\hspace{1em}Noah walked to the train station and saw this person cycle past a red traffic light on their bike.} & \cellcolor{gray!10}{cycle past red lights?} & \cellcolor{gray!10}{cycle past red lights?} & \cellcolor{gray!10}{cycle past red lights?}\\
+\hspace{1em}Noah took the bus and saw this person lower their window to shout at the driver next to them. & shout at other drivers? & shout at other drivers? & shout at other drivers?\\
+\cellcolor{gray!10}{\hspace{1em}Noah overheard this person gossiping badly about a friend.} & \cellcolor{gray!10}{gossip badly?} & \cellcolor{gray!10}{gossip badly?} & \cellcolor{gray!10}{gossip badly?}\\
+\hspace{1em}Noah saw this person park in a priority disabled parking space without displaying a blue badge. & park in priority disabled parking spaces? & park in disabled parking spaces? & park in priority disabled parking spaces?\\
+\cellcolor{gray!10}{\hspace{1em}Noah was returning a book and this person made loud noises at the library.} & \cellcolor{gray!10}{make loud noises at the library?} & \cellcolor{gray!10}{make loud noises at the library?} & \cellcolor{gray!10}{make loud noises at the library?}\\
+\hspace{1em}Noah walked along the canal and saw this person littering in the canals. & litter in canals? & litter in canals? & litter in canals?\\
+\cellcolor{gray!10}{\hspace{1em}Noah went to the cinema and saw this person skip the queue.} & \cellcolor{gray!10}{skip queues?} & \cellcolor{gray!10}{skip queues?} & \cellcolor{gray!10}{skip queues?}\\
+\hspace{1em}Noah walked along the high street and saw this person punch a police officer. & punch police officers? & punch police officers? & punch police officers?\\
+\cellcolor{gray!10}{\hspace{1em}Noah went to the bakery and saw this person smoking marijuana in front of the bakery.} & \cellcolor{gray!10}{smoke marijuana?} & \cellcolor{gray!10}{smoke marijuana?} & \cellcolor{gray!10}{smoke marijuana?}\\
+\hspace{1em}Noah saw this person avoid paying tube fares by jumping over the gate. & avoid paying tube fares by jumping over a gate? & avoid paying tube fares by jumping over a gate? & avoid paying tube fares by jumping over a gate?\\
+\cellcolor{gray!10}{\hspace{1em}Noah passed a farm and saw this person pillage corn from a field.} & \cellcolor{gray!10}{pillage corn from a field?} & \cellcolor{gray!10}{pillage corn from a field?} & \cellcolor{gray!10}{pillage corn from a field?}\\
+\hspace{1em}Noah saw this person steal a package from his friend's doorstep and drive away with it. & steal packages from a doorstep? & steal packages from a doorstep? & steal a package from a doorstep?\\
+\addlinespace[0.3em]
+\multicolumn{4}{l}{\textbf{good}}\\
+\cellcolor{gray!10}{\hspace{1em}Noah saw this person putting money in a bucket for a children's charity at the train station.} & \cellcolor{gray!10}{donate to children's charities?} & \cellcolor{gray!10}{donate to children's charities?} & \cellcolor{gray!10}{donate to children's charities?}\\
+\hspace{1em}Noah used the bus and saw this person offer their seat to a pregnant person. & offer their seat to pregnant people? & offer their seat to pregnant people? & offer their seat to pregnant people?\\
+\cellcolor{gray!10}{\hspace{1em}Noah passed through the main square and saw this person run to save a baby bird from being run over by a car.} & \cellcolor{gray!10}{save baby birds?} & \cellcolor{gray!10}{save baby birds?} & \cellcolor{gray!10}{save baby birds?}\\
+\hspace{1em}Noah visited the local cafe and saw this person buying coffee for their workplace colleagues. & buy coffee for their colleagues? & buy coffee for their colleagues? & buy coffee for their colleagues?\\
+\cellcolor{gray!10}{\hspace{1em}Noah saw this person block the cars so a child could cross the street more safely.} & \cellcolor{gray!10}{block streets to allow children to cross them?} & \cellcolor{gray!10}{block streets to allow children to cross them?} & \cellcolor{gray!10}{block streets to allow children to cross them?}\\
+\hspace{1em}Noah passed through a park and saw this person at the playground invite other families to share fruit. & invite other families to share fruit? & invite other families to share fruit? & invite other families to share fruit?\\
+\cellcolor{gray!10}{\hspace{1em}Noah saw this person hold the elevator door open for people rushing to get the elevator.} & \cellcolor{gray!10}{hold elevator doors for others?} & \cellcolor{gray!10}{hold elevator doors for others?} & \cellcolor{gray!10}{hold elevator doors for others?}\\
+\hspace{1em}Noah dropped his wallet. This person called him to return the wallet and hand it over. & return wallets? & return wallets? & return wallets?\\
+\cellcolor{gray!10}{\hspace{1em}Noah saw this person stop reading in a cafe to help an elderly person carry heavy groceries to the bus stop.} & \cellcolor{gray!10}{help elderly carry heavy groceries?} & \cellcolor{gray!10}{help elderly carry heavy groceries?} & \cellcolor{gray!10}{help elderly carry heavy groceries?}\\
+\hspace{1em}Noah passed the retirement home and saw this person help an elderly person cross the road. & help the elderly cross a road? & help the elderly cross a road? & help the elderly cross a road?\\
+\cellcolor{gray!10}{\hspace{1em}Noah saw this person at the restaurant leave a generous tip to the server.} & \cellcolor{gray!10}{leave a generous tip to the server?} & \cellcolor{gray!10}{leave a generous tip to the server?} & \cellcolor{gray!10}{leave a generous tip to the server?}\\
+\hspace{1em}Noah got lost and when he asked this person for directions, he received a helpful answer. & give directions? & give directions? & give directions?\\
+\addlinespace[0.3em]
+\multicolumn{4}{l}{\textbf{neutral}}\\
+\cellcolor{gray!10}{\hspace{1em}Noah was passing through the park and saw this person doing kurafi.} & \cellcolor{gray!10}{do kurafi?} & \cellcolor{gray!10}{do kurafi?} & \cellcolor{gray!10}{do kurafi?}\\
+\hspace{1em}Noah was waiting for a taxi and saw this person walking their pet cat on the street. & walk their pet cats on the street? & walk their pet cats on the street? & walk pet cats on the street?\\
+\cellcolor{gray!10}{\hspace{1em}Noah took the bus to the city centre and saw this person running alongside cars.} & \cellcolor{gray!10}{run alongside cars?} & \cellcolor{gray!10}{run alongside cars?} & \cellcolor{gray!10}{run alongside cars?}\\
+\hspace{1em}Noah was at a theme park and saw this person dressed as a mascot. & dress as a mascot? & dress as a mascot? & dress as a mascot?\\
+\cellcolor{gray!10}{\hspace{1em}Noah passed through the train station and saw this person pantomiming.} & \cellcolor{gray!10}{pantomime?} & \cellcolor{gray!10}{pantomime?} & \cellcolor{gray!10}{pantomime?}\\
+\hspace{1em}Noah had breakfast in the office cafeteria and saw this person arriving at work by bike. & bike to work? & bike to work? & bike to work?\\
+\cellcolor{gray!10}{\hspace{1em}Noah was sitting on a bench and saw this person walk barefoot on the street.} & \cellcolor{gray!10}{walk barefoot on the street?} & \cellcolor{gray!10}{walk barefoot on the street?} & \cellcolor{gray!10}{walk barefoot on the street?}\\
+\hspace{1em}Noah passed in front of the post office and saw this person eating raw broccoli for lunch. & eat raw broccoli? & eat raw broccoli? & eat raw broccoli?\\
+\cellcolor{gray!10}{\hspace{1em}Noah went to the local pub and saw this person drinking a glass of wine.} & \cellcolor{gray!10}{drink wine?} & \cellcolor{gray!10}{drink wine?} & \cellcolor{gray!10}{drink wine?}\\
+\hspace{1em}Noah was at the footwear shop and saw this person picking their nose. & pick their nose? & pick their nose? & pick your nose?\\
+\cellcolor{gray!10}{\hspace{1em}Noah went to the harbor and saw this person walking with their swimsuit on the street.} & \cellcolor{gray!10}{wear swimsuits on the streets?} & \cellcolor{gray!10}{wear swimsuits on the streets?} & \cellcolor{gray!10}{wear swimsuits on the streets?}\\
+\hspace{1em}Noah saw this person at the bus stop wearing sunglasses. & wear sunglasses? & wear sunglasses? & wear sunglasses?\\*
+\end{longtable}
+
+\subsection{City names}\label{city-names}
+
+City names were generated using
+\url{https://www.fantasynamegenerators.com/}.
+
 \clearpage
 
-\hypertarget{counterbalancing}{%
-\section{Counterbalancing}\label{counterbalancing}}
+\section{Design and counterbalancing}\label{design-and-counterbalancing}
 
-We will use behaviors performed 6 times by the same individual or once
-by 6 different individuals, as well as an action performed once by one
-individual. To make sure that responses are not based on prior estimates
-of the prevalence of individual actions, the behaviors will be
-counterbalanced across participants.
+In the experiment, a traveler observed a number of actions in each city
+he visits. Hereafter, I refer to a ``block'' of trials as all actions
+occurring within a city, while trials are single occurrences of an
+action.
 
-We need 12 actions per valency. If we use 3 actions per trial, this
-gives us 4 trials. As shown in Table
-\ref{tab:counterbalancing-frequency-conditions-print}, the role of the
-actions in the trials will be counterbalanced within participants.
-Further, valency will be counterbalanced across participants, with each
-participant seenig only one valency.
+Each block consisted of a behavior performed 6 times by the same
+individual, one performed once by 6 different individuals each, and a
+behavior performed once by one individual. To ensure that responses were
+not based on prior estimates of the prevalence of individual actions,
+the behaviors were counterbalanced across participants.
 
-\begin{table}
+Specifically, the 12 actions per valence were grouped into four sets of
+three actions. I then created three assignment conditions such that the
+roles of actions within blocks (high type-frequency, low
+type-frequency/high token-frequency, single occurrence) were
+counterbalanced across participants (see Table
+\ref{tab:counterbalancing-frequency-conditions-print2}).
 
-\caption{\label{tab:counterbalancing-frequency-conditions-print}Counterbalancing of the roles of actions. Separately for each valency, actions were organized into 4 sets. Across blocks, each action of a set was presented as the high type-frequency, low type-frequency and single occurrence action.}
-\centering
-\begin{tabular}[t]{lllll}
+The role of the actions within the blocks was counterbalanced within
+participants. To maintain a reasonable experiment duration, the role of
+valence was counterbalanced across participants, with each participant
+seeing only one valence.
+
+!!! EXPLANATION CONTINUES AFTER CHUNK !!!
+
+\begin{longtable}[t]{lllll}
+\caption{\label{tab:counterbalancing-frequency-conditions-print}Counterbalancing of the roles of actions. Separately for each valency, actions were organized into 4 sets. Across blocks, each action of a set was presented as the high type-frequency, low type-frequency and single occurrence action.}\\
 \toprule
 Role & Set 1 & Set 2 & Set 3 & Set 4\\
 \midrule
@@ -163,21 +253,36 @@ Role & Set 1 & Set 2 & Set 3 & Set 4\\
 \hspace{1em}Low Type-Frequency & Action 1 & Action 4 & Action 7 & Action 10\\
 \hspace{1em}Single occurrence & Action 2 & Action 5 & Action 8 & Action 11\\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{longtable}
 
-We will administer all three conditions to all participants; all 12
-blocks appear in random order. Additionally, for each participant, half
-the blocks will use female face, and half male faces. For half of the
-participants, Sets 1 and 2 will be presented with male faces and Sets 3
-and 4 with female faces. For the remaining participants, this will be
-inverted.
+Specifically, all three assignment conditions were administered to all
+participants. Each set of four actions thus occurred in three blocks, so
+that each action was seen once as high type-frequency, low
+type-frequency/high token-frequency and single occurrence action. The
+faces and place names associated with each action differed across the
+block. (I used the faces and placenames associated with the high
+type-frequency action in the original table.) This design thus yielded
+12 blocks in total that appeared in random order. (In terms of testable
+programming, these blocks were implemented as randomblocks.)
 
-\begin{table}
+For each participant, half of the blocks used female face and half used
+male faces. The correspondence between sets and genders was
+counterbalanced across participants. Specifically, for half of the
+participants, Sets 1 and 2 were presented with male faces and Sets 3 and
+4 with female faces. For the remaining participants, this assignment was
+reversed.
 
-\caption{\label{tab:counterbalancing-gender-define}Counterbalancing. The valency of the action is counter-balanced across participants. Within each valency, the gender of the face the actions are combined to is counterbalanced across participants, giving 3 groups in total.}
-\centering
-\begin{tabular}[t]{lrrrl}
+This resulted in the 2 (gender/set correspondence) \(\times\) 3
+(valence) = \(6\) participant groups shown in Table
+\ref{tab:counterbalancing-gender-print2}
+
+In each block, actions were presented in a random order, with the
+constraint that all three types of actions (high type-frequency, low
+type-frequency/high token-frequency, single occurrence) appeared in the
+last three trials.
+
+\begin{longtable}[t]{lrrrl}
+\caption{\label{tab:counterbalancing-gender-print}Counterbalancing. The valency of the action is counter-balanced across participants. Within each valency, the gender of the face the actions are combined to is counterbalanced across participants, giving 3 groups in total.}\\
 \toprule
 valence & valenceSubjectGroup & genderSubjectGroup & set & faceGender\\
 \midrule
@@ -218,107 +323,130 @@ valence & valenceSubjectGroup & genderSubjectGroup & set & faceGender\\
 \hspace{1em}neutral & 3 & 2 & 3 & male\\
 \hspace{1em}neutral & 3 & 2 & 4 & male\\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{longtable}
 
 \clearpage
 
-\hypertarget{stimulus-generation}{%
-\section{Stimulus generation}\label{stimulus-generation}}
+\section{Procedure}\label{procedure}
 
-\hypertarget{experiment}{%
-\subsection{Experiment}\label{experiment}}
+\subsection{Instructions}\label{instructions}
+
+Participants were first told a cover story, where a student called Noah
+took a gap year to visit different cities. He stayed 13 days in each
+city and witnessed various interesting behaviors.
+
+Participants were then instructed to estimate how widespread and morally
+acceptable the events in each city were, using a 4-point scale.
+
+Participants were also encouraged to use their gut reaction.
+
+The specific instructions are shown in Table
+\ref{tab:print-instructions2}.
+
+\begin{longtable}[t]{l}
+\caption{\label{tab:print-instructions}Cover story}\\
+\toprule
+\\
+\midrule
+Noah is studying journalism at university. He decides to take a gap year to explore some countries and cities that have always interested him.
+
+He usually stays 13 days in each place. In each place, Noah makes some interesting observations.
+
+We will now share 12 of these stories.
+Press NEXT to continue…\\
+For each of these stories, we will ask you to guess how widespread and morally acceptable the events in the story are, in the place Noah visits.Your task is to indicate on a 4-point scale how widespread and morally acceptable these events are:
+'1' means that the events are very rare or completely unacceptable (depending on the question)'4' means that the events are very common or completely acceptable (depending on the question)
+Press NEXT to continue\\
+We are interested in your gut reaction, so please answer with the first idea that comes to your mind after reading the stories.
+Press NEXT to continue…\\
+\bottomrule
+\end{longtable}
+
+\subsection{Attention check}\label{attention-check}
+
+Following this, participants completed an attention check where they had
+to select the name of the traveller from three options (Noah, Moses,
+Fred). Only those who passed the attention check proceeded to the
+experiment.
+
+\subsection{Block structure}\label{block-structure}
+
+Each trial began with a screen informing participants that Noah was
+about to visit a new city, and that participants were about to read
+about Noah's visit in . Participants had to acknowledge this screen by
+pressing a button.
+
+Then they were shown 13 trials, each involving three distinct actions (6
+high type-frequency action trials, 6 low type-frequency/high
+token-frequency action trials, and one single occurrence action trial).
+Each trial featured a header indicating the day and the city name (e.g.,
+``Day 2 in Cluakpus), a face, and a description of the action
+(e.g.,''Noah went to the cinema and saw this person skip the queue'').
+While the trials were presented in random order, all three types of
+actions appear in the last three trials. Trials lasted 4500 ms, with a
+500 ms intertrial-interval.
+
+Finally, participants had to estimate the prevalence of each actions
+(i.e., ``How likely are people in to \emph{}?''), its third-person
+acceptability (i.e., Would \emph{people in } consider it morally
+acceptable to \emph{}?``), and its first-person acceptability
+(i.e.,''Would \emph{you} consider it morally acceptable to \emph{}?{}``;
+all emphases in original). All question were answered on a four point
+scale. In each trial, I first queried the high type-frequency action,
+then the low type-frequency action, and finally the single occurrence
+action.
+
+In the pilot experiment with students, I also included the Short Dark
+Triad (SD3) questionnaire \cite{Jones2014}, which was removed in the
+main experiment.
+
+A demo of a trial can be found at XXXX.
+
+\section{Stimulus generation code for
+testable.}\label{stimulus-generation-code-for-testable.}
 
 For each action, we first generate we add 6 faces to each action. We
 thus add 12 new columns to the data frame.
 
-The scenarios are given in Table \ref{tab:print-scenarios}.
-
-\begin{longtable}[t]{>{\raggedright\arraybackslash}p{6.5cm}>{\raggedright\arraybackslash}p{2.5cm}>{\raggedright\arraybackslash}p{2.5cm}>{\raggedright\arraybackslash}p{2.5cm}}
-\caption{\label{tab:print-scenarios}Actions}\\
-\toprule
-Observation & How likely are people in [city] to... & Would people in [city] consider it morally acceptable to... & Would you consider it morally acceptable to...\\
-\midrule
-\endfirsthead
-\caption[]{Actions \textit{(continued)}}\\
-\toprule
-Observation & How likely are people in [city] to... & Would people in [city] consider it morally acceptable to... & Would you consider it morally acceptable to...\\
-\midrule
-\endhead
-
-\endfoot
-\bottomrule
-\endlastfoot
-\addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{bad}}\\
-\cellcolor{gray!6}{\hspace{1em}Noah walked to the train station and saw this person cycle past a red traffic light on their bike.} & \cellcolor{gray!6}{cycle past red lights?} & \cellcolor{gray!6}{cycle past red lights?} & \cellcolor{gray!6}{cycle past red lights?}\\
-\hspace{1em}Noah took the bus and saw this person lower their window to shout at the driver next to them. & shout at other drivers? & shout at other drivers? & shout at other drivers?\\
-\cellcolor{gray!6}{\hspace{1em}Noah overheard this person gossiping badly about a friend.} & \cellcolor{gray!6}{gossip badly?} & \cellcolor{gray!6}{gossip badly?} & \cellcolor{gray!6}{gossip badly?}\\
-\hspace{1em}Noah saw this person park in a priority disabled parking space without displaying a blue badge. & park in priority disabled parking spaces? & park in disabled parking spaces? & park in priority disabled parking spaces?\\
-\cellcolor{gray!6}{\hspace{1em}Noah was returning a book and this person made loud noises at the library.} & \cellcolor{gray!6}{make loud noises at the library?} & \cellcolor{gray!6}{make loud noises at the library?} & \cellcolor{gray!6}{make loud noises at the library?}\\
-\hspace{1em}Noah walked along the canal and saw this person littering in the canals. & litter in canals? & litter in canals? & litter in canals?\\
-\cellcolor{gray!6}{\hspace{1em}Noah went to the cinema and saw this person skip the queue.} & \cellcolor{gray!6}{skip queues?} & \cellcolor{gray!6}{skip queues?} & \cellcolor{gray!6}{skip queues?}\\
-\hspace{1em}Noah walked along the high street and saw this person punch a police officer. & punch police officers? & punch police officers? & punch police officers?\\
-\cellcolor{gray!6}{\hspace{1em}Noah went to the bakery and saw this person smoking marijuana in front of the bakery.} & \cellcolor{gray!6}{smoke marijuana?} & \cellcolor{gray!6}{smoke marijuana?} & \cellcolor{gray!6}{smoke marijuana?}\\
-\hspace{1em}Noah saw this person avoid paying tube fares by jumping over the gate. & avoid paying tube fares by jumping over a gate? & avoid paying tube fares by jumping over a gate? & avoid paying tube fares by jumping over a gate?\\
-\cellcolor{gray!6}{\hspace{1em}Noah passed a farm and saw this person pillage corn from a field.} & \cellcolor{gray!6}{pillage corn from a field?} & \cellcolor{gray!6}{pillage corn from a field?} & \cellcolor{gray!6}{pillage corn from a field?}\\
-\hspace{1em}Noah saw this person steal a package from his friend's doorstep and drive away with it. & steal packages from a doorstep? & steal packages from a doorstep? & steal a package from a doorstep?\\
-\addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{good}}\\
-\cellcolor{gray!6}{\hspace{1em}Noah saw this person putting money in a bucket for a children's charity at the train station.} & \cellcolor{gray!6}{donate to children's charities?} & \cellcolor{gray!6}{donate to children's charities?} & \cellcolor{gray!6}{donate to children's charities?}\\
-\hspace{1em}Noah used the bus and saw this person offer their seat to a pregnant person. & offer their seat to pregnant people? & offer their seat to pregnant people? & offer their seat to pregnant people?\\
-\cellcolor{gray!6}{\hspace{1em}Noah passed through the main square and saw this person run to save a baby bird from being run over by a car.} & \cellcolor{gray!6}{save baby birds?} & \cellcolor{gray!6}{save baby birds?} & \cellcolor{gray!6}{save baby birds?}\\
-\hspace{1em}Noah visited the local cafe and saw this person buying coffee for their workplace colleagues. & buy coffee for their colleagues? & buy coffee for their colleagues? & buy coffee for their colleagues?\\
-\cellcolor{gray!6}{\hspace{1em}Noah saw this person block the cars so a child could cross the street more safely.} & \cellcolor{gray!6}{block streets to allow children to cross them?} & \cellcolor{gray!6}{block streets to allow children to cross them?} & \cellcolor{gray!6}{block streets to allow children to cross them?}\\
-\hspace{1em}Noah passed through a park and saw this person at the playground invite other families to share fruit. & invite other families to share fruit? & invite other families to share fruit? & invite other families to share fruit?\\
-\cellcolor{gray!6}{\hspace{1em}Noah saw this person hold the elevator door open for people rushing to get the elevator.} & \cellcolor{gray!6}{hold elevator doors for others?} & \cellcolor{gray!6}{hold elevator doors for others?} & \cellcolor{gray!6}{hold elevator doors for others?}\\
-\hspace{1em}Noah dropped his wallet. This person called him to return the wallet and hand it over. & return wallets? & return wallets? & return wallets?\\
-\cellcolor{gray!6}{\hspace{1em}Noah saw this person stop reading in a cafe to help an elderly person carry heavy groceries to the bus stop.} & \cellcolor{gray!6}{help elderly carry heavy groceries?} & \cellcolor{gray!6}{help elderly carry heavy groceries?} & \cellcolor{gray!6}{help elderly carry heavy groceries?}\\
-\hspace{1em}Noah passed the retirement home and saw this person help an elderly person cross the road. & help the elderly cross a road? & help the elderly cross a road? & help the elderly cross a road?\\
-\cellcolor{gray!6}{\hspace{1em}Noah saw this person at the restaurant leave a generous tip to the server.} & \cellcolor{gray!6}{leave a generous tip to the server?} & \cellcolor{gray!6}{leave a generous tip to the server?} & \cellcolor{gray!6}{leave a generous tip to the server?}\\
-\hspace{1em}Noah got lost and when he asked this person for directions, he received a helpful answer. & give directions? & give directions? & give directions?\\
-\addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{neutral}}\\
-\cellcolor{gray!6}{\hspace{1em}Noah was passing through the park and saw this person doing kurafi.} & \cellcolor{gray!6}{do kurafi?} & \cellcolor{gray!6}{do kurafi?} & \cellcolor{gray!6}{do kurafi?}\\
-\hspace{1em}Noah was waiting for a taxi and saw this person walking their pet cat on the street. & walk their pet cats on the street? & walk their pet cats on the street? & walk pet cats on the street?\\
-\cellcolor{gray!6}{\hspace{1em}Noah took the bus to the city centre and saw this person running alongside cars.} & \cellcolor{gray!6}{run alongside cars?} & \cellcolor{gray!6}{run alongside cars?} & \cellcolor{gray!6}{run alongside cars?}\\
-\hspace{1em}Noah was at a theme park and saw this person dressed as a mascot. & dress as a mascot? & dress as a mascot? & dress as a mascot?\\
-\cellcolor{gray!6}{\hspace{1em}Noah passed through the train station and saw this person pantomiming.} & \cellcolor{gray!6}{pantomime?} & \cellcolor{gray!6}{pantomime?} & \cellcolor{gray!6}{pantomime?}\\
-\hspace{1em}Noah had breakfast in the office cafeteria and saw this person arriving at work by bike. & bike to work? & bike to work? & bike to work?\\
-\cellcolor{gray!6}{\hspace{1em}Noah was sitting on a bench and saw this person walk barefoot on the street.} & \cellcolor{gray!6}{walk barefoot on the street?} & \cellcolor{gray!6}{walk barefoot on the street?} & \cellcolor{gray!6}{walk barefoot on the street?}\\
-\hspace{1em}Noah passed in front of the post office and saw this person eating raw broccoli for lunch. & eat raw broccoli? & eat raw broccoli? & eat raw broccoli?\\
-\cellcolor{gray!6}{\hspace{1em}Noah went to the local pub and saw this person drinking a glass of wine.} & \cellcolor{gray!6}{drink wine?} & \cellcolor{gray!6}{drink wine?} & \cellcolor{gray!6}{drink wine?}\\
-\hspace{1em}Noah was at the footwear shop and saw this person picking their nose. & pick their nose? & pick their nose? & pick your nose?\\
-\cellcolor{gray!6}{\hspace{1em}Noah went to the harbor and saw this person walking with their swimsuit on the street.} & \cellcolor{gray!6}{wear swimsuits on the streets?} & \cellcolor{gray!6}{wear swimsuits on the streets?} & \cellcolor{gray!6}{wear swimsuits on the streets?}\\
-\hspace{1em}Noah saw this person at the bus stop wearing sunglasses. & wear sunglasses? & wear sunglasses? & wear sunglasses?\\*
-\end{longtable}
-
 We next add the set id and number within sets
 
-We first initialize the trial file according to \textbar{} randomBlock
-\textbar{} type \textbar{} stim \textbar{} option \textbar{} \textbar{}
---- \textbar{} --- \textbar{} --- \textbar{} --- \textbar{} \textbar{} 1
-1 \textbar{} learn \textbar{} list with 9 occurrences of the two high
-token frequency actions \textbar{} randomize \textbar{} \textbar{} 1 1
-\textbar{} learn \textbar{} list with 1 occurrence of all three actions
-in a block \textbar{} randomize \textbar{} \textbar{} 1 1 \textbar{}
-form \textbar{} 3 questions in fixed order for single occurrence action
-\textbar{} header = ~ or ``In '' \textbar{} \textbar{} 1 1 \textbar{}
-form \textbar{} 3 questions in fixed order for low type frequency action
-\textbar{} header = ~ or ``In '' \textbar{} \textbar{} 1 1 \textbar{}
-form \textbar{} 3 questions in fixed order for high type frequency
-action \textbar{} header = ~ or ``In '' \textbar{}
+We first initialize the trial file according to
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+randomBlock
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+type
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+stim
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+option
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 1 & learn & list with 9 occurrences of the two high token frequency
+actions & randomize \\
+1 1 & learn & list with 1 occurrence of all three actions in a block &
+randomize \\
+1 1 & form & 3 questions in fixed order for single occurrence action &
+header = ~ or ``In '' \\
+1 1 & form & 3 questions in fixed order for low type frequency action &
+header = ~ or ``In '' \\
+1 1 & form & 3 questions in fixed order for high type frequency action &
+header = ~ or ``In '' \\
+\end{longtable}
 
 !!! We might add a second condition where the order of the forms is
 inverted
 
-We are interested in your gut reaction, so please answer with the first
-idea that comes to your mind after reading the stories.
-
-Press NEXT to continue\ldots{}
-
-\hypertarget{sd3}{%
-\subsection{SD3}\label{sd3}}
+\subsection{SD3}\label{sd3}
 
 We next add the Short Dark Triad (SD3) questions from \cite{Jones2014}.
 The survey starts with the question
@@ -335,7 +463,159 @@ The head on each page is then
 
 Items should be kept in the same order.
 
-\clearpage
+\section{Supplementary Only
+Information}\label{supplementary-only-information}
+
+\subsection{Vignettes}\label{vignettes-1}
+
+\begin{longtable}[t]{>{\raggedright\arraybackslash}p{6.5cm}>{\raggedright\arraybackslash}p{2.5cm}>{\raggedright\arraybackslash}p{2.5cm}>{\raggedright\arraybackslash}p{2.5cm}}
+\caption{\label{tab:print-scenarios2}Actions}\\
+\toprule
+Observation & How likely are people in [city] to... & Would people in [city] consider it morally acceptable to... & Would you consider it morally acceptable to...\\
+\midrule
+\endfirsthead
+\caption[]{Actions \textit{(continued)}}\\
+\toprule
+Observation & How likely are people in [city] to... & Would people in [city] consider it morally acceptable to... & Would you consider it morally acceptable to...\\
+\midrule
+\endhead
+
+\endfoot
+\bottomrule
+\endlastfoot
+\addlinespace[0.3em]
+\multicolumn{4}{l}{\textbf{bad}}\\
+\cellcolor{gray!10}{\hspace{1em}Noah walked to the train station and saw this person cycle past a red traffic light on their bike.} & \cellcolor{gray!10}{cycle past red lights?} & \cellcolor{gray!10}{cycle past red lights?} & \cellcolor{gray!10}{cycle past red lights?}\\
+\hspace{1em}Noah took the bus and saw this person lower their window to shout at the driver next to them. & shout at other drivers? & shout at other drivers? & shout at other drivers?\\
+\cellcolor{gray!10}{\hspace{1em}Noah overheard this person gossiping badly about a friend.} & \cellcolor{gray!10}{gossip badly?} & \cellcolor{gray!10}{gossip badly?} & \cellcolor{gray!10}{gossip badly?}\\
+\hspace{1em}Noah saw this person park in a priority disabled parking space without displaying a blue badge. & park in priority disabled parking spaces? & park in disabled parking spaces? & park in priority disabled parking spaces?\\
+\cellcolor{gray!10}{\hspace{1em}Noah was returning a book and this person made loud noises at the library.} & \cellcolor{gray!10}{make loud noises at the library?} & \cellcolor{gray!10}{make loud noises at the library?} & \cellcolor{gray!10}{make loud noises at the library?}\\
+\hspace{1em}Noah walked along the canal and saw this person littering in the canals. & litter in canals? & litter in canals? & litter in canals?\\
+\cellcolor{gray!10}{\hspace{1em}Noah went to the cinema and saw this person skip the queue.} & \cellcolor{gray!10}{skip queues?} & \cellcolor{gray!10}{skip queues?} & \cellcolor{gray!10}{skip queues?}\\
+\hspace{1em}Noah walked along the high street and saw this person punch a police officer. & punch police officers? & punch police officers? & punch police officers?\\
+\cellcolor{gray!10}{\hspace{1em}Noah went to the bakery and saw this person smoking marijuana in front of the bakery.} & \cellcolor{gray!10}{smoke marijuana?} & \cellcolor{gray!10}{smoke marijuana?} & \cellcolor{gray!10}{smoke marijuana?}\\
+\hspace{1em}Noah saw this person avoid paying tube fares by jumping over the gate. & avoid paying tube fares by jumping over a gate? & avoid paying tube fares by jumping over a gate? & avoid paying tube fares by jumping over a gate?\\
+\cellcolor{gray!10}{\hspace{1em}Noah passed a farm and saw this person pillage corn from a field.} & \cellcolor{gray!10}{pillage corn from a field?} & \cellcolor{gray!10}{pillage corn from a field?} & \cellcolor{gray!10}{pillage corn from a field?}\\
+\hspace{1em}Noah saw this person steal a package from his friend's doorstep and drive away with it. & steal packages from a doorstep? & steal packages from a doorstep? & steal a package from a doorstep?\\
+\addlinespace[0.3em]
+\multicolumn{4}{l}{\textbf{good}}\\
+\cellcolor{gray!10}{\hspace{1em}Noah saw this person putting money in a bucket for a children's charity at the train station.} & \cellcolor{gray!10}{donate to children's charities?} & \cellcolor{gray!10}{donate to children's charities?} & \cellcolor{gray!10}{donate to children's charities?}\\
+\hspace{1em}Noah used the bus and saw this person offer their seat to a pregnant person. & offer their seat to pregnant people? & offer their seat to pregnant people? & offer their seat to pregnant people?\\
+\cellcolor{gray!10}{\hspace{1em}Noah passed through the main square and saw this person run to save a baby bird from being run over by a car.} & \cellcolor{gray!10}{save baby birds?} & \cellcolor{gray!10}{save baby birds?} & \cellcolor{gray!10}{save baby birds?}\\
+\hspace{1em}Noah visited the local cafe and saw this person buying coffee for their workplace colleagues. & buy coffee for their colleagues? & buy coffee for their colleagues? & buy coffee for their colleagues?\\
+\cellcolor{gray!10}{\hspace{1em}Noah saw this person block the cars so a child could cross the street more safely.} & \cellcolor{gray!10}{block streets to allow children to cross them?} & \cellcolor{gray!10}{block streets to allow children to cross them?} & \cellcolor{gray!10}{block streets to allow children to cross them?}\\
+\hspace{1em}Noah passed through a park and saw this person at the playground invite other families to share fruit. & invite other families to share fruit? & invite other families to share fruit? & invite other families to share fruit?\\
+\cellcolor{gray!10}{\hspace{1em}Noah saw this person hold the elevator door open for people rushing to get the elevator.} & \cellcolor{gray!10}{hold elevator doors for others?} & \cellcolor{gray!10}{hold elevator doors for others?} & \cellcolor{gray!10}{hold elevator doors for others?}\\
+\hspace{1em}Noah dropped his wallet. This person called him to return the wallet and hand it over. & return wallets? & return wallets? & return wallets?\\
+\cellcolor{gray!10}{\hspace{1em}Noah saw this person stop reading in a cafe to help an elderly person carry heavy groceries to the bus stop.} & \cellcolor{gray!10}{help elderly carry heavy groceries?} & \cellcolor{gray!10}{help elderly carry heavy groceries?} & \cellcolor{gray!10}{help elderly carry heavy groceries?}\\
+\hspace{1em}Noah passed the retirement home and saw this person help an elderly person cross the road. & help the elderly cross a road? & help the elderly cross a road? & help the elderly cross a road?\\
+\cellcolor{gray!10}{\hspace{1em}Noah saw this person at the restaurant leave a generous tip to the server.} & \cellcolor{gray!10}{leave a generous tip to the server?} & \cellcolor{gray!10}{leave a generous tip to the server?} & \cellcolor{gray!10}{leave a generous tip to the server?}\\
+\hspace{1em}Noah got lost and when he asked this person for directions, he received a helpful answer. & give directions? & give directions? & give directions?\\
+\addlinespace[0.3em]
+\multicolumn{4}{l}{\textbf{neutral}}\\
+\cellcolor{gray!10}{\hspace{1em}Noah was passing through the park and saw this person doing kurafi.} & \cellcolor{gray!10}{do kurafi?} & \cellcolor{gray!10}{do kurafi?} & \cellcolor{gray!10}{do kurafi?}\\
+\hspace{1em}Noah was waiting for a taxi and saw this person walking their pet cat on the street. & walk their pet cats on the street? & walk their pet cats on the street? & walk pet cats on the street?\\
+\cellcolor{gray!10}{\hspace{1em}Noah took the bus to the city centre and saw this person running alongside cars.} & \cellcolor{gray!10}{run alongside cars?} & \cellcolor{gray!10}{run alongside cars?} & \cellcolor{gray!10}{run alongside cars?}\\
+\hspace{1em}Noah was at a theme park and saw this person dressed as a mascot. & dress as a mascot? & dress as a mascot? & dress as a mascot?\\
+\cellcolor{gray!10}{\hspace{1em}Noah passed through the train station and saw this person pantomiming.} & \cellcolor{gray!10}{pantomime?} & \cellcolor{gray!10}{pantomime?} & \cellcolor{gray!10}{pantomime?}\\
+\hspace{1em}Noah had breakfast in the office cafeteria and saw this person arriving at work by bike. & bike to work? & bike to work? & bike to work?\\
+\cellcolor{gray!10}{\hspace{1em}Noah was sitting on a bench and saw this person walk barefoot on the street.} & \cellcolor{gray!10}{walk barefoot on the street?} & \cellcolor{gray!10}{walk barefoot on the street?} & \cellcolor{gray!10}{walk barefoot on the street?}\\
+\hspace{1em}Noah passed in front of the post office and saw this person eating raw broccoli for lunch. & eat raw broccoli? & eat raw broccoli? & eat raw broccoli?\\
+\cellcolor{gray!10}{\hspace{1em}Noah went to the local pub and saw this person drinking a glass of wine.} & \cellcolor{gray!10}{drink wine?} & \cellcolor{gray!10}{drink wine?} & \cellcolor{gray!10}{drink wine?}\\
+\hspace{1em}Noah was at the footwear shop and saw this person picking their nose. & pick their nose? & pick their nose? & pick your nose?\\
+\cellcolor{gray!10}{\hspace{1em}Noah went to the harbor and saw this person walking with their swimsuit on the street.} & \cellcolor{gray!10}{wear swimsuits on the streets?} & \cellcolor{gray!10}{wear swimsuits on the streets?} & \cellcolor{gray!10}{wear swimsuits on the streets?}\\
+\hspace{1em}Noah saw this person at the bus stop wearing sunglasses. & wear sunglasses? & wear sunglasses? & wear sunglasses?\\*
+\end{longtable}
+
+\subsection{Counterbalancing}\label{counterbalancing}
+
+\begin{longtable}[t]{lllll}
+\caption{\label{tab:counterbalancing-frequency-conditions-print2}Counterbalancing of the roles of actions. Separately for each valency, actions were organized into 4 sets. Across blocks, each action of a set was presented as the high type-frequency, low type-frequency and single occurrence action.}\\
+\toprule
+Role & Set 1 & Set 2 & Set 3 & Set 4\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{5}{l}{\textbf{Condition 1}}\\
+\hspace{1em}High Type-Frequency & Action 1 & Action 4 & Action 7 & Action 10\\
+\hspace{1em}Low Type-Frequency & Action 2 & Action 5 & Action 8 & Action 11\\
+\hspace{1em}Single occurrence & Action 3 & Action 6 & Action 9 & Action 12\\
+\addlinespace[0.3em]
+\multicolumn{5}{l}{\textbf{Condition 2}}\\
+\hspace{1em}High Type-Frequency & Action 2 & Action 5 & Action 8 & Action 11\\
+\hspace{1em}Low Type-Frequency & Action 3 & Action 6 & Action 9 & Action 12\\
+\hspace{1em}Single occurrence & Action 1 & Action 4 & Action 7 & Action 10\\
+\addlinespace[0.3em]
+\multicolumn{5}{l}{\textbf{Condition 3}}\\
+\hspace{1em}High Type-Frequency & Action 3 & Action 6 & Action 9 & Action 12\\
+\hspace{1em}Low Type-Frequency & Action 1 & Action 4 & Action 7 & Action 10\\
+\hspace{1em}Single occurrence & Action 2 & Action 5 & Action 8 & Action 11\\
+\bottomrule
+\end{longtable}
+
+\begin{longtable}[t]{lrrrl}
+\caption{\label{tab:counterbalancing-gender-print2}Counterbalancing. The valency of the action is counter-balanced across participants. Within each valency, the gender of the face the actions are combined to is counterbalanced across participants, giving 3 groups in total.}\\
+\toprule
+valence & valenceSubjectGroup & genderSubjectGroup & set & faceGender\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{5}{l}{\textbf{Participant Group 1}}\\
+\hspace{1em}bad & 1 & 1 & 1 & male\\
+\hspace{1em}bad & 1 & 1 & 2 & male\\
+\hspace{1em}bad & 1 & 1 & 3 & female\\
+\hspace{1em}bad & 1 & 1 & 4 & female\\
+\addlinespace[0.3em]
+\multicolumn{5}{l}{\textbf{Participant Group 2}}\\
+\hspace{1em}bad & 1 & 2 & 1 & female\\
+\hspace{1em}bad & 1 & 2 & 2 & female\\
+\hspace{1em}bad & 1 & 2 & 3 & male\\
+\hspace{1em}bad & 1 & 2 & 4 & male\\
+\addlinespace[0.3em]
+\multicolumn{5}{l}{\textbf{Participant Group 3}}\\
+\hspace{1em}good & 2 & 1 & 1 & male\\
+\hspace{1em}good & 2 & 1 & 2 & male\\
+\hspace{1em}good & 2 & 1 & 3 & female\\
+\hspace{1em}good & 2 & 1 & 4 & female\\
+\addlinespace[0.3em]
+\multicolumn{5}{l}{\textbf{Participant Group 4}}\\
+\hspace{1em}good & 2 & 2 & 1 & female\\
+\hspace{1em}good & 2 & 2 & 2 & female\\
+\hspace{1em}good & 2 & 2 & 3 & male\\
+\hspace{1em}good & 2 & 2 & 4 & male\\
+\addlinespace[0.3em]
+\multicolumn{5}{l}{\textbf{Participant Group 5}}\\
+\hspace{1em}neutral & 3 & 1 & 1 & male\\
+\hspace{1em}neutral & 3 & 1 & 2 & male\\
+\hspace{1em}neutral & 3 & 1 & 3 & female\\
+\hspace{1em}neutral & 3 & 1 & 4 & female\\
+\addlinespace[0.3em]
+\multicolumn{5}{l}{\textbf{Participant Group 6}}\\
+\hspace{1em}neutral & 3 & 2 & 1 & female\\
+\hspace{1em}neutral & 3 & 2 & 2 & female\\
+\hspace{1em}neutral & 3 & 2 & 3 & male\\
+\hspace{1em}neutral & 3 & 2 & 4 & male\\
+\bottomrule
+\end{longtable}
+
+\subsection{Instructions}\label{instructions-1}
+
+\begin{longtable}[t]{l}
+\caption{\label{tab:print-instructions2}Cover story}\\
+\toprule
+\\
+\midrule
+Noah is studying journalism at university. He decides to take a gap year to explore some countries and cities that have always interested him.
+
+He usually stays 13 days in each place. In each place, Noah makes some interesting observations.
+
+We will now share 12 of these stories.
+Press NEXT to continue…\\
+For each of these stories, we will ask you to guess how widespread and morally acceptable the events in the story are, in the place Noah visits.Your task is to indicate on a 4-point scale how widespread and morally acceptable these events are:
+'1' means that the events are very rare or completely unacceptable (depending on the question)'4' means that the events are very common or completely acceptable (depending on the question)
+Press NEXT to continue\\
+We are interested in your gut reaction, so please answer with the first idea that comes to your mind after reading the stories.
+Press NEXT to continue…\\
+\bottomrule
+\end{longtable}
 
   \bibliography{/Users/endress/ansgar.bib}
 

@@ -5,16 +5,19 @@
 \documentclass[
 ]{article}
 \usepackage{amsmath,amssymb}
-\usepackage{lmodern}
 \usepackage{iftex}
 \ifPDFTeX
   \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
   \usepackage{textcomp} % provide euro and other symbols
 \else % if luatex or xetex
-  \usepackage{unicode-math}
+  \usepackage{unicode-math} % this also loads fontspec
   \defaultfontfeatures{Scale=MatchLowercase}
   \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
 \fi
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -70,9 +73,9 @@
 \fi
 \usepackage[]{natbib}
 \bibliographystyle{plainnat}
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\usepackage{bookmark}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\urlstyle{same} % disable monospaced font for URLs
+\urlstyle{same}
 \hypersetup{
   pdftitle={Social learning by type-token frequency - analysis},
   pdfkeywords={Keywords},
@@ -87,7 +90,19 @@ City, University of London}
 \begin{document}
 \maketitle
 \begin{abstract}
-Abstract (to be written). Discuss quorum sensing \citep{Sumpter2009}
+Abstract (to be written). Argument structure - See below. Analysis
+structure - 1. Descriptives of difference scores and tests against zero.
+2. GLMMs, with reference to ANOVA. Discuss quorum sensing
+\citep{Sumpter2009} Discuss moral repetition effect, and tolerance
+principle and submit to psych sci. In intro. Different formal
+perspectives suggest that mere frequency should not be relevant, From a
+learning perspective, {[}Explanation of tolerance principle; argue later
+that threshold is 8/ln(8) = 3.8, but that we did not vary this
+experimentally as it's too long; general explanation of tolerance
+principle- When having a productive rule is faster than listing all
+items as exception{]}. From a representational perspective,
+dispositions. intrinsic properties of banana; bayesian argument. From a
+social perspective, majority. Whatever the moral frequency guy argues.
 \end{abstract}
 
 We excluded 0 participants because they failed the attention test.
@@ -97,7 +112,7 @@ the main experiment.
 
 \begin{table}
 
-\caption{\label{tab:analyze-sd3-add-median-split}Number of participants in each group of the SD3 scales}
+\caption{\label{tab:analyze-sd3-add-median-split}Number of participants in each group of the SD3 scales. Note that this applies to city students only}
 \centering
 \begin{tabular}[t]{lrrrrrr}
 \toprule
@@ -114,20 +129,16 @@ Psychopathy & 25 & 24 & 3 & 0.481 & 0.462 & 0.058\\
 
 \clearpage
 
-\hypertarget{summary}{%
-\section{Summary}\label{summary}}
+\section{Summary}\label{summary}
 
-\hypertarget{references-for-the-moralconventional-distinction.}{%
 \subsection{References for the moral/conventional
-distinction.}\label{references-for-the-moralconventional-distinction.}}
+distinction.}\label{references-for-the-moralconventional-distinction.}
 
 \citep{Machery2022, Hauser2010}
 
-\hypertarget{ratings}{%
-\subsection{Ratings}\label{ratings}}
+\subsection{Ratings}\label{ratings}
 
-\hypertarget{prevalence}{%
-\subsubsection{Prevalence}\label{prevalence}}
+\subsubsection{Prevalence}\label{prevalence}
 
 We observed a main effect of valency, suggesting that good actions were
 judged better than neutral actions, which were judged better than
@@ -140,9 +151,8 @@ actions.
 
 The interaction was not significant.
 
-\hypertarget{third-party-acceptability}{%
 \subsubsection{Third party
-acceptability}\label{third-party-acceptability}}
+acceptability}\label{third-party-acceptability}
 
 We observed a main effect of valency, suggesting that good actions were
 judged better than neutral actions, which were judged better than
@@ -154,9 +164,8 @@ which we judged as worse than high type frequency actions.
 
 These factors did not interact.
 
-\hypertarget{first-party-acceptability}{%
 \subsubsection{First party
-acceptability}\label{first-party-acceptability}}
+acceptability}\label{first-party-acceptability}
 
 We observed a main effect of valency, suggesting that good actions were
 judged better than neutral actions, which were judged better than
@@ -170,11 +179,9 @@ These factors interacted. The effect of Action Status was only
 significant for neutral and good action, where the effect size for
 neutral actions was twice as high as for good actions.
 
-\hypertarget{difference-scores}{%
-\subsection{Difference scores}\label{difference-scores}}
+\subsection{Difference scores}\label{difference-scores}
 
-\hypertarget{prevalence-1}{%
-\subsubsection{Prevalence}\label{prevalence-1}}
+\subsubsection{Prevalence}\label{prevalence-1}
 
 The difference score comparing the high/low type frequency condition
 against the single occurrence condition yielded a significant main
@@ -189,9 +196,8 @@ condition revealed a significant main effect of Valency, suggesting that
 that the difference score did not differ between bad and neutral
 actions, but between neutral and good actions.
 
-\hypertarget{third-party-acceptability-1}{%
 \subsubsection{Third party
-acceptability}\label{third-party-acceptability-1}}
+acceptability}\label{third-party-acceptability-1}
 
 The difference score comparing the high/low type frequency condition
 against the single occurrence condition yielded a significant main
@@ -210,9 +216,8 @@ condition revealed a marginal main effect of Valency, suggesting that
 that the difference score did not differ between bad and neutral
 actions, but differed marginally between neutral and good actions.
 
-\hypertarget{first-party-acceptability-1}{%
 \subsubsection{First party
-acceptability}\label{first-party-acceptability-1}}
+acceptability}\label{first-party-acceptability-1}
 
 The difference score comparing the high/low type frequency condition
 against the single occurrence condition yielded a significant main
@@ -234,22 +239,23 @@ actions, but differed significantly between neutral and good actions.
 
 \clearpage
 
-\hypertarget{raw-ratings}{%
-\section{Raw ratings}\label{raw-ratings}}
+\section{Raw ratings}\label{raw-ratings}
 
-\hypertarget{ratings-analyzed-using-anovas}{%
-\subsection{Ratings (analyzed using
-ANOVAs)}\label{ratings-analyzed-using-anovas}}
+\subsection{Ratings}\label{ratings-1}
 
-\begin{longtable}[t]{lrrrrr}
-\caption{\label{tab:print-descriptives-ratings-raw}Descriptive for the untransformed data. The p value reflects a Wilcoxon test against the scale midpoint of 2.5.}\\
+\begin{longtable}[t]{lrrrrrrrrr}
+\caption{\label{tab:print-descriptives-ratings}Descriptives for the untransformed as well as the binary ratings. The p value reflects a Wilcoxon test against the scale midpoint of 2.5 or the chance level of .5.}\\
 \toprule
- & N & M & SE & Cohen's d & p\\
+\multicolumn{2}{c}{\textbf{ }} & \multicolumn{4}{c}{\textbf{Raw ratings}} & \multicolumn{4}{c}{\textbf{Binary ratings}} \\
+\cmidrule(l{3pt}r{3pt}){3-6} \cmidrule(l{3pt}r{3pt}){7-10}
+ & N & M & SE & Cohen's d & p & M & SE & Cohen's d & p\\
 \midrule
 \endfirsthead
-\caption[]{Descriptive for the untransformed data. The p value reflects a Wilcoxon test against the scale midpoint of 2.5. \textit{(continued)}}\\
+\caption[]{Descriptives for the untransformed as well as the binary ratings. The p value reflects a Wilcoxon test against the scale midpoint of 2.5 or the chance level of .5. \textit{(continued)}}\\
 \toprule
- & N & M & SE & Cohen's d & p\\
+\multicolumn{2}{c}{\textbf{ }} & \multicolumn{4}{c}{\textbf{Raw ratings}} & \multicolumn{4}{c}{\textbf{Binary ratings}} \\
+\cmidrule(l{3pt}r{3pt}){3-6} \cmidrule(l{3pt}r{3pt}){7-10}
+ & N & M & SE & Cohen's d & p & M & SE & Cohen's d & p\\
 \midrule
 \endhead
 
@@ -257,386 +263,127 @@ ANOVAs)}\label{ratings-analyzed-using-anovas}}
 \bottomrule
 \endlastfoot
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{bad - prevalence}}\\
-\hspace{1em}highTypeFreq & 17 & 3.53 & 0.104 & 8.45 & 0.000\\
-\hspace{1em}lowTypeFreq & 17 & 2.75 & 0.164 & 4.18 & 0.181\\
-\hspace{1em}single & 17 & 2.09 & 0.115 & 4.53 & 0.005\\
+\multicolumn{10}{l}{\textbf{city - bad - prevalence}}\\
+\hspace{1em}highTypeFreq & 17 & 3.53 & 0.104 & 8.45 & 0.000 & 0.936 & 0.025 & 9.359 & 0.000\\
+\hspace{1em}lowTypeFreq & 17 & 2.75 & 0.164 & 4.18 & 0.181 & 0.534 & 0.104 & 1.279 & 0.792\\
+\hspace{1em}single & 17 & 2.09 & 0.115 & 4.53 & 0.005 & 0.235 & 0.073 & 0.802 & 0.005\\
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{neutral - prevalence}}\\
-\hspace{1em}highTypeFreq & 17 & 3.51 & 0.117 & 7.48 & 0.000\\
-\hspace{1em}lowTypeFreq & 17 & 2.50 & 0.091 & 6.88 & 0.875\\
-\hspace{1em}single & 17 & 1.96 & 0.114 & 4.29 & 0.001\\
+\multicolumn{10}{l}{\textbf{city - neutral - prevalence}}\\
+\hspace{1em}highTypeFreq & 17 & 3.51 & 0.117 & 7.48 & 0.000 & 0.882 & 0.040 & 5.462 & 0.000\\
+\hspace{1em}lowTypeFreq & 17 & 2.50 & 0.091 & 6.88 & 0.875 & 0.431 & 0.063 & 1.723 & 0.307\\
+\hspace{1em}single & 17 & 1.96 & 0.114 & 4.29 & 0.001 & 0.206 & 0.045 & 1.147 & 0.001\\
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{good - prevalence}}\\
-\hspace{1em}highTypeFreq & 18 & 3.75 & 0.071 & 12.91 & 0.000\\
-\hspace{1em}lowTypeFreq & 18 & 3.29 & 0.134 & 5.97 & 0.000\\
-\hspace{1em}single & 18 & 2.70 & 0.149 & 4.39 & 0.303\\
+\multicolumn{10}{l}{\textbf{city - good - prevalence}}\\
+\hspace{1em}highTypeFreq & 18 & 3.75 & 0.071 & 12.91 & 0.000 & 0.977 & 0.012 & 20.404 & 0.000\\
+\hspace{1em}lowTypeFreq & 18 & 3.29 & 0.134 & 5.97 & 0.000 & 0.819 & 0.066 & 3.001 & 0.002\\
+\hspace{1em}single & 18 & 2.70 & 0.149 & 4.39 & 0.303 & 0.546 & 0.086 & 1.539 & 0.614\\
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{bad - third.party.acceptability}}\\
-\hspace{1em}highTypeFreq & 17 & 2.71 & 0.146 & 4.63 & 0.192\\
-\hspace{1em}lowTypeFreq & 17 & 1.89 & 0.121 & 3.88 & 0.001\\
-\hspace{1em}single & 17 & 1.66 & 0.115 & 3.59 & 0.000\\
+\multicolumn{10}{l}{\textbf{city - bad - third.party.acceptability}}\\
+\hspace{1em}highTypeFreq & 17 & 2.71 & 0.146 & 4.63 & 0.192 & 0.637 & 0.077 & 2.072 & 0.070\\
+\hspace{1em}lowTypeFreq & 17 & 1.89 & 0.121 & 3.88 & 0.001 & 0.211 & 0.061 & 0.867 & 0.003\\
+\hspace{1em}single & 17 & 1.66 & 0.115 & 3.59 & 0.000 & 0.103 & 0.039 & 0.654 & 0.000\\
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{neutral - third.party.acceptability}}\\
-\hspace{1em}highTypeFreq & 17 & 3.46 & 0.095 & 9.14 & 0.000\\
-\hspace{1em}lowTypeFreq & 17 & 2.72 & 0.098 & 6.92 & 0.038\\
-\hspace{1em}single & 17 & 2.32 & 0.119 & 4.89 & 0.097\\
+\multicolumn{10}{l}{\textbf{city - neutral - third.party.acceptability}}\\
+\hspace{1em}highTypeFreq & 17 & 3.46 & 0.095 & 9.14 & 0.000 & 0.882 & 0.037 & 5.983 & 0.000\\
+\hspace{1em}lowTypeFreq & 17 & 2.72 & 0.098 & 6.92 & 0.038 & 0.569 & 0.054 & 2.645 & 0.218\\
+\hspace{1em}single & 17 & 2.32 & 0.119 & 4.89 & 0.097 & 0.382 & 0.055 & 1.749 & 0.032\\
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{good - third.party.acceptability}}\\
-\hspace{1em}highTypeFreq & 18 & 3.80 & 0.060 & 15.42 & 0.000\\
-\hspace{1em}lowTypeFreq & 18 & 3.45 & 0.117 & 7.16 & 0.000\\
-\hspace{1em}single & 18 & 3.00 & 0.155 & 4.70 & 0.007\\
+\multicolumn{10}{l}{\textbf{city - good - third.party.acceptability}}\\
+\hspace{1em}highTypeFreq & 18 & 3.80 & 0.060 & 15.42 & 0.000 & 0.977 & 0.012 & 20.404 & 0.000\\
+\hspace{1em}lowTypeFreq & 18 & 3.45 & 0.117 & 7.16 & 0.000 & 0.894 & 0.041 & 5.224 & 0.000\\
+\hspace{1em}single & 18 & 3.00 & 0.155 & 4.70 & 0.007 & 0.676 & 0.078 & 2.099 & 0.043\\
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{bad - first.party.acceptablity}}\\
-\hspace{1em}highTypeFreq & 17 & 1.61 & 0.094 & 4.30 & 0.000\\
-\hspace{1em}lowTypeFreq & 17 & 1.57 & 0.099 & 3.98 & 0.000\\
-\hspace{1em}single & 17 & 1.54 & 0.097 & 4.00 & 0.000\\
+\multicolumn{10}{l}{\textbf{city - bad - first.party.acceptablity}}\\
+\hspace{1em}highTypeFreq & 17 & 1.61 & 0.094 & 4.30 & 0.000 & 0.123 & 0.030 & 1.036 & 0.000\\
+\hspace{1em}lowTypeFreq & 17 & 1.57 & 0.099 & 3.98 & 0.000 & 0.098 & 0.028 & 0.882 & 0.000\\
+\hspace{1em}single & 17 & 1.54 & 0.097 & 4.00 & 0.000 & 0.088 & 0.036 & 0.605 & 0.000\\
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{neutral - first.party.acceptablity}}\\
-\hspace{1em}highTypeFreq & 17 & 2.81 & 0.106 & 6.64 & 0.004\\
-\hspace{1em}lowTypeFreq & 17 & 2.59 & 0.105 & 6.19 & 0.705\\
-\hspace{1em}single & 17 & 2.47 & 0.124 & 4.96 & 0.549\\
+\multicolumn{10}{l}{\textbf{city - neutral - first.party.acceptablity}}\\
+\hspace{1em}highTypeFreq & 17 & 2.81 & 0.106 & 6.64 & 0.004 & 0.603 & 0.050 & 3.033 & 0.056\\
+\hspace{1em}lowTypeFreq & 17 & 2.59 & 0.105 & 6.19 & 0.705 & 0.539 & 0.047 & 2.889 & 0.693\\
+\hspace{1em}single & 17 & 2.47 & 0.124 & 4.96 & 0.571 & 0.500 & 0.050 & 2.502 & 0.752\\
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{good - first.party.acceptablity}}\\
-\hspace{1em}highTypeFreq & 18 & 3.69 & 0.070 & 12.86 & 0.000\\
-\hspace{1em}lowTypeFreq & 18 & 3.68 & 0.075 & 11.85 & 0.000\\
-\hspace{1em}single & 18 & 3.63 & 0.083 & 10.57 & 0.000\\*
+\multicolumn{10}{l}{\textbf{city - good - first.party.acceptablity}}\\
+\hspace{1em}highTypeFreq & 18 & 3.69 & 0.070 & 12.86 & 0.000 & 0.940 & 0.022 & 10.500 & 0.000\\
+\hspace{1em}lowTypeFreq & 18 & 3.68 & 0.075 & 11.85 & 0.000 & 0.944 & 0.023 & 9.963 & 0.000\\
+\hspace{1em}single & 18 & 3.63 & 0.083 & 10.57 & 0.000 & 0.931 & 0.024 & 9.302 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{testable - bad - prevalence}}\\
+\hspace{1em}highTypeFreq & 41 & 3.48 & 0.098 & 5.59 & 0.000 & 0.888 & 0.034 & 4.155 & 0.000\\
+\hspace{1em}lowTypeFreq & 41 & 2.96 & 0.118 & 3.98 & 0.001 & 0.650 & 0.054 & 1.901 & 0.007\\
+\hspace{1em}single & 41 & 2.27 & 0.070 & 5.10 & 0.005 & 0.325 & 0.052 & 0.993 & 0.002\\
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{testable - neutral - prevalence}}\\
+\hspace{1em}highTypeFreq & 39 & 3.66 & 0.078 & 7.64 & 0.000 & 0.923 & 0.025 & 5.882 & 0.000\\
+\hspace{1em}lowTypeFreq & 39 & 2.90 & 0.106 & 4.46 & 0.001 & 0.628 & 0.059 & 1.739 & 0.026\\
+\hspace{1em}single & 39 & 2.33 & 0.095 & 3.97 & 0.063 & 0.368 & 0.058 & 1.032 & 0.009\\
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{testable - good - prevalence}}\\
+\hspace{1em}highTypeFreq & 39 & 3.79 & 0.053 & 11.66 & 0.000 & 0.968 & 0.014 & 11.151 & 0.000\\
+\hspace{1em}lowTypeFreq & 39 & 3.43 & 0.073 & 7.58 & 0.000 & 0.923 & 0.025 & 5.971 & 0.000\\
+\hspace{1em}single & 39 & 2.96 & 0.099 & 4.86 & 0.000 & 0.682 & 0.053 & 2.083 & 0.001\\
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{testable - bad - third.party.acceptability}}\\
+\hspace{1em}highTypeFreq & 41 & 2.95 & 0.129 & 3.63 & 0.002 & 0.720 & 0.052 & 2.197 & 0.000\\
+\hspace{1em}lowTypeFreq & 41 & 2.46 & 0.133 & 2.92 & 0.619 & 0.459 & 0.058 & 1.246 & 0.519\\
+\hspace{1em}single & 41 & 1.86 & 0.091 & 3.22 & 0.000 & 0.215 & 0.045 & 0.757 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{testable - neutral - third.party.acceptability}}\\
+\hspace{1em}highTypeFreq & 39 & 3.58 & 0.077 & 7.53 & 0.000 & 0.895 & 0.028 & 5.149 & 0.000\\
+\hspace{1em}lowTypeFreq & 39 & 3.11 & 0.095 & 5.32 & 0.000 & 0.754 & 0.041 & 2.958 & 0.000\\
+\hspace{1em}single & 39 & 2.77 & 0.088 & 5.08 & 0.005 & 0.635 & 0.047 & 2.210 & 0.018\\
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{testable - good - third.party.acceptability}}\\
+\hspace{1em}highTypeFreq & 39 & 3.84 & 0.050 & 12.52 & 0.000 & 0.979 & 0.014 & 11.528 & 0.000\\
+\hspace{1em}lowTypeFreq & 39 & 3.65 & 0.060 & 9.87 & 0.000 & 0.959 & 0.017 & 9.339 & 0.000\\
+\hspace{1em}single & 39 & 3.34 & 0.077 & 7.05 & 0.000 & 0.861 & 0.031 & 4.542 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{testable - bad - first.party.acceptablity}}\\
+\hspace{1em}highTypeFreq & 41 & 1.35 & 0.054 & 3.98 & 0.000 & 0.061 & 0.016 & 0.607 & 0.000\\
+\hspace{1em}lowTypeFreq & 41 & 1.32 & 0.060 & 3.51 & 0.000 & 0.063 & 0.023 & 0.441 & 0.000\\
+\hspace{1em}single & 41 & 1.30 & 0.057 & 3.60 & 0.000 & 0.065 & 0.024 & 0.425 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{testable - neutral - first.party.acceptablity}}\\
+\hspace{1em}highTypeFreq & 39 & 3.10 & 0.071 & 7.08 & 0.000 & 0.699 & 0.030 & 3.798 & 0.000\\
+\hspace{1em}lowTypeFreq & 39 & 2.97 & 0.077 & 6.24 & 0.000 & 0.669 & 0.032 & 3.390 & 0.000\\
+\hspace{1em}single & 39 & 2.90 & 0.082 & 5.70 & 0.000 & 0.671 & 0.035 & 3.103 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{testable - good - first.party.acceptablity}}\\
+\hspace{1em}highTypeFreq & 39 & 3.79 & 0.043 & 14.47 & 0.000 & 0.966 & 0.010 & 16.206 & 0.000\\
+\hspace{1em}lowTypeFreq & 39 & 3.72 & 0.051 & 11.83 & 0.000 & 0.953 & 0.014 & 11.204 & 0.000\\
+\hspace{1em}single & 39 & 3.68 & 0.053 & 11.33 & 0.000 & 0.953 & 0.013 & 11.498 & 0.000\\*
 \end{longtable}
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.8\linewidth]{social_learning_type_token_sequential_results_files/figure-latex/plot-ratings-raw-1} 
+{\centering \includegraphics[width=0.8\linewidth]{social_learning_type_token_sequential_results_files/figure-latex/plot-ratings-raw-testable-1} 
 
 }
 
-\caption{Raw ratings}\label{fig:plot-ratings-raw}
+\caption{Ratings for testable participants. NOTE THAT WE HAVE SPECIFIC PLOTS FOR BINARY RATINGS BELOW. (a) Raw ratings. (b) Binary ratings}\label{fig:plot-ratings-raw-testable}
+\end{figure}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.8\linewidth]{social_learning_type_token_sequential_results_files/figure-latex/plot-ratings-raw-city-1} 
+
+}
+
+\caption{Ratings for City students. NOTE THAT WE HAVE SPECIFIC PLOTS FOR BINARY RATINGS BELOW.  (a) Raw ratings. (b) Binary ratings. }\label{fig:plot-ratings-raw-city}
 \end{figure}
 
 \clearpage
 
-\hypertarget{prevalence-2}{%
-\subsubsection{Prevalence}\label{prevalence-2}}
+\subsection{Difference scores}\label{difference-scores-1}
 
-\begin{table}
+\begin{figure}
 
-\caption{\label{tab:city-prevalence-sw}SW acceptability for participants themselves}
-\centering
-\begin{tabular}[t]{llrrl}
-\toprule
-myValence & myQueriedActionStatus & W & p.value & p<=.05\\
-\midrule
-bad & highTypeFreq & 0.815 & 0.003 & **\\
-neutral & highTypeFreq & 0.904 & 0.079 & .\\
-good & highTypeFreq & 0.825 & 0.003 & **\\
-bad & lowTypeFreq & 0.910 & 0.101 & \\
-neutral & lowTypeFreq & 0.915 & 0.123 & \\
-\addlinespace
-good & lowTypeFreq & 0.906 & 0.074 & .\\
-bad & single & 0.954 & 0.519 & \\
-neutral & single & 0.938 & 0.294 & \\
-good & single & 0.883 & 0.029 & *\\
-\bottomrule
-\end{tabular}
-\end{table}
+{\centering \includegraphics[width=0.8\linewidth]{social_learning_type_token_sequential_results_files/figure-latex/testable-plot-difference-vs-single-raw-1} 
 
-As shown in Table \ref{tab:city-prevalence-sw}, a number of cells
-deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+}
 
-As shown in Table \ref{tab:city-prevalence-aov-show}, we observed the
-expected main effect of Valency on first-party acceptability. Further,
-we observer a main effect of Action Status. The interaction between
-Action Status and Valency did not reach significance.
-
-As shown in Table \ref{tab:city-prevalence-aov-show}, separate ANOVAs
-for each valency revealed a strong main effect of Action Status for all
-valencies.
-
-Finally, Table \ref{tab:city-prevalence-aov-show} shows separate two way
-ANOVAs leaving out one of the Action Statuses. In all ANOVAs, we
-observed the expected main effect of Valency. We also observed a main
-effect of Action Status for all comparisons, suggesting that both an
-increased token frequency and an increased type frequency affect
-prevalence.
-
-Finally, the interaction between Action Status and Valency failed to
-reach significance.
-
-\begin{table}[!h]
-
-\caption{\label{tab:city-prevalence-aov-show}ANOVA for prevalence judgments and unprocessed ratings. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for prevalence ratings. (Bottom). Follow-up ANOVAs leaving out one of the frequency conditions. Prevalence judgements were affected by Valency and the Frequency Condition. The latter effect reached significance for all valencies separately. Prevalence judgments different across all frequency conditions.}
-\centering
-\resizebox{\linewidth}{!}{
-\begin{tabular}[t]{lrrrrr}
-\toprule
-Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
-\midrule
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Overall}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{18.200} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.426}\\
-\hspace{1em}myQueriedActionStatus & 2 & 98 & 107.000 & 0.000 & 0.670\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{4} & \cellcolor{gray!6}{98} & \cellcolor{gray!6}{1.920} & \cellcolor{gray!6}{0.114} & \cellcolor{gray!6}{0.024}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: bad}}\\
-\hspace{1em}myQueriedActionStatus & 2 & 32 & 31.800 & 0.000 & 0.665\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: neutral}}\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{32} & \cellcolor{gray!6}{47.300} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.747}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: good}}\\
-\hspace{1em}myQueriedActionStatus & 2 & 34 & 31.200 & 0.000 & 0.647\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: lowTypeFreq vs. highTypeFreq}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{11.600} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.321}\\
-\hspace{1em}myQueriedActionStatus & 1 & 49 & 62.700 & 0.000 & 0.535\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{2.770} & \cellcolor{gray!6}{0.073} & \cellcolor{gray!6}{0.047}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: single vs. highTypeFreq}}\\
-\hspace{1em}myValence & 2 & 49 & 16.500 & 0.000 & 0.402\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{170.000} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.761}\\
-\hspace{1em}myQueriedActionStatus:myValence & 2 & 49 & 2.150 & 0.128 & 0.019\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: single vs. lowTypeFreq}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{13.600} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.357}\\
-\hspace{1em}myQueriedActionStatus & 1 & 49 & 61.300 & 0.000 & 0.554\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{0.182} & \cellcolor{gray!6}{0.834} & \cellcolor{gray!6}{0.003}\\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-\clearpage
-
-\hypertarget{third-party-acceptability-2}{%
-\subsubsection{Third-party
-acceptability}\label{third-party-acceptability-2}}
-
-\begin{table}
-
-\caption{\label{tab:city-acceptability-other-sw}SW acceptability for participants themselves}
-\centering
-\begin{tabular}[t]{llrrl}
-\toprule
-myValence & myQueriedActionStatus & W & p.value & p<=.05\\
-\midrule
-bad & highTypeFreq & 0.958 & 0.598 & \\
-neutral & highTypeFreq & 0.949 & 0.443 & \\
-good & highTypeFreq & 0.823 & 0.003 & **\\
-bad & lowTypeFreq & 0.967 & 0.762 & \\
-neutral & lowTypeFreq & 0.938 & 0.294 & \\
-\addlinespace
-good & lowTypeFreq & 0.913 & 0.099 & .\\
-bad & single & 0.923 & 0.169 & \\
-neutral & single & 0.949 & 0.439 & \\
-good & single & 0.949 & 0.403 & \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-As shown in Table \ref{tab:city-acceptability-other-sw}, a number of
-cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
-
-As shown in Table \ref{tab:city-acceptability-other-aov-show}, we
-observed the expected main effect of Valency on third-party
-acceptability. Further, we observed a main effect of Action Status. The
-interaction between Action Status and Valency was not significant.
-
-As shown in Table \ref{tab:city-acceptability-other-aov-show}, separate
-ANOVAs for each valency revealed a strong main effect of Action Status
-for all scenarios, though the effect size for neutral actions was
-somewhat stronger.
-
-Finally, Table \ref{tab:city-acceptability-other-aov-show} shows
-separate two way ANOVAs leaving out one of the Action Statuses. In all
-ANOVAs, we observed the expected main effect of Valency. We also
-observed a main effect of Action Status for all comparisons, suggesting
-that both an increased token frequency and an increased type frequency
-affect first party acceptability.
-
-Finally, the interactions between Action Status and Valency failed to
-reach significance.
-
-\begin{table}[!h]
-
-\caption{\label{tab:city-acceptability-other-aov-show}ANOVA for third-person acceptability. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Follow-up ANOVAs leaving out one of the frequency conditions. Third party acceptability was affected by Valency and by the Frequency Condition. The effect of frequency condition reach significant for all valencies, but was stronger for neutral scenarios. The the effect of frequency condition was significant for all pairs of frequency conditions.}
-\centering
-\resizebox{\linewidth}{!}{
-\begin{tabular}[t]{lrrrrr}
-\toprule
-Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
-\midrule
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Overall}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{72.00} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.746}\\
-\hspace{1em}myQueriedActionStatus & 2 & 98 & 75.50 & 0.000 & 0.589\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{4} & \cellcolor{gray!6}{98} & \cellcolor{gray!6}{1.86} & \cellcolor{gray!6}{0.124} & \cellcolor{gray!6}{0.029}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: bad}}\\
-\hspace{1em}myQueriedActionStatus & 2 & 32 & 20.70 & 0.000 & 0.565\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: neutral}}\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{32} & \cellcolor{gray!6}{45.50} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.740}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: good}}\\
-\hspace{1em}myQueriedActionStatus & 2 & 34 & 19.50 & 0.000 & 0.535\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: lowTypeFreq vs. highTypeFreq}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{75.90} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.756}\\
-\hspace{1em}myQueriedActionStatus & 1 & 49 & 56.30 & 0.000 & 0.504\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{3.15} & \cellcolor{gray!6}{0.052} & \cellcolor{gray!6}{0.056}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: single vs. highTypeFreq}}\\
-\hspace{1em}myValence & 2 & 49 & 62.40 & 0.000 & 0.718\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{100.00} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.663}\\
-\hspace{1em}myQueriedActionStatus:myValence & 2 & 49 & 1.07 & 0.350 & 0.014\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: single vs. lowTypeFreq}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{45.10} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.648}\\
-\hspace{1em}myQueriedActionStatus & 1 & 49 & 41.40 & 0.000 & 0.444\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{1.46} & \cellcolor{gray!6}{0.243} & \cellcolor{gray!6}{0.031}\\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-\clearpage
-
-\hypertarget{first-party-acceptability-2}{%
-\subsubsection{First-party
-acceptability}\label{first-party-acceptability-2}}
-
-\begin{table}
-
-\caption{\label{tab:city-acceptability-self-sw}SW acceptability for participants themselves}
-\centering
-\begin{tabular}[t]{llrrl}
-\toprule
-myValence & myQueriedActionStatus & W & p.value & p<=.05\\
-\midrule
-bad & highTypeFreq & 0.968 & 0.776 & \\
-neutral & highTypeFreq & 0.864 & 0.018 & *\\
-good & highTypeFreq & 0.901 & 0.061 & .\\
-bad & lowTypeFreq & 0.967 & 0.758 & \\
-neutral & lowTypeFreq & 0.824 & 0.004 & **\\
-\addlinespace
-good & lowTypeFreq & 0.888 & 0.035 & *\\
-bad & single & 0.911 & 0.103 & \\
-neutral & single & 0.935 & 0.267 & \\
-good & single & 0.889 & 0.037 & *\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-As shown in Table \ref{tab:city-acceptability-self-sw}, a number of
-cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
-
-As shown in Table \ref{tab:city-acceptability-self-aov-show}, we
-observed the expected main effect of Valency on first-party
-acceptability. Further, we observerd a main effect of Action Status as
-well as an interaction between Action Status and Valency.
-
-As shown in Table \ref{tab:city-acceptability-self-aov-show}, separate
-ANOVAs for each valency revealed a strong main effect of Action Status
-for neutral scenarios, a weaker one for good scenarios, and none for bad
-scenarios. This is also expected, as the moral acceptability of neutral
-scenarios should be more malleable.
-
-Finally, Table \ref{tab:city-acceptability-self-aov-show} shows separate
-two way ANOVAs leaving out one of the Action Statuses. In all ANOVAs, we
-observed the expected main effect of Valency. We also observed a main
-effect of Action Status for all comparisons, suggesting that both an
-increased token frequency and an increased type frequency affect first
-party acceptability.
-
-Finally, the interaction between Action Status and Valency failed to
-reach significance only when single occurrence actions were compare to
-low type frequency actions, but was significant when single occurrence
-actions were compared to high Type Frequency actions and when the other
-two frequency conditions were compared. We further investigate this by
-simultaneous restricting the Action Status and the Valency.
-
-\begin{table}[!h]
-
-\caption{\label{tab:city-acceptability-self-aov-show}ANOVA for first-person acceptability. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Follow-up ANOVAs leaving out one of the frequency conditions. First party-acceptability were affected by both valency and Frequency Condition. An interaction between these factors suggested that the effect of the frequency condition was not significant for bad actions, and much stronger for neutral actions than for good actions. All frequency conditions differed from one another.}
-\centering
-\resizebox{\linewidth}{!}{
-\begin{tabular}[t]{lrrrrr}
-\toprule
-Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
-\midrule
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Overall}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{146.00} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.856}\\
-\hspace{1em}myQueriedActionStatus & 2 & 98 & 12.70 & 0.000 & 0.179\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{4} & \cellcolor{gray!6}{98} & \cellcolor{gray!6}{4.55} & \cellcolor{gray!6}{0.002} & \cellcolor{gray!6}{0.129}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: bad}}\\
-\hspace{1em}myQueriedActionStatus & 2 & 32 & 2.12 & 0.137 & 0.117\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: neutral}}\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{32} & \cellcolor{gray!6}{8.22} & \cellcolor{gray!6}{0.001} & \cellcolor{gray!6}{0.339}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: good}}\\
-\hspace{1em}myQueriedActionStatus & 2 & 34 & 3.56 & 0.039 & 0.173\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: lowTypeFreq vs. highTypeFreq}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{152.00} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.861}\\
-\hspace{1em}myQueriedActionStatus & 1 & 49 & 10.30 & 0.002 & 0.149\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{4.76} & \cellcolor{gray!6}{0.013} & \cellcolor{gray!6}{0.138}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: single vs. highTypeFreq}}\\
-\hspace{1em}myValence & 2 & 49 & 144.00 & 0.000 & 0.855\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{16.30} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.212}\\
-\hspace{1em}myQueriedActionStatus:myValence & 2 & 49 & 5.63 & 0.006 & 0.147\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: single vs. lowTypeFreq}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{130.00} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.842}\\
-\hspace{1em}myQueriedActionStatus & 1 & 49 & 7.00 & 0.011 & 0.118\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{1.57} & \cellcolor{gray!6}{0.219} & \cellcolor{gray!6}{0.053}\\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-\begin{table}[!h]
-
-\caption{\label{tab:city-acceptability-self-aov-follow-up-valency-action-status}Differences for each frequency conditions separately for first person acceptability for all participants.}
-\centering
-\begin{tabular}[t]{lrrrrr}
-\toprule
-effect & df1 & df2 & F.value & p.value & partial.eta.squared\\
-\midrule
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{bad - lowTypeFreq vs. highTypeFreq}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 16 & 1.580 & 0.227 & 0.090\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{bad - single vs. highTypeFreq}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 16 & 5.060 & 0.039 & 0.240\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{bad - single vs. lowTypeFreq}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 16 & 0.475 & 0.501 & 0.029\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{neutral - lowTypeFreq vs. highTypeFreq}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 16 & 7.810 & 0.013 & 0.328\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{neutral - single vs. highTypeFreq}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 16 & 9.290 & 0.008 & 0.367\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{neutral - single vs. lowTypeFreq}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 16 & 4.810 & 0.043 & 0.231\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{good - lowTypeFreq vs. highTypeFreq}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 17 & 0.883 & 0.361 & 0.049\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{good - single vs. highTypeFreq}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 17 & 8.770 & 0.009 & 0.340\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{good - single vs. lowTypeFreq}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 17 & 2.130 & 0.163 & 0.111\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\clearpage
-
-\hypertarget{difference-scores-1}{%
-\subsection{Difference scores}\label{difference-scores-1}}
+\caption{Raw difference scores vs. single occurrence actions for Testable participants}\label{fig:testable-plot-difference-vs-single-raw}
+\end{figure}
 
 \begin{figure}
 
@@ -644,18 +391,22 @@ effect & df1 & df2 & F.value & p.value & partial.eta.squared\\
 
 }
 
-\caption{Raw difference scores vs. single occurrence actions}\label{fig:city-plot-difference-vs-single-raw}
+\caption{Raw difference scores vs. single occurrence actions for City Students}\label{fig:city-plot-difference-vs-single-raw}
 \end{figure}
 
-\begin{longtable}[t]{llrrrrr}
-\caption{\label{tab:city-print-difference-vs-single-raw}Descriptive for the difference scores against the single occurrence condition using the untransformed data. The p value reflects a Wilcoxon test against zero.}\\
+\begin{longtable}[t]{llrrrrrrrrr}
+\caption{\label{tab:print-difference-vs-single}Descriptive for the difference scores against the single occurrence condition using the binary as well as the untransformed data. The p value reflects a Wilcoxon test against zero.}\\
 \toprule
-Valency & Action Status & N & M & SE & Cohen's d & p\\
+\multicolumn{3}{c}{\textbf{ }} & \multicolumn{4}{c}{\textbf{Binary ratings}} & \multicolumn{4}{c}{\textbf{Raw ratings}} \\
+\cmidrule(l{3pt}r{3pt}){4-7} \cmidrule(l{3pt}r{3pt}){8-11}
+Valency & Action Status & N & M & SE & Cohen's d & p & M & SE & Cohen's d & p\\
 \midrule
 \endfirsthead
-\caption[]{Descriptive for the difference scores against the single occurrence condition using the untransformed data. The p value reflects a Wilcoxon test against zero. \textit{(continued)}}\\
+\caption[]{Descriptive for the difference scores against the single occurrence condition using the binary as well as the untransformed data. The p value reflects a Wilcoxon test against zero. \textit{(continued)}}\\
 \toprule
-Valency & Action Status & N & M & SE & Cohen's d & p\\
+\multicolumn{3}{c}{\textbf{ }} & \multicolumn{4}{c}{\textbf{Binary ratings}} & \multicolumn{4}{c}{\textbf{Raw ratings}} \\
+\cmidrule(l{3pt}r{3pt}){4-7} \cmidrule(l{3pt}r{3pt}){8-11}
+Valency & Action Status & N & M & SE & Cohen's d & p & M & SE & Cohen's d & p\\
 \midrule
 \endhead
 
@@ -663,30 +414,56 @@ Valency & Action Status & N & M & SE & Cohen's d & p\\
 \bottomrule
 \endlastfoot
 \addlinespace[0.3em]
-\multicolumn{7}{l}{\textbf{first party acceptablity}}\\
-\hspace{1em}bad & highTypeFreq & 17 & 0.022 & 0.010 & 0.551 & 0.054\\
-\hspace{1em}bad & lowTypeFreq & 17 & 0.007 & 0.011 & 0.147 & 0.551\\
-\hspace{1em}neutral & highTypeFreq & 17 & 0.069 & 0.022 & 0.776 & 0.003\\
-\hspace{1em}neutral & lowTypeFreq & 17 & 0.029 & 0.014 & 0.530 & 0.045\\
-\hspace{1em}good & highTypeFreq & 18 & 0.010 & 0.004 & 0.659 & 0.014\\
-\hspace{1em}good & lowTypeFreq & 18 & 0.007 & 0.005 & 0.330 & 0.213\\
+\multicolumn{11}{l}{\textbf{city - first party acceptablity}}\\
+\hspace{1em}bad & highTypeFreq & 17 & 0.227 & 0.100 & 0.570 & 0.032 & 0.022 & 0.010 & 0.551 & 0.054\\
+\hspace{1em}bad & lowTypeFreq & 17 & 0.145 & 0.095 & 0.383 & 0.247 & 0.007 & 0.011 & 0.147 & 0.551\\
+\hspace{1em}neutral & highTypeFreq & 17 & 0.097 & 0.044 & 0.544 & 0.032 & 0.069 & 0.022 & 0.776 & 0.003\\
+\hspace{1em}neutral & lowTypeFreq & 17 & 0.045 & 0.036 & 0.314 & 0.299 & 0.029 & 0.014 & 0.530 & 0.045\\
+\hspace{1em}good & highTypeFreq & 18 & 0.006 & 0.007 & 0.205 & 0.349 & 0.010 & 0.004 & 0.659 & 0.014\\
+\hspace{1em}good & lowTypeFreq & 18 & 0.008 & 0.006 & 0.320 & 0.207 & 0.007 & 0.005 & 0.330 & 0.213\\
 \addlinespace[0.3em]
-\multicolumn{7}{l}{\textbf{prevalence}}\\
-\hspace{1em}bad & highTypeFreq & 17 & 0.259 & 0.035 & 1.856 & 0.000\\
-\hspace{1em}bad & lowTypeFreq & 17 & 0.133 & 0.030 & 1.120 & 0.001\\
-\hspace{1em}neutral & highTypeFreq & 17 & 0.284 & 0.040 & 1.773 & 0.000\\
-\hspace{1em}neutral & lowTypeFreq & 17 & 0.130 & 0.025 & 1.299 & 0.001\\
-\hspace{1em}good & highTypeFreq & 18 & 0.172 & 0.026 & 1.580 & 0.000\\
-\hspace{1em}good & lowTypeFreq & 18 & 0.102 & 0.024 & 1.031 & 0.001\\
+\multicolumn{11}{l}{\textbf{city - prevalence}}\\
+\hspace{1em}bad & highTypeFreq & 17 & 0.665 & 0.087 & 1.905 & 0.000 & 0.259 & 0.035 & 1.856 & 0.000\\
+\hspace{1em}bad & lowTypeFreq & 17 & 0.312 & 0.096 & 0.809 & 0.010 & 0.133 & 0.030 & 1.120 & 0.001\\
+\hspace{1em}neutral & highTypeFreq & 17 & 0.636 & 0.080 & 1.995 & 0.000 & 0.284 & 0.040 & 1.773 & 0.000\\
+\hspace{1em}neutral & lowTypeFreq & 17 & 0.383 & 0.140 & 0.686 & 0.016 & 0.130 & 0.025 & 1.299 & 0.001\\
+\hspace{1em}good & highTypeFreq & 18 & 0.353 & 0.080 & 1.065 & 0.001 & 0.172 & 0.026 & 1.580 & 0.000\\
+\hspace{1em}good & lowTypeFreq & 18 & 0.221 & 0.094 & 0.572 & 0.029 & 0.102 & 0.024 & 1.031 & 0.001\\
 \addlinespace[0.3em]
-\multicolumn{7}{l}{\textbf{third party acceptability}}\\
-\hspace{1em}bad & highTypeFreq & 17 & 0.238 & 0.046 & 1.286 & 0.001\\
-\hspace{1em}bad & lowTypeFreq & 17 & 0.067 & 0.021 & 0.802 & 0.002\\
-\hspace{1em}neutral & highTypeFreq & 17 & 0.201 & 0.029 & 1.713 & 0.000\\
-\hspace{1em}neutral & lowTypeFreq & 17 & 0.084 & 0.021 & 0.997 & 0.002\\
-\hspace{1em}good & highTypeFreq & 18 & 0.126 & 0.026 & 1.171 & 0.000\\
-\hspace{1em}good & lowTypeFreq & 18 & 0.076 & 0.021 & 0.889 & 0.000\\*
+\multicolumn{11}{l}{\textbf{city - third party acceptability}}\\
+\hspace{1em}bad & highTypeFreq & 17 & 0.708 & 0.088 & 2.016 & 0.000 & 0.238 & 0.046 & 1.286 & 0.001\\
+\hspace{1em}bad & lowTypeFreq & 17 & 0.284 & 0.142 & 0.499 & 0.056 & 0.067 & 0.021 & 0.802 & 0.002\\
+\hspace{1em}neutral & highTypeFreq & 17 & 0.420 & 0.069 & 1.520 & 0.000 & 0.201 & 0.029 & 1.713 & 0.000\\
+\hspace{1em}neutral & lowTypeFreq & 17 & 0.216 & 0.081 & 0.666 & 0.010 & 0.084 & 0.021 & 0.997 & 0.002\\
+\hspace{1em}good & highTypeFreq & 18 & 0.233 & 0.072 & 0.786 & 0.002 & 0.126 & 0.026 & 1.171 & 0.000\\
+\hspace{1em}good & lowTypeFreq & 18 & 0.184 & 0.069 & 0.643 & 0.009 & 0.076 & 0.021 & 0.889 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{11}{l}{\textbf{testable - first party acceptablity}}\\
+\hspace{1em}bad & highTypeFreq & 41 & 0.050 & 0.087 & 0.090 & 0.587 & 0.022 & 0.009 & 0.382 & 0.024\\
+\hspace{1em}bad & lowTypeFreq & 41 & -0.017 & 0.056 & -0.049 & 0.968 & 0.009 & 0.007 & 0.211 & 0.165\\
+\hspace{1em}neutral & highTypeFreq & 39 & 0.032 & 0.022 & 0.233 & 0.226 & 0.036 & 0.009 & 0.622 & 0.001\\
+\hspace{1em}neutral & lowTypeFreq & 39 & 0.005 & 0.018 & 0.043 & 0.820 & 0.014 & 0.008 & 0.281 & 0.173\\
+\hspace{1em}good & highTypeFreq & 39 & 0.008 & 0.005 & 0.237 & 0.204 & 0.016 & 0.005 & 0.475 & 0.004\\
+\hspace{1em}good & lowTypeFreq & 39 & 0.000 & 0.004 & -0.004 & 0.957 & 0.006 & 0.005 & 0.176 & 0.313\\
+\addlinespace[0.3em]
+\multicolumn{11}{l}{\textbf{testable - prevalence}}\\
+\hspace{1em}bad & highTypeFreq & 41 & 0.538 & 0.060 & 1.418 & 0.000 & 0.207 & 0.018 & 1.803 & 0.000\\
+\hspace{1em}bad & lowTypeFreq & 41 & 0.428 & 0.060 & 1.125 & 0.000 & 0.123 & 0.017 & 1.151 & 0.000\\
+\hspace{1em}neutral & highTypeFreq & 39 & 0.516 & 0.067 & 1.256 & 0.000 & 0.227 & 0.024 & 1.521 & 0.000\\
+\hspace{1em}neutral & lowTypeFreq & 39 & 0.379 & 0.066 & 0.932 & 0.000 & 0.111 & 0.018 & 0.977 & 0.000\\
+\hspace{1em}good & highTypeFreq & 39 & 0.224 & 0.047 & 0.771 & 0.000 & 0.131 & 0.018 & 1.176 & 0.000\\
+\hspace{1em}good & lowTypeFreq & 39 & 0.198 & 0.046 & 0.703 & 0.000 & 0.079 & 0.015 & 0.851 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{11}{l}{\textbf{testable - third party acceptability}}\\
+\hspace{1em}bad & highTypeFreq & 41 & 0.565 & 0.063 & 1.407 & 0.000 & 0.221 & 0.025 & 1.418 & 0.000\\
+\hspace{1em}bad & lowTypeFreq & 41 & 0.393 & 0.070 & 0.887 & 0.000 & 0.129 & 0.020 & 1.014 & 0.000\\
+\hspace{1em}neutral & highTypeFreq & 39 & 0.206 & 0.050 & 0.663 & 0.000 & 0.131 & 0.020 & 1.066 & 0.000\\
+\hspace{1em}neutral & lowTypeFreq & 39 & 0.117 & 0.050 & 0.381 & 0.023 & 0.058 & 0.019 & 0.485 & 0.002\\
+\hspace{1em}good & highTypeFreq & 39 & 0.074 & 0.021 & 0.561 & 0.001 & 0.072 & 0.012 & 0.970 & 0.000\\
+\hspace{1em}good & lowTypeFreq & 39 & 0.063 & 0.022 & 0.469 & 0.004 & 0.047 & 0.010 & 0.794 & 0.000\\*
 \end{longtable}
+
+\clearpage
 
 \begin{figure}
 
@@ -697,15 +474,19 @@ Valency & Action Status & N & M & SE & Cohen's d & p\\
 \caption{Raw difference scores high vs. low type frequency actions}\label{fig:plot-difference-high-vs-low-type-frequency-raw}
 \end{figure}
 
-\begin{longtable}[t]{lrrrrr}
-\caption{\label{tab:city-print-difference-high-vs-low-type-frequency-raw}Descriptive for the difference scores against the single occurrence condition using the untransformed data. The p value reflects a Wilcoxon test against zero.}\\
+\begin{longtable}[t]{lrrrrrrrrr}
+\caption{\label{tab:print-difference-high-vs-low-type-frequency}Descriptive for the difference scores comparing high and low type frequency conditions using the binary as well as untransformed data. The p value reflects a Wilcoxon test against zero.}\\
 \toprule
-Valency & N & M & SE & Cohen's d & p\\
+\multicolumn{2}{c}{\textbf{ }} & \multicolumn{4}{c}{\textbf{Binary ratings}} & \multicolumn{4}{c}{\textbf{Raw ratings}} \\
+\cmidrule(l{3pt}r{3pt}){3-6} \cmidrule(l{3pt}r{3pt}){7-10}
+Valency & N & M & SE & Cohen's d & p & M & SE & Cohen's d & p\\
 \midrule
 \endfirsthead
-\caption[]{Descriptive for the difference scores against the single occurrence condition using the untransformed data. The p value reflects a Wilcoxon test against zero. \textit{(continued)}}\\
+\caption[]{Descriptive for the difference scores comparing high and low type frequency conditions using the binary as well as untransformed data. The p value reflects a Wilcoxon test against zero. \textit{(continued)}}\\
 \toprule
-Valency & N & M & SE & Cohen's d & p\\
+\multicolumn{2}{c}{\textbf{ }} & \multicolumn{4}{c}{\textbf{Binary ratings}} & \multicolumn{4}{c}{\textbf{Raw ratings}} \\
+\cmidrule(l{3pt}r{3pt}){3-6} \cmidrule(l{3pt}r{3pt}){7-10}
+Valency & N & M & SE & Cohen's d & p & M & SE & Cohen's d & p\\
 \midrule
 \endhead
 
@@ -713,387 +494,154 @@ Valency & N & M & SE & Cohen's d & p\\
 \bottomrule
 \endlastfoot
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{first party acceptablity}}\\
-\hspace{1em}bad & 17 & 0.022 & 0.010 & 0.551 & 0.054\\
-\hspace{1em}neutral & 17 & 0.069 & 0.022 & 0.776 & 0.003\\
-\hspace{1em}good & 18 & 0.010 & 0.004 & 0.659 & 0.014\\
+\multicolumn{10}{l}{\textbf{city - first party acceptablity}}\\
+\hspace{1em}bad & 17 & 0.100 & 0.072 & 0.345 & 0.092 & 0.022 & 0.010 & 0.551 & 0.054\\
+\hspace{1em}neutral & 17 & 0.055 & 0.032 & 0.431 & 0.091 & 0.069 & 0.022 & 0.776 & 0.003\\
+\hspace{1em}good & 18 & -0.002 & 0.005 & -0.095 & 1.000 & 0.010 & 0.004 & 0.659 & 0.014\\
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{prevalence}}\\
-\hspace{1em}bad & 17 & 0.259 & 0.035 & 1.856 & 0.000\\
-\hspace{1em}neutral & 17 & 0.284 & 0.040 & 1.773 & 0.000\\
-\hspace{1em}good & 18 & 0.172 & 0.026 & 1.580 & 0.000\\
+\multicolumn{10}{l}{\textbf{city - prevalence}}\\
+\hspace{1em}bad & 17 & 0.377 & 0.109 & 0.868 & 0.004 & 0.259 & 0.035 & 1.856 & 0.000\\
+\hspace{1em}neutral & 17 & 0.376 & 0.082 & 1.151 & 0.001 & 0.284 & 0.040 & 1.773 & 0.000\\
+\hspace{1em}good & 18 & 0.123 & 0.059 & 0.504 & 0.009 & 0.172 & 0.026 & 1.580 & 0.000\\
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{third party acceptability}}\\
-\hspace{1em}bad & 17 & 0.238 & 0.046 & 1.286 & 0.001\\
-\hspace{1em}neutral & 17 & 0.201 & 0.029 & 1.713 & 0.000\\
-\hspace{1em}good & 18 & 0.126 & 0.026 & 1.171 & 0.000\\*
+\multicolumn{10}{l}{\textbf{city - third party acceptability}}\\
+\hspace{1em}bad & 17 & 0.527 & 0.092 & 1.436 & 0.001 & 0.238 & 0.046 & 1.286 & 0.001\\
+\hspace{1em}neutral & 17 & 0.234 & 0.058 & 1.007 & 0.001 & 0.201 & 0.029 & 1.713 & 0.000\\
+\hspace{1em}good & 18 & 0.054 & 0.031 & 0.429 & 0.052 & 0.126 & 0.026 & 1.171 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{testable - first party acceptablity}}\\
+\hspace{1em}bad & 41 & 0.067 & 0.074 & 0.142 & 0.615 & 0.022 & 0.009 & 0.382 & 0.024\\
+\hspace{1em}neutral & 39 & 0.027 & 0.018 & 0.245 & 0.085 & 0.036 & 0.009 & 0.622 & 0.001\\
+\hspace{1em}good & 39 & 0.008 & 0.005 & 0.264 & 0.140 & 0.016 & 0.005 & 0.475 & 0.004\\
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{testable - prevalence}}\\
+\hspace{1em}bad & 41 & 0.204 & 0.048 & 0.677 & 0.000 & 0.207 & 0.018 & 1.803 & 0.000\\
+\hspace{1em}neutral & 39 & 0.253 & 0.055 & 0.742 & 0.000 & 0.227 & 0.024 & 1.521 & 0.000\\
+\hspace{1em}good & 39 & 0.030 & 0.016 & 0.295 & 0.063 & 0.131 & 0.018 & 1.176 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{testable - third party acceptability}}\\
+\hspace{1em}bad & 41 & 0.274 & 0.060 & 0.720 & 0.000 & 0.221 & 0.025 & 1.418 & 0.000\\
+\hspace{1em}neutral & 39 & 0.104 & 0.033 & 0.513 & 0.000 & 0.131 & 0.020 & 1.066 & 0.000\\
+\hspace{1em}good & 39 & 0.011 & 0.005 & 0.401 & 0.024 & 0.072 & 0.012 & 0.970 & 0.000\\*
 \end{longtable}
 
-\hypertarget{prevalence-3}{%
-\subsubsection{Prevalence}\label{prevalence-3}}
+\subsubsection{Prevalence (difference scores; everything is printed in
+Appendix)}\label{prevalence-difference-scores-everything-is-printed-in-appendix}
 
-\begin{table}
+As shown in Table \ref{tab:prevalence-d-vs-single-sw2}, a number of
+cells deviated from normality
 
-\caption{\label{tab:city-prevalence-d-vs-single-sw}SW acceptability for participants themselves}
-\centering
-\begin{tabular}[t]{llrrl}
-\toprule
-myValence & myQueriedActionStatus & W & p.value & p<=.05\\
-\midrule
-bad & highTypeFreq & 0.939 & 0.307 & \\
-neutral & highTypeFreq & 0.955 & 0.538 & \\
-good & highTypeFreq & 0.929 & 0.190 & \\
-bad & lowTypeFreq & 0.900 & 0.067 & .\\
-neutral & lowTypeFreq & 0.936 & 0.269 & \\
-\addlinespace
-good & lowTypeFreq & 0.929 & 0.187 & \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-As shown in Table \ref{tab:city-prevalence-d-vs-single-sw}, no of cells
-deviated from normality.
-
-As shown in Table \ref{tab:city-prevalence-d-vs-single-aov-show}, we
+As shown in Table \ref{tab:prevalence-d-vs-single-aov-show2}, we
 observed no main effect of Valency on the difference score against
 single occurrence actions for prevalence. We observed a main effect of
 Action Status as well as a marginal interaction between Action Status
 and Valency.
 
-As shown in Table \ref{tab:city-prevalence-d-vs-single-aov-show},
-separate ANOVAs for each valency revealed a strong main effect of Action
-Status only for all three valencies.
+As shown in Table \ref{tab:prevalence-d-vs-single-aov-show2}, separate
+ANOVAs for each valency revealed a strong main effect of Action Status
+only for all three valencies.
 
-Finally, Table \ref{tab:city-prevalence-d-vs-single-aov-show} shows
-separate ANOVAs for each Action Status. The main effect of valency was
+Finally, Table \ref{tab:prevalence-d-vs-single-aov-show2} shows separate
+ANOVAs for each Action Status. The main effect of valency was
 significant only for high type frequency scenarios.
 
-\begin{table}[!h]
-
-\caption{\label{tab:city-prevalence-d-vs-single-aov-show}ANOVA for difference scores comparing each frequency condition to the single occurrence condition. first-person acceptability. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.}
-\centering
-\begin{tabular}[t]{lrrrrr}
-\toprule
-Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
-\midrule
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Overall}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{2.090} & \cellcolor{gray!6}{0.134} & \cellcolor{gray!6}{0.079}\\
-\hspace{1em}myQueriedActionStatus & 1 & 49 & 60.800 & 0.000 & 0.527\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{2.810} & \cellcolor{gray!6}{0.070} & \cellcolor{gray!6}{0.049}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: bad}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 16 & 15.100 & 0.001 & 0.486\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: neutral}}\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{16} & \cellcolor{gray!6}{40.000} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.714}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: good}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 17 & 13.000 & 0.002 & 0.434\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: highTypeFreq}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{3.280} & \cellcolor{gray!6}{0.046} & \cellcolor{gray!6}{0.118}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: lowTypeFreq}}\\
-\hspace{1em}myValence & 2 & 49 & 0.469 & 0.628 & 0.019\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\hypertarget{difference-scores-comparing-high-type-frequency-against-low-type-frequency}{%
 \paragraph{Difference scores comparing high type frequency against low
 type
-frequency}\label{difference-scores-comparing-high-type-frequency-against-low-type-frequency}}
+frequency}\label{difference-scores-comparing-high-type-frequency-against-low-type-frequency}
 
-\begin{table}
+As shown in Table \ref{tab:prevalence-d-high-vs-low-tf-sw2}, a number of
+cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
 
-\caption{\label{tab:city-prevalence-d-high-vs-low-tf-sw}SW acceptability for participants themselves for high vs. low difference scores}
-\centering
-\begin{tabular}[t]{llll}
-\toprule
-myValence & W & p.value & p<=.05\\
-\midrule
-bad & 0.909861807460269 & 0.000912857569696844 & ***\\
-neutral & 0.944343656501613 & 0.018409467014131 & *\\
-good & 0.842486132732877 & 4.92791902746997e-06 & \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-As shown in Table \ref{tab:city-prevalence-d-high-vs-low-tf-sw}, a
-number of cells deviated from normality. TODO: TRY TO HEAL IT BY
-TRANSFORMING
-
-As shown in Table \ref{tab:city-prevalence-d-high-vs-low-tf-aov-show},
-we observed a marginal main effect of Valency on difference scores for
+As shown in Table \ref{tab:prevalence-d-high-vs-low-tf-aov-show2}, we
+observed a marginal main effect of Valency on difference scores for
 first-party acceptability.
 
-As shown in Table \ref{tab:city-prevalence-d-high-vs-low-tf-aov-show},
+As shown in Table \ref{tab:prevalence-d-high-vs-low-tf-aov-show2},
 separate ANOVAs for each valency pair revealed a strong main effect of
 Action Status only for the bad vs.~good comparison the the neutral
 vs.~good comparison.
 
-\begin{table}[!h]
-
-\caption{\label{tab:city-prevalence-d-high-vs-low-tf-aov-show}ANOVA for difference scores comparing the high vs low type frequency conditions for prevalence. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.}
-\centering
-\begin{tabular}[t]{llrrrrr}
-\toprule
-myValence & Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
-\midrule
-\addlinespace[0.3em]
-\multicolumn{7}{l}{\textbf{Overall}}\\
-\cellcolor{gray!6}{\hspace{1em}NA} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{3.280} & \cellcolor{gray!6}{0.046} & \cellcolor{gray!6}{0.118}\\
-\addlinespace[0.3em]
-\multicolumn{7}{l}{\textbf{By valency}}\\
-\hspace{1em}neutral vs. good & myValence & 1 & 33 & 5.990 & 0.020 & 0.154\\
-\cellcolor{gray!6}{\hspace{1em}bad vs. good} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{33} & \cellcolor{gray!6}{4.340} & \cellcolor{gray!6}{0.045} & \cellcolor{gray!6}{0.116}\\
-\hspace{1em}bad vs. neutral & myValence & 1 & 32 & 0.232 & 0.633 & 0.007\\
-\bottomrule
-\end{tabular}
-\end{table}
-
 \clearpage
 
-\hypertarget{third-party-acceptability-3}{%
-\subsubsection{Third-party
-acceptability}\label{third-party-acceptability-3}}
+\subsubsection{Third-party acceptability (difference
+scores)}\label{third-party-acceptability-difference-scores}
 
-\hypertarget{difference-scores-against-single-actions}{%
 \paragraph{Difference scores against single
-actions}\label{difference-scores-against-single-actions}}
+actions}\label{difference-scores-against-single-actions}
 
-\begin{table}
+As shown in Table \ref{tab:acceptability-other-d-vs-single-sw2}, a
+number of cells deviated from normality. TODO: TRY TO HEAL IT BY
+TRANSFORMING
 
-\caption{\label{tab:city-acceptability-other-d-vs-single-sw}SW acceptability for participants themselves}
-\centering
-\begin{tabular}[t]{llrrl}
-\toprule
-myValence & myQueriedActionStatus & W & p.value & p<=.05\\
-\midrule
-bad & highTypeFreq & 0.914 & 0.116 & \\
-neutral & highTypeFreq & 0.961 & 0.659 & \\
-good & highTypeFreq & 0.921 & 0.136 & \\
-bad & lowTypeFreq & 0.858 & 0.014 & *\\
-neutral & lowTypeFreq & 0.969 & 0.801 & \\
-\addlinespace
-good & lowTypeFreq & 0.780 & 0.001 & ***\\
-\bottomrule
-\end{tabular}
-\end{table}
+As shown in Table \ref{tab:acceptability-other-d-vs-single-aov-show2},
+we observed no main effect of Valency on the difference score against
+single occurrence actions for first-party acceptability. , we observed a
+main effect of Action Status as well as an interaction between Action
+Status and Valency.
 
-As shown in Table \ref{tab:city-acceptability-other-d-vs-single-sw}, a
+As shown in Table \ref{tab:acceptability-other-d-vs-single-aov-show2},
+separate ANOVAs for each valency revealed a strong main effect of Action
+Status only for neutral scenarios. The main effect was not significant
+for good or bad scenarios. Again, this is redundant with the direct
+difference scores.
+
+Finally, Table \ref{tab:acceptability-other-d-vs-single-aov-show} shows
+separate ANOVAs for each Action Status. The main effect of valency was
+marginal;ly significant only for high type frequency scenarios.
+
+\paragraph{Difference scores comparing high type frequency against low
+type
+frequency}\label{difference-scores-comparing-high-type-frequency-against-low-type-frequency-1}
+
+As shown in Table \ref{tab:acceptability-other-d-high-vs-low-tf-sw2}, a
 number of cells deviated from normality. TODO: TRY TO HEAL IT BY
 TRANSFORMING
 
 As shown in Table
-\ref{tab:city-acceptability-other-d-vs-single-aov-show}, we observed no
-main effect of Valency on the difference score against single occurrence
-actions for first-party acceptability. , we observed a main effect of
-Action Status as well as an interaction between Action Status and
-Valency.
+\ref{tab:acceptability-other-d-high-vs-low-tf-aov-show2}, we observed a
+marginal main effect of Valency on difference scores for first-party
+acceptability.
 
 As shown in Table
-\ref{tab:city-acceptability-other-d-vs-single-aov-show}, separate ANOVAs
-for each valency revealed a strong main effect of Action Status only for
-neutral scenarios. The main effect was not significant for good or bad
-scenarios. Again, this is redundant with the direct difference scores.
-
-Finally, Table \ref{tab:city-acceptability-other-d-vs-single-aov-show}
-shows separate ANOVAs for each Action Status. The main effect of valency
-was marginal;ly significant only for high type frequency scenarios.
-
-\begin{table}[!h]
-
-\caption{\label{tab:city-acceptability-other-d-vs-single-aov-show}ANOVA for difference scores comparing each frequency condition to the single occurrence condition. third-person acceptability. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.}
-\centering
-\begin{tabular}[t]{lrrrrr}
-\toprule
-Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
-\midrule
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Overall}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{1.280} & \cellcolor{gray!6}{0.288} & \cellcolor{gray!6}{0.050}\\
-\hspace{1em}myQueriedActionStatus & 1 & 49 & 52.100 & 0.000 & 0.467\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{5.170} & \cellcolor{gray!6}{0.009} & \cellcolor{gray!6}{0.093}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: bad}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 16 & 18.500 & 0.001 & 0.537\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: neutral}}\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{16} & \cellcolor{gray!6}{37.500} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.701}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: good}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 17 & 9.520 & 0.007 & 0.359\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: highTypeFreq}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{2.900} & \cellcolor{gray!6}{0.064} & \cellcolor{gray!6}{0.106}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: lowTypeFreq}}\\
-\hspace{1em}myValence & 2 & 49 & 0.174 & 0.841 & 0.007\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\hypertarget{difference-scores-comparing-high-type-frequency-against-low-type-frequency-1}{%
-\paragraph{Difference scores comparing high type frequency against low
-type
-frequency}\label{difference-scores-comparing-high-type-frequency-against-low-type-frequency-1}}
-
-\begin{table}
-
-\caption{\label{tab:city-acceptability-other-d-high-vs-low-tf-sw}SW acceptability for participants themselves for high vs. low difference scores}
-\centering
-\begin{tabular}[t]{llll}
-\toprule
-myValence & W & p.value & p<=.05\\
-\midrule
-bad & 0.909861807460269 & 0.000912857569696844 & ***\\
-neutral & 0.944343656501613 & 0.018409467014131 & *\\
-good & 0.842486132732877 & 4.92791902746997e-06 & \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-As shown in Table
-\ref{tab:city-acceptability-other-d-high-vs-low-tf-sw}, a number of
-cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
-
-As shown in Table
-\ref{tab:city-acceptability-other-d-high-vs-low-tf-aov-show}, we
-observed a marginal main effect of Valency on difference scores for
-first-party acceptability.
-
-As shown in Table
-\ref{tab:city-acceptability-other-d-high-vs-low-tf-aov-show}, separate
+\ref{tab:acceptability-other-d-high-vs-low-tf-aov-show2}, separate
 ANOVAs for each valency pair revealed a strong main effect of Action
 Status only for the bad vs.~good comparison, and a marginal one for the
 neutral vs.~good comparison.
 
-\begin{table}[!h]
-
-\caption{\label{tab:city-acceptability-other-d-high-vs-low-tf-aov-show}ANOVA for difference scores comparing the high vs low type frequency conditions for first-person acceptability. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.}
-\centering
-\begin{tabular}[t]{llrrrrr}
-\toprule
-myValence & Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
-\midrule
-\addlinespace[0.3em]
-\multicolumn{7}{l}{\textbf{Overall}}\\
-\cellcolor{gray!6}{\hspace{1em}NA} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{2.900} & \cellcolor{gray!6}{0.064} & \cellcolor{gray!6}{0.106}\\
-\addlinespace[0.3em]
-\multicolumn{7}{l}{\textbf{By valency}}\\
-\hspace{1em}neutral vs. good & myValence & 1 & 33 & 3.930 & 0.056 & 0.106\\
-\cellcolor{gray!6}{\hspace{1em}bad vs. good} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{33} & \cellcolor{gray!6}{4.850} & \cellcolor{gray!6}{0.035} & \cellcolor{gray!6}{0.128}\\
-\hspace{1em}bad vs. neutral & myValence & 1 & 32 & 0.465 & 0.500 & 0.014\\
-\bottomrule
-\end{tabular}
-\end{table}
-
 \clearpage
 
-\hypertarget{first-party-acceptability-3}{%
-\subsubsection{First-party
-acceptability}\label{first-party-acceptability-3}}
+\subsubsection{First-party acceptability (difference
+scores)}\label{first-party-acceptability-difference-scores}
 
-\hypertarget{difference-scores-against-single-actions-1}{%
 \paragraph{Difference scores against single
-actions}\label{difference-scores-against-single-actions-1}}
+actions}\label{difference-scores-against-single-actions-1}
 
-\begin{table}
+As shown in Table \ref{tab:acceptability-self-d-vs-single-sw2}, a number
+of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
 
-\caption{\label{tab:city-acceptability-self-d-vs-single-sw}SW acceptability for participants themselves}
-\centering
-\begin{tabular}[t]{llrrl}
-\toprule
-myValence & myQueriedActionStatus & W & p.value & p<=.05\\
-\midrule
-bad & highTypeFreq & 0.941 & 0.335 & \\
-neutral & highTypeFreq & 0.776 & 0.001 & ***\\
-good & highTypeFreq & 0.821 & 0.003 & **\\
-bad & lowTypeFreq & 0.946 & 0.391 & \\
-neutral & lowTypeFreq & 0.831 & 0.006 & **\\
-\addlinespace
-good & lowTypeFreq & 0.679 & 0.000 & ***\\
-\bottomrule
-\end{tabular}
-\end{table}
+As shown in Table \ref{tab:acceptability-self-d-vs-single-aov-show2}, we
+observed the expected main effect of Valency on first-party
+acceptability. Further, we observed a main effect of Action Status as
+well as an interaction between Action Status and Valency. (Not that
+including the factor Action Status is redundant with the direct
+difference score below.)
 
-As shown in Table \ref{tab:city-acceptability-self-d-vs-single-sw}, a
-number of cells deviated from normality. TODO: TRY TO HEAL IT BY
-TRANSFORMING
+As shown in Table \ref{tab:acceptability-self-d-vs-single-aov-show2},
+separate ANOVAs for each valency revealed a strong main effect of Action
+Status only for neutral scenarios. The main effect was not significant
+for good or bad scenarios. Again, this is redundant with the direct
+difference scores.
 
-As shown in Table
-\ref{tab:city-acceptability-self-d-vs-single-aov-show}, we observed the
-expected main effect of Valency on first-party acceptability. Further,
-we observed a main effect of Action Status as well as an interaction
-between Action Status and Valency. (Not that including the factor Action
-Status is redundant with the direct difference score below.)
+Finally, Table \ref{tab:acceptability-self-d-vs-single-aov-show2} shows
+separate ANOVAs for each Action Status. The main effect of valency was
+significant only for high type frequency scenarios.
 
-As shown in Table
-\ref{tab:city-acceptability-self-d-vs-single-aov-show}, separate ANOVAs
-for each valency revealed a strong main effect of Action Status only for
-neutral scenarios. The main effect was not significant for good or bad
-scenarios. Again, this is redundant with the direct difference scores.
-
-Finally, Table \ref{tab:city-acceptability-self-d-vs-single-aov-show}
-shows separate ANOVAs for each Action Status. The main effect of valency
-was significant only for high type frequency scenarios.
-
-\begin{table}[!h]
-
-\caption{\label{tab:city-acceptability-self-d-vs-single-aov-show}ANOVA for difference scores comparing each frequency condition to the single occurrence condition. first-person acceptability. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.}
-\centering
-\begin{tabular}[t]{lrrrrr}
-\toprule
-Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
-\midrule
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Overall}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{4.100} & \cellcolor{gray!6}{0.023} & \cellcolor{gray!6}{0.143}\\
-\hspace{1em}myQueriedActionStatus & 1 & 49 & 10.400 & 0.002 & 0.158\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{3.430} & \cellcolor{gray!6}{0.040} & \cellcolor{gray!6}{0.103}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: bad}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 16 & 1.610 & 0.223 & 0.091\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: neutral}}\\
-\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{16} & \cellcolor{gray!6}{9.450} & \cellcolor{gray!6}{0.007} & \cellcolor{gray!6}{0.371}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of valency: good}}\\
-\hspace{1em}myQueriedActionStatus & 1 & 17 & 0.937 & 0.347 & 0.052\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: highTypeFreq}}\\
-\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{5.310} & \cellcolor{gray!6}{0.008} & \cellcolor{gray!6}{0.178}\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{Follow-up of Action Status: lowTypeFreq}}\\
-\hspace{1em}myValence & 2 & 49 & 1.560 & 0.220 & 0.060\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\hypertarget{difference-scores-comparing-high-type-frequency-against-low-type-frequency-2}{%
 \paragraph{Difference scores comparing high type frequency against low
 type
-frequency}\label{difference-scores-comparing-high-type-frequency-against-low-type-frequency-2}}
+frequency}\label{difference-scores-comparing-high-type-frequency-against-low-type-frequency-2}
 
-\begin{table}
-
-\caption{\label{tab:city-acceptability-self-d-high-vs-low-tf-sw}SW acceptability for participants themselves for high vs. low difference scores}
-\centering
-\begin{tabular}[t]{llll}
-\toprule
-myValence & W & p.value & p<=.05\\
-\midrule
-bad & 0.909861807460269 & 0.000912857569696844 & ***\\
-neutral & 0.944343656501613 & 0.018409467014131 & *\\
-good & 0.842486132732877 & 4.92791902746997e-06 & \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-As shown in Table \ref{tab:city-acceptability-self-d-high-vs-low-tf-sw},
-a number of cells deviated from normality. TODO: TRY TO HEAL IT BY
+As shown in Table \ref{tab:acceptability-self-d-high-vs-low-tf-sw2}, a
+number of cells deviated from normality. TODO: TRY TO HEAL IT BY
 TRANSFORMING
 
 As shown in Table
@@ -1102,181 +650,99 @@ the expected main effect of Valency on difference scores for first-party
 acceptability.
 
 As shown in Table
-\ref{tab:city-acceptability-self-d-high-vs-low-tf-aov-show}, separate
-ANOVAs for each valency revealed a strong main effect of Action Status
-only for neutral scenarios. The main effect was not significant for good
-or bad scenarios. Again, this is redundant with the direct difference
-scores.
+\ref{tab:acceptability-self-d-high-vs-low-tf-aov-show2}, separate ANOVAs
+for each valency revealed a strong main effect of Action Status only for
+neutral scenarios. The main effect was not significant for good or bad
+scenarios. Again, this is redundant with the direct difference scores.
 
-\begin{table}[!h]
+\begin{table}
 
-\caption{\label{tab:city-acceptability-self-d-high-vs-low-tf-aov-show}ANOVA for difference scores comparing the high vs low type frequency conditions for first-person acceptability. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.}
+\caption{\label{tab:acceptability-self-d-high-vs-low-tf-aov-show}ANOVA for difference scores comparing the high vs low type frequency conditions for first-person acceptability. (Top) Overall ANOVA. (Bottom) Differences between frequency conditions separately for each valency.}
 \centering
 \begin{tabular}[t]{llrrrrr}
 \toprule
 myValence & Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
 \midrule
 \addlinespace[0.3em]
-\multicolumn{7}{l}{\textbf{Overall}}\\
-\cellcolor{gray!6}{\hspace{1em}NA} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{5.31} & \cellcolor{gray!6}{0.008} & \cellcolor{gray!6}{0.178}\\
+\multicolumn{7}{l}{\textbf{city - Overall}}\\
+\cellcolor{gray!6}{\hspace{1em}} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{5.310} & \cellcolor{gray!6}{0.008} & \cellcolor{gray!6}{0.178}\\
 \addlinespace[0.3em]
-\multicolumn{7}{l}{\textbf{By valency}}\\
-\hspace{1em}neutral vs. good & myValence & 1 & 33 & 7.81 & 0.009 & 0.191\\
-\cellcolor{gray!6}{\hspace{1em}bad vs. good} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{33} & \cellcolor{gray!6}{1.54} & \cellcolor{gray!6}{0.223} & \cellcolor{gray!6}{0.045}\\
-\hspace{1em}bad vs. neutral & myValence & 1 & 32 & 3.90 & 0.057 & 0.109\\
+\multicolumn{7}{l}{\textbf{testable - Overall}}\\
+\hspace{1em} & myValence & 2 & 116 & 1.590 & 0.209 & 0.027\\
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{testable - By valency}}\\
+\cellcolor{gray!6}{\hspace{1em}neutral vs. good} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{76} & \cellcolor{gray!6}{3.520} & \cellcolor{gray!6}{0.064} & \cellcolor{gray!6}{0.044}\\
+\hspace{1em}neutral vs. good & myValence & 1 & 33 & 7.810 & 0.009 & 0.191\\
+\cellcolor{gray!6}{\hspace{1em}bad vs. good} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{78} & \cellcolor{gray!6}{0.332} & \cellcolor{gray!6}{0.566} & \cellcolor{gray!6}{0.004}\\
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{city - By valency}}\\
+\hspace{1em}bad vs. good & myValence & 1 & 33 & 1.540 & 0.223 & 0.045\\
+\cellcolor{gray!6}{\hspace{1em}bad vs. neutral} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{78} & \cellcolor{gray!6}{1.170} & \cellcolor{gray!6}{0.282} & \cellcolor{gray!6}{0.015}\\
+\hspace{1em}bad vs. neutral & myValence & 1 & 32 & 3.900 & 0.057 & 0.109\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \clearpage
 
-\hypertarget{correlations}{%
-\section{Correlations}\label{correlations}}
-
-\begin{table}
-
-\caption{\label{tab:extract-correlations-vs-single}P values of significant correlations between dark triad predictors and difference scores comparing ratings to the equivalent ratings in the single occurrence condition,}
-\centering
-\begin{tabular}[t]{lrr}
-\toprule
-var & Narcissism & Psychopathy\\
-\midrule
-\addlinespace[0.3em]
-\multicolumn{3}{l}{\textbf{bad}}\\
-\hspace{1em}highTypeFreq - prevalence & 0.001 & 0.012\\
-\hspace{1em}highTypeFreq - third party acceptability & 0.041 & 0.128\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}
-
-\caption{\label{tab:extract-correlations-high-vs-low}P values of significant correlations between dark triad predictors and difference scores comparing comparing the high and the low type frequency conditions.}
-\centering
-\begin{tabular}[t]{lrr}
-\toprule
-var & Narcissism & Psychopathy\\
-\midrule
-\addlinespace[0.3em]
-\multicolumn{3}{l}{\textbf{bad}}\\
-\hspace{1em}prevalence & 0.001 & 0.012\\
-\hspace{1em}third party acceptability & 0.041 & 0.128\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.8\linewidth]{social_learning_type_token_sequential_results_files/figure-latex/correlations-vs-single-plot-1} 
-
-}
-
-\caption{Correlation for difference scores comparing actions against single occurrence actions.}\label{fig:correlations-vs-single-plot}
-\end{figure}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.8\linewidth]{social_learning_type_token_sequential_results_files/figure-latex/correlations-high-vs-low-plot-1} 
-
-}
-
-\caption{Correlation for difference scores comparing high vs. low type frequency actions.}\label{fig:correlations-high-vs-low-plot}
-\end{figure}
-
-\clearpage
-
-\hypertarget{binary-ratings-analyzed-using-glmer}{%
 \section{Binary ratings (analyzed using
-GLMER)}\label{binary-ratings-analyzed-using-glmer}}
+GLMER)}\label{binary-ratings-analyzed-using-glmer}
 
-\hypertarget{ratings-1}{%
-\subsection{Ratings}\label{ratings-1}}
+We analyze the binary ratings using two types of GLMMs. For valency, we
+set the reference level to neutral. For the frequency condition, we fit
+a GLMMM including all frequency conditions and setting the reference
+level to single occurrence events (corresponding to the first type of
+difference scores); we also fit a GLMM excluding the single ocurrence
+events (corresponding to the second type of differences scores).
 
-\begin{longtable}[t]{lrrr}
-\caption{\label{tab:print-descriptives-ratings-bin}Descriptives for the data into binary ratings.}\\
-\toprule
- & N & M & SE\\
-\midrule
-\endfirsthead
-\caption[]{Descriptives for the data into binary ratings. \textit{(continued)}}\\
-\toprule
- & N & M & SE\\
-\midrule
-\endhead
-
-\endfoot
-\bottomrule
-\endlastfoot
-\addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{bad - prevalence}}\\
-\hspace{1em}highTypeFreq & 17 & 0.936 & 0.025\\
-\hspace{1em}lowTypeFreq & 17 & 0.534 & 0.104\\
-\hspace{1em}single & 17 & 0.235 & 0.073\\
-\addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{neutral - prevalence}}\\
-\hspace{1em}highTypeFreq & 17 & 0.882 & 0.040\\
-\hspace{1em}lowTypeFreq & 17 & 0.431 & 0.063\\
-\hspace{1em}single & 17 & 0.206 & 0.045\\
-\addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{good - prevalence}}\\
-\hspace{1em}highTypeFreq & 18 & 0.977 & \vphantom{1} 0.012\\
-\hspace{1em}lowTypeFreq & 18 & 0.819 & 0.066\\
-\hspace{1em}single & 18 & 0.546 & 0.086\\
-\addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{bad - third.party.acceptability}}\\
-\hspace{1em}highTypeFreq & 17 & 0.637 & 0.077\\
-\hspace{1em}lowTypeFreq & 17 & 0.211 & 0.061\\
-\hspace{1em}single & 17 & 0.103 & 0.039\\
-\addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{neutral - third.party.acceptability}}\\
-\hspace{1em}highTypeFreq & 17 & 0.882 & 0.037\\
-\hspace{1em}lowTypeFreq & 17 & 0.569 & 0.054\\
-\hspace{1em}single & 17 & 0.382 & 0.055\\
-\addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{good - third.party.acceptability}}\\
-\hspace{1em}highTypeFreq & 18 & 0.977 & 0.012\\
-\hspace{1em}lowTypeFreq & 18 & 0.894 & 0.041\\
-\hspace{1em}single & 18 & 0.676 & 0.078\\
-\addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{bad - first.party.acceptablity}}\\
-\hspace{1em}highTypeFreq & 17 & 0.123 & 0.030\\
-\hspace{1em}lowTypeFreq & 17 & 0.098 & 0.028\\
-\hspace{1em}single & 17 & 0.088 & 0.036\\
-\addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{neutral - first.party.acceptablity}}\\
-\hspace{1em}highTypeFreq & 17 & 0.603 & 0.050\\
-\hspace{1em}lowTypeFreq & 17 & 0.539 & 0.047\\
-\hspace{1em}single & 17 & 0.500 & 0.050\\
-\addlinespace[0.3em]
-\multicolumn{4}{l}{\textbf{good - first.party.acceptablity}}\\
-\hspace{1em}highTypeFreq & 18 & 0.940 & 0.022\\
-\hspace{1em}lowTypeFreq & 18 & 0.944 & 0.023\\
-\hspace{1em}single & 18 & 0.931 & 0.024\\*
-\end{longtable}
+\subsection{Ratings}\label{ratings-2}
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.8\linewidth]{social_learning_type_token_sequential_results_files/figure-latex/plot-acurracy-bin-1} 
+{\centering \includegraphics[width=0.8\linewidth]{social_learning_type_token_sequential_results_files/figure-latex/plot-ratings-bin-1} 
 
 }
 
-\caption{Bin ratings}\label{fig:plot-acurracy-bin}
+\caption{Bin ratings}\label{fig:plot-ratings-bin}
 \end{figure}
 
-\hypertarget{prevalence-4}{%
-\subsubsection{Prevalence}\label{prevalence-4}}
+\subsection{Overall (GLM)}\label{overall-glm}
 
-\hypertarget{third-party-acceptability-4}{%
+\subsubsection{Prevalence (GLMM)}\label{prevalence-glmm}
+
+\begin{verbatim}
+## $city
+## Data: dat.social.type.token.sequential.for.glmm.3freq.cond %>% dplyr::filter(population ==  ...
+## Models:
+## .y: rating ~ myQueriedActionStatus + myValence + (1 | filename) + (1 | myQueriedAction)
+## .x: rating ~ myQueriedActionStatus * myValence + (1 | filename) + (1 | myQueriedAction)
+##    npar  AIC  BIC logLik deviance Chisq Df Pr(>Chisq)  
+## .y    7 1606 1644   -796     1592                      
+## .x   11 1605 1666   -791     1583  8.56  4      0.073 .
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## $testable
+## Data: dat.social.type.token.sequential.for.glmm.3freq.cond %>% dplyr::filter(population ==  ...
+## Models:
+## .y: rating ~ myQueriedActionStatus + myValence + (1 | filename) + (1 | myQueriedAction)
+## .x: rating ~ myQueriedActionStatus * myValence + (1 | filename) + (1 | myQueriedAction)
+##    npar  AIC  BIC logLik deviance Chisq Df Pr(>Chisq)   
+## .y    7 3244 3288  -1615     3230                       
+## .x   11 3236 3306  -1607     3214  15.4  4     0.0039 **
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
 \subsubsection{Third-party
-acceptability}\label{third-party-acceptability-4}}
+acceptability}\label{third-party-acceptability-2}
 
-\hypertarget{first-party-acceptability-4}{%
 \subsubsection{First-party
-acceptability}\label{first-party-acceptability-4}}
+acceptability}\label{first-party-acceptability-2}
 
 \begin{table}[!h]
 
-\caption{\label{tab:city-glmer-print}GLMER results, using the full models.}
+\caption{\label{tab:city-glmer-print-3freq.cond}GLMER results, using the full models comparing the three frequency conditions. ONLY EFFECTS < .1 ARE SHOWN; CHANGE THIS}
 \centering
 \resizebox{\linewidth}{!}{
 \begin{tabular}[t]{lrrlrrlrr}
@@ -1286,45 +752,155 @@ acceptability}\label{first-party-acceptability-4}}
 term & Estimate & SE & CI & Estimate & SE & CI & t & p\\
 \midrule
 \addlinespace[0.3em]
-\multicolumn{9}{l}{\textbf{Prevalence}}\\
-\hspace{1em}(Intercept) & -1.522 & 0.376 & {}[-2.26, -0.785] & 0.218 & 0.082 & {}[0.104, 0.456] & -4.046 & 0.000\\
-\hspace{1em}myQueriedActionStatuslowTypeFreq & 1.203 & 0.238 & {}[0.737, 1.67] & 3.329 & 0.791 & {}[2.09, 5.3] & 5.062 & 0.000\\
-\hspace{1em}myQueriedActionStatushighTypeFreq & 3.766 & 0.306 & {}[3.17, 4.36] & 43.212 & 13.203 & {}[23.7, 78.6] & 12.326 & 0.000\\
-\hspace{1em}myValencebad & -0.122 & 0.539 & {}[-1.18, 0.934] & 0.885 & 0.477 & {}[0.308, 2.54] & -0.227 & 0.821\\
-\hspace{1em}myValencegood & 1.864 & 0.524 & {}[0.838, 2.89] & 6.450 & 3.378 & {}[2.31, 18] & 3.560 & 0.000\\
-\hspace{1em}myQueriedActionStatuslowTypeFreq:myValencebad & 0.643 & 0.359 & {}[-0.0602, 1.35] & 1.902 & 0.682 & {}[0.942, 3.84] & 1.792 & 0.073\\
-\hspace{1em}myQueriedActionStatushighTypeFreq:myValencebad & 1.335 & 0.513 & {}[0.33, 2.34] & 3.800 & 1.949 & {}[1.39, 10.4] & 2.603 & 0.009\\
-\hspace{1em}myQueriedActionStatuslowTypeFreq:myValencegood & 0.632 & 0.360 & {}[-0.0732, 1.34] & 1.882 & 0.677 & {}[0.929, 3.81] & 1.757 & 0.079\\
-\hspace{1em}myQueriedActionStatushighTypeFreq:myValencegood & 0.625 & 0.598 & {}[-0.547, 1.8] & 1.869 & 1.118 & {}[0.579, 6.04] & 1.045 & 0.296\\
+\multicolumn{9}{l}{\textbf{city - First party acceptability}}\\
+\hspace{1em}myQueriedActionStatushighTypeFreq & 0.793 & 0.279 & {}[0.246, 1.34] & 2.211 & 0.617 & {}[1.28, 3.82] & 2.84 & 0.004\\
+\hspace{1em}myValencebad & -4.087 & 1.082 & {}[-6.21, -1.97] & 0.017 & 0.018 & {}[0.00201, 0.14] & -3.78 & 0.000\\
+\hspace{1em}myValencegood & 4.853 & 1.141 & {}[2.62, 7.09] & 128.135 & 146.240 & {}[13.7, 1200] & 4.25 & 0.000\\
 \addlinespace[0.3em]
-\multicolumn{9}{l}{\textbf{Third party acceptability}}\\
-\hspace{1em}(Intercept) & -0.540 & 0.337 & {}[-1.2, 0.122] & 0.583 & 0.197 & {}[0.301, 1.13] & -1.599 & 0.110\\
-\hspace{1em}myQueriedActionStatuslowTypeFreq & 0.906 & 0.222 & {}[0.47, 1.34] & 2.473 & 0.549 & {}[1.6, 3.82] & 4.076 & 0.000\\
-\hspace{1em}myQueriedActionStatushighTypeFreq & 2.876 & 0.286 & {}[2.32, 3.44] & 17.743 & 5.076 & {}[10.1, 31.1] & 10.052 & 0.000\\
-\hspace{1em}myValencebad & -2.046 & 0.517 & {}[-3.06, -1.03] & 0.129 & 0.067 & {}[0.047, 0.356] & -3.959 & 0.000\\
-\hspace{1em}myValencegood & 1.583 & 0.481 & {}[0.64, 2.53] & 4.872 & 2.344 & {}[1.9, 12.5] & 3.290 & 0.001\\
-\hspace{1em}myQueriedActionStatuslowTypeFreq:myValencebad & 0.061 & 0.378 & {}[-0.679, 0.801] & 1.063 & 0.401 & {}[0.507, 2.23] & 0.161 & 0.872\\
-\hspace{1em}myQueriedActionStatushighTypeFreq:myValencebad & 0.409 & 0.419 & {}[-0.412, 1.23] & 1.506 & 0.631 & {}[0.662, 3.42] & 0.977 & 0.329\\
-\hspace{1em}myQueriedActionStatuslowTypeFreq:myValencegood & 0.831 & 0.368 & {}[0.11, 1.55] & 2.297 & 0.846 & {}[1.12, 4.73] & 2.258 & 0.024\\
-\hspace{1em}myQueriedActionStatushighTypeFreq:myValencegood & 0.610 & 0.568 & {}[-0.502, 1.72] & 1.841 & 1.045 & {}[0.605, 5.6] & 1.076 & 0.282\\
+\multicolumn{9}{l}{\textbf{city - Overall}}\\
+\hspace{1em}questionthird.party.acceptability & -0.583 & 0.221 & {}[-1.02, -0.149] & 0.558 & 0.124 & {}[0.362, 0.861] & -2.63 & 0.008\\
+\hspace{1em}questionprevalence & -1.620 & 0.245 & {}[-2.1, -1.14] & 0.198 & 0.048 & {}[0.123, 0.32] & -6.63 & 0.000\\
+\hspace{1em}myQueriedActionStatushighTypeFreq & 0.507 & 0.220 & {}[0.0751, 0.939] & 1.660 & 0.366 & {}[1.08, 2.56] & 2.30 & 0.021\\
+\hspace{1em}myValencebad & -2.698 & 0.523 & {}[-3.72, -1.67] & 0.067 & 0.035 & {}[0.0242, 0.188] & -5.16 & 0.000\\
+\hspace{1em}myValencegood & 3.311 & 0.538 & {}[2.26, 4.37] & 27.425 & 14.744 & {}[9.56, 78.7] & 6.16 & 0.000\\
+\hspace{1em}questionthird.party.acceptability:myQueriedActionStatuslowTypeFreq & 0.728 & 0.312 & {}[0.117, 1.34] & 2.071 & 0.645 & {}[1.12, 3.81] & 2.33 & 0.020\\
+\hspace{1em}questionprevalence:myQueriedActionStatuslowTypeFreq & 1.093 & 0.328 & {}[0.45, 1.73] & 2.982 & 0.977 & {}[1.57, 5.67] & 3.33 & 0.001\\
+\hspace{1em}questionthird.party.acceptability:myQueriedActionStatushighTypeFreq & 2.426 & 0.356 & {}[1.73, 3.13] & 11.318 & 4.034 & {}[5.63, 22.8] & 6.81 & 0.000\\
+\hspace{1em}questionprevalence:myQueriedActionStatushighTypeFreq & 3.463 & 0.372 & {}[2.73, 4.19] & 31.916 & 11.888 & {}[15.4, 66.2] & 9.30 & 0.000\\
+\hspace{1em}questionthird.party.acceptability:myValencebad & 0.771 & 0.417 & {}[-0.0453, 1.59] & 2.162 & 0.901 & {}[0.956, 4.89] & 1.85 & 0.064\\
+\hspace{1em}questionprevalence:myValencebad & 2.933 & 0.398 & {}[2.15, 3.71] & 18.777 & 7.474 & {}[8.61, 41] & 7.37 & 0.000\\
+\hspace{1em}questionthird.party.acceptability:myValencegood & -1.676 & 0.397 & {}[-2.45, -0.897] & 0.187 & 0.074 & {}[0.0859, 0.408] & -4.22 & 0.000\\
+\hspace{1em}questionprevalence:myValencegood & -1.388 & 0.411 & {}[-2.19, -0.582] & 0.250 & 0.103 & {}[0.111, 0.559] & -3.37 & 0.001\\
 \addlinespace[0.3em]
-\multicolumn{9}{l}{\textbf{First party acceptability}}\\
-\hspace{1em}(Intercept) & 0.151 & 0.721 & {}[-1.26, 1.56] & 1.163 & 0.838 & {}[0.283, 4.78] & 0.209 & 0.834\\
-\hspace{1em}myQueriedActionStatuslowTypeFreq & 0.302 & 0.275 & {}[-0.238, 0.842] & 1.353 & 0.373 & {}[0.788, 2.32] & 1.097 & 0.273\\
-\hspace{1em}myQueriedActionStatushighTypeFreq & 0.793 & 0.279 & {}[0.246, 1.34] & 2.211 & 0.617 & {}[1.28, 3.82] & 2.843 & 0.004\\
-\hspace{1em}myValencebad & -4.087 & 1.082 & {}[-6.21, -1.97] & 0.017 & 0.018 & {}[0.00201, 0.14] & -3.778 & 0.000\\
-\hspace{1em}myValencegood & 4.853 & 1.141 & {}[2.62, 7.09] & 128.135 & 146.241 & {}[13.7, 1200] & 4.252 & 0.000\\
-\hspace{1em}myQueriedActionStatuslowTypeFreq:myValencebad & -0.119 & 0.510 & {}[-1.12, 0.88] & 0.888 & 0.453 & {}[0.327, 2.41] & -0.233 & 0.816\\
-\hspace{1em}myQueriedActionStatushighTypeFreq:myValencebad & -0.207 & 0.499 & {}[-1.18, 0.771] & 0.813 & 0.406 & {}[0.306, 2.16] & -0.414 & 0.679\\
-\hspace{1em}myQueriedActionStatuslowTypeFreq:myValencegood & 0.052 & 0.560 & {}[-1.05, 1.15] & 1.053 & 0.590 & {}[0.351, 3.16] & 0.093 & 0.926\\
-\hspace{1em}myQueriedActionStatushighTypeFreq:myValencegood & -0.564 & 0.555 & {}[-1.65, 0.523] & 0.569 & 0.316 & {}[0.192, 1.69] & -1.017 & 0.309\\
+\multicolumn{9}{l}{\textbf{city - Prevalence}}\\
+\hspace{1em}(Intercept) & -1.522 & 0.376 & {}[-2.26, -0.785] & 0.218 & 0.082 & {}[0.104, 0.456] & -4.05 & 0.000\\
+\hspace{1em}myQueriedActionStatuslowTypeFreq & 1.203 & 0.238 & {}[0.737, 1.67] & 3.329 & 0.791 & {}[2.09, 5.3] & 5.06 & 0.000\\
+\hspace{1em}myQueriedActionStatushighTypeFreq & 3.766 & 0.306 & {}[3.17, 4.36] & 43.212 & 13.203 & {}[23.7, 78.6] & 12.33 & 0.000\\
+\hspace{1em}myValencegood & 1.864 & 0.524 & {}[0.838, 2.89] & 6.450 & 3.378 & {}[2.31, 18] & 3.56 & 0.000\\
+\hspace{1em}myQueriedActionStatuslowTypeFreq:myValencebad & 0.643 & 0.359 & {}[-0.0602, 1.35] & 1.902 & 0.682 & {}[0.942, 3.84] & 1.79 & 0.073\\
+\hspace{1em}myQueriedActionStatushighTypeFreq:myValencebad & 1.335 & 0.513 & {}[0.33, 2.34] & 3.800 & 1.949 & {}[1.39, 10.4] & 2.60 & 0.009\\
+\hspace{1em}myQueriedActionStatuslowTypeFreq:myValencegood & 0.632 & 0.360 & {}[-0.0732, 1.34] & 1.882 & 0.677 & {}[0.929, 3.81] & 1.76 & 0.079\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{city - Third party acceptability}}\\
+\hspace{1em}myQueriedActionStatuslowTypeFreq & 0.906 & 0.222 & {}[0.47, 1.34] & 2.473 & 0.549 & {}[1.6, 3.82] & 4.08 & 0.000\\
+\hspace{1em}myQueriedActionStatushighTypeFreq & 2.876 & 0.286 & {}[2.32, 3.44] & 17.743 & 5.076 & {}[10.1, 31.1] & 10.05 & 0.000\\
+\hspace{1em}myValencebad & -2.046 & 0.517 & {}[-3.06, -1.03] & 0.129 & 0.067 & {}[0.047, 0.356] & -3.96 & 0.000\\
+\hspace{1em}myValencegood & 1.583 & 0.481 & {}[0.64, 2.53] & 4.872 & 2.344 & {}[1.9, 12.5] & 3.29 & 0.001\\
+\hspace{1em}myQueriedActionStatuslowTypeFreq:myValencegood & 0.831 & 0.368 & {}[0.11, 1.55] & 2.297 & 0.846 & {}[1.12, 4.73] & 2.26 & 0.024\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{testable - First party acceptability}}\\
+\hspace{1em}(Intercept) & 1.468 & 0.573 & {}[0.344, 2.59] & 4.342 & 2.490 & {}[1.41, 13.4] & 2.56 & 0.010\\
+\hspace{1em}myValencebad & -6.070 & 0.868 & {}[-7.77, -4.37] & 0.002 & 0.002 & {}[0.000422, 0.0127] & -7.00 & 0.000\\
+\hspace{1em}myValencegood & 3.622 & 0.886 & {}[1.89, 5.36] & 37.427 & 33.149 & {}[6.6, 212] & 4.09 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{testable - Overall}}\\
+\hspace{1em}(Intercept) & 1.003 & 0.308 & {}[0.399, 1.61] & 2.726 & 0.840 & {}[1.49, 4.99] & 3.25 & 0.001\\
+\hspace{1em}questionprevalence & -1.770 & 0.165 & {}[-2.09, -1.45] & 0.170 & 0.028 & {}[0.123, 0.235] & -10.74 & 0.000\\
+\hspace{1em}myValencebad & -4.251 & 0.462 & {}[-5.16, -3.35] & 0.014 & 0.007 & {}[0.00576, 0.0352] & -9.20 & 0.000\\
+\hspace{1em}myValencegood & 2.852 & 0.484 & {}[1.9, 3.8] & 17.325 & 8.378 & {}[6.72, 44.7] & 5.90 & 0.000\\
+\hspace{1em}questionthird.party.acceptability:myQueriedActionStatuslowTypeFreq & 0.797 & 0.235 & {}[0.337, 1.26] & 2.219 & 0.521 & {}[1.4, 3.52] & 3.40 & 0.001\\
+\hspace{1em}questionprevalence:myQueriedActionStatuslowTypeFreq & 1.521 & 0.230 & {}[1.07, 1.97] & 4.576 & 1.053 & {}[2.92, 7.18] & 6.61 & 0.000\\
+\hspace{1em}questionthird.party.acceptability:myQueriedActionStatushighTypeFreq & 1.921 & 0.262 & {}[1.41, 2.43] & 6.827 & 1.788 & {}[4.09, 11.4] & 7.33 & 0.000\\
+\hspace{1em}questionprevalence:myQueriedActionStatushighTypeFreq & 3.872 & 0.281 & {}[3.32, 4.42] & 48.053 & 13.515 & {}[27.7, 83.4] & 13.77 & 0.000\\
+\hspace{1em}questionthird.party.acceptability:myValencebad & 1.825 & 0.280 & {}[1.28, 2.37] & 6.202 & 1.738 & {}[3.58, 10.7] & 6.51 & 0.000\\
+\hspace{1em}questionprevalence:myValencebad & 4.075 & 0.278 & {}[3.53, 4.62] & 58.847 & 16.354 & {}[34.1, 101] & 14.66 & 0.000\\
+\hspace{1em}questionthird.party.acceptability:myValencegood & -1.154 & 0.315 & {}[-1.77, -0.537] & 0.315 & 0.099 & {}[0.17, 0.584] & -3.67 & 0.000\\
+\hspace{1em}questionprevalence:myValencegood & -0.973 & 0.306 & {}[-1.57, -0.374] & 0.378 & 0.116 & {}[0.207, 0.688] & -3.18 & 0.001\\
+\hspace{1em}questionthird.party.acceptability:myQueriedActionStatuslowTypeFreq:myValencebad & 0.674 & 0.395 & {}[-0.0996, 1.45] & 1.963 & 0.775 & {}[0.905, 4.26] & 1.71 & 0.088\\
+\hspace{1em}questionthird.party.acceptability:myQueriedActionStatushighTypeFreq:myValencebad & 1.013 & 0.417 & {}[0.195, 1.83] & 2.755 & 1.150 & {}[1.22, 6.24] & 2.43 & 0.015\\
+\hspace{1em}questionprevalence:myQueriedActionStatushighTypeFreq:myValencegood & -1.057 & 0.535 & {}[-2.1, -0.00858] & 0.348 & 0.186 & {}[0.122, 0.991] & -1.98 & 0.048\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{testable - Prevalence}}\\
+\hspace{1em}(Intercept) & -0.781 & 0.347 & {}[-1.46, -0.101] & 0.458 & 0.159 & {}[0.232, 0.904] & -2.25 & 0.024\\
+\hspace{1em}myQueriedActionStatuslowTypeFreq & 1.723 & 0.182 & {}[1.37, 2.08] & 5.599 & 1.016 & {}[3.92, 7.99] & 9.49 & 0.000\\
+\hspace{1em}myQueriedActionStatushighTypeFreq & 4.340 & 0.259 & {}[3.83, 4.85] & 76.680 & 19.874 & {}[46.1, 127] & 16.74 & 0.000\\
+\hspace{1em}myValencegood & 2.137 & 0.496 & {}[1.16, 3.11] & 8.473 & 4.202 & {}[3.21, 22.4] & 4.31 & 0.000\\
+\hspace{1em}myQueriedActionStatuslowTypeFreq:myValencegood & 0.569 & 0.292 & {}[-0.00335, 1.14] & 1.767 & 0.516 & {}[0.997, 3.13] & 1.95 & 0.051\\
+\hspace{1em}myQueriedActionStatushighTypeFreq:myValencegood & -1.015 & 0.399 & {}[-1.8, -0.234] & 0.362 & 0.144 & {}[0.166, 0.791] & -2.55 & 0.011\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{testable - Third party acceptability}}\\
+\hspace{1em}(Intercept) & 0.872 & 0.359 & {}[0.168, 1.58] & 2.391 & 0.858 & {}[1.18, 4.83] & 2.43 & 0.015\\
+\hspace{1em}myQueriedActionStatuslowTypeFreq & 0.844 & 0.174 & {}[0.502, 1.19] & 2.325 & 0.405 & {}[1.65, 3.27] & 4.84 & 0.000\\
+\hspace{1em}myQueriedActionStatushighTypeFreq & 2.244 & 0.216 & {}[1.82, 2.67] & 9.427 & 2.040 & {}[6.17, 14.4] & 10.37 & 0.000\\
+\hspace{1em}myValencebad & -2.827 & 0.511 & {}[-3.83, -1.83] & 0.059 & 0.030 & {}[0.0217, 0.161] & -5.53 & 0.000\\
+\hspace{1em}myValencegood & 1.819 & 0.524 & {}[0.792, 2.85] & 6.168 & 3.234 & {}[2.21, 17.2] & 3.47 & 0.001\\
+\hspace{1em}myQueriedActionStatuslowTypeFreq:myValencebad & 0.887 & 0.253 & {}[0.392, 1.38] & 2.429 & 0.613 & {}[1.48, 3.98] & 3.51 & 0.000\\
+\hspace{1em}myQueriedActionStatushighTypeFreq:myValencebad & 1.173 & 0.298 & {}[0.589, 1.76] & 3.231 & 0.962 & {}[1.8, 5.79] & 3.94 & 0.000\\
+\hspace{1em}myQueriedActionStatuslowTypeFreq:myValencegood & 0.829 & 0.336 & {}[0.171, 1.49] & 2.291 & 0.769 & {}[1.19, 4.42] & 2.47 & 0.014\\
 \bottomrule
 \end{tabular}}
 \end{table}
 
-\hypertarget{difference-scores-glmer-or-anova}{%
+\begin{table}[!h]
+
+\caption{\label{tab:city-glmer-print-2freq.cond}GLMER results, using the full models comparing the two frequency conditions. ONLY EFFECTS < .1 ARE SHOWN; CHANGE THIS}
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}[t]{lrrlrrlrr}
+\toprule
+\multicolumn{1}{c}{\textbf{ }} & \multicolumn{3}{c}{\textbf{Log-odds}} & \multicolumn{3}{c}{\textbf{Odd ratios}} & \multicolumn{2}{c}{\textbf{ }} \\
+\cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7}
+term & Estimate & SE & CI & Estimate & SE & CI & t & p\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{city - First party acceptability}}\\
+\hspace{1em}myQueriedActionStatushighTypeFreq & 0.490 & 0.277 & {}[-0.0526, 1.03] & 1.632 & 0.451 & {}[0.949, 2.81] & 1.77 & 0.077\\
+\hspace{1em}myValencebad & -4.110 & 1.044 & {}[-6.16, -2.06] & 0.016 & 0.017 & {}[0.00212, 0.127] & -3.94 & 0.000\\
+\hspace{1em}myValencegood & 4.580 & 1.123 & {}[2.38, 6.78] & 97.517 & 109.511 & {}[10.8, 881] & 4.08 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{city - Overall}}\\
+\hspace{1em}questionprevalence & -0.522 & 0.219 & {}[-0.951, -0.094] & 0.593 & 0.130 & {}[0.386, 0.91] & -2.39 & 0.017\\
+\hspace{1em}myValencebad & -2.734 & 0.477 & {}[-3.67, -1.8] & 0.065 & 0.031 & {}[0.0255, 0.165] & -5.73 & 0.000\\
+\hspace{1em}myValencegood & 3.162 & 0.513 & {}[2.16, 4.17] & 23.614 & 12.109 & {}[8.64, 64.5] & 6.17 & 0.000\\
+\hspace{1em}questionthird.party.acceptability:myQueriedActionStatushighTypeFreq & 1.684 & 0.352 & {}[0.994, 2.37] & 5.386 & 1.896 & {}[2.7, 10.7] & 4.78 & 0.000\\
+\hspace{1em}questionprevalence:myQueriedActionStatushighTypeFreq & 2.349 & 0.354 & {}[1.66, 3.04] & 10.475 & 3.709 & {}[5.23, 21] & 6.63 & 0.000\\
+\hspace{1em}questionthird.party.acceptability:myValencebad & 0.867 & 0.377 & {}[0.128, 1.61] & 2.379 & 0.897 & {}[1.14, 4.98] & 2.30 & 0.022\\
+\hspace{1em}questionprevalence:myValencebad & 3.237 & 0.368 & {}[2.52, 3.96] & 25.457 & 9.374 & {}[12.4, 52.4] & 8.79 & 0.000\\
+\hspace{1em}questionthird.party.acceptability:myValencegood & -0.937 & 0.439 & {}[-1.8, -0.0777] & 0.392 & 0.172 & {}[0.166, 0.925] & -2.14 & 0.033\\
+\hspace{1em}questionprevalence:myValencegood & -0.994 & 0.420 & {}[-1.82, -0.17] & 0.370 & 0.156 & {}[0.162, 0.844] & -2.36 & 0.018\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{city - Prevalence}}\\
+\hspace{1em}myQueriedActionStatushighTypeFreq & 2.631 & 0.288 & {}[2.07, 3.19] & 13.886 & 3.993 & {}[7.9, 24.4] & 9.15 & 0.000\\
+\hspace{1em}myValencegood & 2.512 & 0.596 & {}[1.34, 3.68] & 12.327 & 7.344 & {}[3.84, 39.6] & 4.22 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{city - Third party acceptability}}\\
+\hspace{1em}myQueriedActionStatushighTypeFreq & 1.976 & 0.281 & {}[1.42, 2.53] & 7.213 & 2.028 & {}[4.16, 12.5] & 7.03 & 0.000\\
+\hspace{1em}myValencebad & -1.983 & 0.468 & {}[-2.9, -1.07] & 0.138 & 0.064 & {}[0.055, 0.345] & -4.24 & 0.000\\
+\hspace{1em}myValencegood & 2.262 & 0.499 & {}[1.28, 3.24] & 9.598 & 4.787 & {}[3.61, 25.5] & 4.54 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{testable - First party acceptability}}\\
+\hspace{1em}(Intercept) & 1.483 & 0.609 & {}[0.289, 2.68] & 4.405 & 2.683 & {}[1.33, 14.5] & 2.43 & 0.015\\
+\hspace{1em}myValencebad & -6.194 & 0.934 & {}[-8.02, -4.36] & 0.002 & 0.002 & {}[0.000328, 0.0127] & -6.63 & 0.000\\
+\hspace{1em}myValencegood & 3.908 & 0.963 & {}[2.02, 5.8] & 49.816 & 47.979 & {}[7.54, 329] & 4.06 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{testable - Overall}}\\
+\hspace{1em}(Intercept) & 1.037 & 0.344 & {}[0.363, 1.71] & 2.821 & 0.970 & {}[1.44, 5.54] & 3.02 & 0.003\\
+\hspace{1em}questionthird.party.acceptability & 0.598 & 0.173 & {}[0.259, 0.936] & 1.818 & 0.314 & {}[1.3, 2.55] & 3.46 & 0.001\\
+\hspace{1em}myValencebad & -4.443 & 0.512 & {}[-5.45, -3.44] & 0.012 & 0.006 & {}[0.00431, 0.0321] & -8.67 & 0.000\\
+\hspace{1em}myValencegood & 3.170 & 0.540 & {}[2.11, 4.23] & 23.809 & 12.859 & {}[8.26, 68.6] & 5.87 & 0.000\\
+\hspace{1em}questionthird.party.acceptability:myQueriedActionStatushighTypeFreq & 1.168 & 0.270 & {}[0.638, 1.7] & 3.214 & 0.869 & {}[1.89, 5.46] & 4.32 & 0.000\\
+\hspace{1em}questionprevalence:myQueriedActionStatushighTypeFreq & 2.444 & 0.283 & {}[1.89, 3] & 11.524 & 3.260 & {}[6.62, 20.1] & 8.64 & 0.000\\
+\hspace{1em}questionthird.party.acceptability:myValencebad & 2.573 & 0.289 & {}[2.01, 3.14] & 13.110 & 3.794 & {}[7.43, 23.1] & 8.89 & 0.000\\
+\hspace{1em}questionprevalence:myValencebad & 4.511 & 0.292 & {}[3.94, 5.08] & 91.043 & 26.576 & {}[51.4, 161] & 15.46 & 0.000\\
+\hspace{1em}questionprevalence:myQueriedActionStatushighTypeFreq:myValencegood & -1.709 & 0.558 & {}[-2.8, -0.616] & 0.181 & 0.101 & {}[0.0607, 0.54] & -3.06 & 0.002\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{testable - Prevalence}}\\
+\hspace{1em}(Intercept) & 1.200 & 0.418 & {}[0.38, 2.02] & 3.320 & 1.389 & {}[1.46, 7.54] & 2.87 & 0.004\\
+\hspace{1em}myQueriedActionStatushighTypeFreq & 2.768 & 0.248 & {}[2.28, 3.25] & 15.921 & 3.943 & {}[9.8, 25.9] & 11.18 & 0.000\\
+\hspace{1em}myValencegood & 2.965 & 0.642 & {}[1.71, 4.22] & 19.402 & 12.461 & {}[5.51, 68.3] & 4.62 & 0.000\\
+\hspace{1em}myQueriedActionStatushighTypeFreq:myValencegood & -1.630 & 0.426 & {}[-2.47, -0.794] & 0.196 & 0.084 & {}[0.0849, 0.452] & -3.82 & 0.000\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{testable - Third party acceptability}}\\
+\hspace{1em}(Intercept) & 2.004 & 0.457 & {}[1.11, 2.9] & 7.420 & 3.393 & {}[3.03, 18.2] & 4.38 & 0.000\\
+\hspace{1em}myQueriedActionStatushighTypeFreq & 1.546 & 0.235 & {}[1.08, 2.01] & 4.693 & 1.104 & {}[2.96, 7.44] & 6.57 & 0.000\\
+\hspace{1em}myValencebad & -2.214 & 0.627 & {}[-3.44, -0.985] & 0.109 & 0.069 & {}[0.032, 0.373] & -3.53 & 0.000\\
+\hspace{1em}myValencegood & 3.213 & 0.734 & {}[1.77, 4.65] & 24.857 & 18.244 & {}[5.9, 105] & 4.38 & 0.000\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
 \subsection{Difference scores (GLMER or
-ANOVA?)}\label{difference-scores-glmer-or-anova}}
+ANOVA?)}\label{difference-scores-glmer-or-anova}
 
 \begin{figure}
 
@@ -1344,16 +920,538 @@ ANOVA?)}\label{difference-scores-glmer-or-anova}}
 \caption{Binary difference scores high vs. low type frequency actions}\label{fig:plot-difference-high-vs-low-type-frequency-bin}
 \end{figure}
 
-\hypertarget{prevalence-5}{%
-\subsubsection{Prevalence}\label{prevalence-5}}
+\subsubsection{Prevalence}\label{prevalence-2}
 
-\hypertarget{third-party-acceptability-5}{%
 \subsubsection{Third-party
-acceptability}\label{third-party-acceptability-5}}
+acceptability}\label{third-party-acceptability-3}
 
-\hypertarget{first-party-acceptability-5}{%
 \subsubsection{First-party
-acceptability}\label{first-party-acceptability-5}}
+acceptability}\label{first-party-acceptability-3}
+
+\clearpage
+
+\section{Appendix}\label{appendix}
+
+\subsection{ANOVAS for difference scores for raw
+data}\label{anovas-for-difference-scores-for-raw-data}
+
+\subsubsection{Prevalence (difference scores; everything is printed in
+Appendix)}\label{prevalence-difference-scores-everything-is-printed-in-appendix-1}
+
+\begin{table}
+
+\caption{\label{tab:prevalence-d-vs-single-sw2}SW for difference scores vs. single occurrence actions for untranformed (raw) prevalence ratings.}
+\centering
+\begin{tabular}[t]{lllrrl}
+\toprule
+myValence & myQueriedActionStatus & population & W & p.value & p<=.05\\
+\midrule
+bad & highTypeFreq & city & 0.939 & 0.307 & \\
+neutral & highTypeFreq & city & 0.955 & 0.538 & \\
+good & highTypeFreq & city & 0.929 & 0.190 & \\
+bad & lowTypeFreq & city & 0.900 & 0.067 & .\\
+neutral & lowTypeFreq & city & 0.936 & 0.269 & \\
+\addlinespace
+good & lowTypeFreq & city & 0.929 & 0.187 & \\
+bad & highTypeFreq & testable & 0.973 & 0.432 & \\
+neutral & highTypeFreq & testable & 0.957 & 0.139 & \\
+good & highTypeFreq & testable & 0.920 & 0.008 & **\\
+bad & lowTypeFreq & testable & 0.953 & 0.089 & .\\
+\addlinespace
+neutral & lowTypeFreq & testable & 0.910 & 0.004 & **\\
+good & lowTypeFreq & testable & 0.895 & 0.002 & **\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As shown in Table \ref{tab:prevalence-d-vs-single-sw2}, a number of
+cells deviated from normality
+
+As shown in Table \ref{tab:prevalence-d-vs-single-aov-show2}, we
+observed no main effect of Valency on the difference score against
+single occurrence actions for prevalence. We observed a main effect of
+Action Status as well as a marginal interaction between Action Status
+and Valency.
+
+As shown in Table \ref{tab:prevalence-d-vs-single-aov-show2}, separate
+ANOVAs for each valency revealed a strong main effect of Action Status
+only for all three valencies.
+
+Finally, Table \ref{tab:prevalence-d-vs-single-aov-show2} shows separate
+ANOVAs for each Action Status. The main effect of valency was
+significant only for high type frequency scenarios.
+
+\begin{table}
+
+\caption{\label{tab:prevalence-d-vs-single-aov-show2}ANOVA for difference scores comparing each frequency condition to the single occurrence condition for untransformed prevalence ratings.  (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency . (Bottom). Differences for each frequency conditions separately.}
+\centering
+\begin{tabular}[t]{lrrrrr}
+\toprule
+Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Overall}}\\
+\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{2.090} & \cellcolor{gray!6}{0.134} & \cellcolor{gray!6}{0.079}\\
+\hspace{1em}myQueriedActionStatus & 1 & 49 & 60.800 & 0.000 & 0.527\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{2.810} & \cellcolor{gray!6}{0.070} & \cellcolor{gray!6}{0.049}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Overall}}\\
+\hspace{1em}myValence & 2 & 116 & 4.560 & 0.012 & 0.073\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{116} & \cellcolor{gray!6}{84.700} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.406}\\
+\hspace{1em}myQueriedActionStatus:myValence & 2 & 116 & 4.110 & 0.019 & 0.039\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of valency - bad}}\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{16} & \cellcolor{gray!6}{15.100} & \cellcolor{gray!6}{0.001} & \cellcolor{gray!6}{0.486}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of valency - neutral}}\\
+\hspace{1em}myQueriedActionStatus & 1 & 16 & 40.000 & 0.000 & 0.714\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of valency - good}}\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{17} & \cellcolor{gray!6}{13.000} & \cellcolor{gray!6}{0.002} & \cellcolor{gray!6}{0.434}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of valency - bad}}\\
+\hspace{1em}myQueriedActionStatus & 1 & 40 & 25.500 & 0.000 & 0.389\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of valency - neutral}}\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{38} & \cellcolor{gray!6}{39.700} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.511}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of valency - good}}\\
+\hspace{1em}myQueriedActionStatus & 1 & 38 & 20.800 & 0.000 & 0.354\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of Action Status - highTypeFreq}}\\
+\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{3.280} & \cellcolor{gray!6}{0.046} & \cellcolor{gray!6}{0.118}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of Action Status - lowTypeFreq}}\\
+\hspace{1em}myValence & 2 & 49 & 0.469 & 0.628 & 0.019\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of Action Status - highTypeFreq}}\\
+\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{116} & \cellcolor{gray!6}{6.330} & \cellcolor{gray!6}{0.002} & \cellcolor{gray!6}{0.098}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of Action Status - lowTypeFreq}}\\
+\hspace{1em}myValence & 2 & 116 & 1.800 & 0.170 & 0.030\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Difference scores comparing high type frequency against low
+type
+frequency}\label{difference-scores-comparing-high-type-frequency-against-low-type-frequency-3}
+
+\begin{table}
+
+\caption{\label{tab:prevalence-d-high-vs-low-tf-sw2}SW acceptability for raw prevalence ratings for difference scores comparing high vs. low type frequency conditions}
+\centering
+\begin{tabular}[t]{llrrl}
+\toprule
+myValence & population & W & p.value & p<=.05\\
+\midrule
+bad & city & 0.910 & 0.001 & ***\\
+neutral & city & 0.944 & 0.018 & *\\
+good & city & 0.842 & 0.000 & ***\\
+bad & testable & 0.951 & 0.000 & ***\\
+neutral & testable & 0.920 & 0.000 & ***\\
+\addlinespace
+good & testable & 0.861 & 0.000 & ***\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As shown in Table \ref{tab:prevalence-d-high-vs-low-tf-sw2}, a number of
+cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+
+As shown in Table \ref{tab:prevalence-d-high-vs-low-tf-aov-show2}, we
+observed a marginal main effect of Valency on difference scores for
+first-party acceptability.
+
+As shown in Table \ref{tab:prevalence-d-high-vs-low-tf-aov-show2},
+separate ANOVAs for each valency pair revealed a strong main effect of
+Action Status only for the bad vs.~good comparison the the neutral
+vs.~good comparison.
+
+\begin{table}
+
+\caption{\label{tab:prevalence-d-high-vs-low-tf-aov-show2}ANOVA for difference scores comparing the high vs low type frequency conditions for raw prevalence ratings.  (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Differences for each frequency condition separately.}
+\centering
+\begin{tabular}[t]{llrrrrr}
+\toprule
+myValence & Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{city - Overall}}\\
+\cellcolor{gray!6}{\hspace{1em}} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{3.280} & \cellcolor{gray!6}{0.046} & \cellcolor{gray!6}{0.118}\\
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{testable - Overall}}\\
+\hspace{1em} & myValence & 2 & 116 & 6.330 & 0.002 & 0.098\\
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{city - By valency}}\\
+\cellcolor{gray!6}{\hspace{1em}bad vs. good} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{33} & \cellcolor{gray!6}{4.340} & \cellcolor{gray!6}{0.045} & \cellcolor{gray!6}{0.116}\\
+\hspace{1em}bad vs. neutral & myValence & 1 & 32 & 0.232 & 0.633 & 0.007\\
+\cellcolor{gray!6}{\hspace{1em}neutral vs. good} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{33} & \cellcolor{gray!6}{5.990} & \cellcolor{gray!6}{0.020} & \cellcolor{gray!6}{0.154}\\
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{testable - By valency}}\\
+\hspace{1em}bad vs. good & myValence & 1 & 78 & 8.950 & 0.004 & 0.103\\
+\cellcolor{gray!6}{\hspace{1em}bad vs. neutral} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{78} & \cellcolor{gray!6}{0.489} & \cellcolor{gray!6}{0.486} & \cellcolor{gray!6}{0.006}\\
+\hspace{1em}neutral vs. good & myValence & 1 & 76 & 10.400 & 0.002 & 0.121\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+
+\subsubsection{Third-party acceptability (difference
+scores)}\label{third-party-acceptability-difference-scores-1}
+
+\paragraph{Difference scores against single
+actions}\label{difference-scores-against-single-actions-2}
+
+\begin{table}
+
+\caption{\label{tab:acceptability-other-d-vs-single-sw2}SW acceptability for difference scores against single occurrence conditions for third party acceptability.}
+\centering
+\begin{tabular}[t]{lllrrl}
+\toprule
+myValence & myQueriedActionStatus & population & W & p.value & p<=.05\\
+\midrule
+bad & highTypeFreq & city & 0.914 & 0.116 & \\
+neutral & highTypeFreq & city & 0.961 & 0.659 & \\
+good & highTypeFreq & city & 0.921 & 0.136 & \\
+bad & lowTypeFreq & city & 0.858 & 0.014 & *\\
+neutral & lowTypeFreq & city & 0.969 & 0.801 & \\
+\addlinespace
+good & lowTypeFreq & city & 0.780 & 0.001 & ***\\
+bad & highTypeFreq & testable & 0.950 & 0.071 & .\\
+neutral & highTypeFreq & testable & 0.959 & 0.165 & \\
+good & highTypeFreq & testable & 0.935 & 0.025 & *\\
+bad & lowTypeFreq & testable & 0.888 & 0.001 & ***\\
+\addlinespace
+neutral & lowTypeFreq & testable & 0.833 & 0.000 & ***\\
+good & lowTypeFreq & testable & 0.911 & 0.005 & **\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As shown in Table \ref{tab:acceptability-other-d-vs-single-sw2}, a
+number of cells deviated from normality. TODO: TRY TO HEAL IT BY
+TRANSFORMING
+
+As shown in Table \ref{tab:acceptability-other-d-vs-single-aov-show2},
+we observed no main effect of Valency on the difference score against
+single occurrence actions for first-party acceptability. , we observed a
+main effect of Action Status as well as an interaction between Action
+Status and Valency.
+
+As shown in Table \ref{tab:acceptability-other-d-vs-single-aov-show2},
+separate ANOVAs for each valency revealed a strong main effect of Action
+Status only for neutral scenarios. The main effect was not significant
+for good or bad scenarios. Again, this is redundant with the direct
+difference scores.
+
+Finally, Table \ref{tab:acceptability-other-d-vs-single-aov-show} shows
+separate ANOVAs for each Action Status. The main effect of valency was
+marginal;ly significant only for high type frequency scenarios.
+
+\begin{table}
+
+\caption{\label{tab:acceptability-other-d-vs-single-aov-show2}ANOVA for difference scores comparing each frequency condition to the single occurrence condition for raw third-person acceptability ratings. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Differences for each frequency conditions separately.}
+\centering
+\begin{tabular}[t]{lrrrrr}
+\toprule
+Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Overall}}\\
+\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{1.280} & \cellcolor{gray!6}{0.288} & \cellcolor{gray!6}{0.050}\\
+\hspace{1em}myQueriedActionStatus & 1 & 49 & 52.100 & 0.000 & 0.467\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{5.170} & \cellcolor{gray!6}{0.009} & \cellcolor{gray!6}{0.093}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Overall}}\\
+\hspace{1em}myValence & 2 & 116 & 12.800 & 0.000 & 0.181\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{116} & \cellcolor{gray!6}{54.900} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.303}\\
+\hspace{1em}myQueriedActionStatus:myValence & 2 & 116 & 5.220 & 0.007 & 0.058\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of valency - good}}\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{38} & \cellcolor{gray!6}{12.600} & \cellcolor{gray!6}{0.001} & \cellcolor{gray!6}{0.249}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of valency - neutral}}\\
+\hspace{1em}myQueriedActionStatus & 1 & 38 & 27.300 & 0.000 & 0.418\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of valency - bad}}\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{40} & \cellcolor{gray!6}{20.900} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.343}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of valency - bad}}\\
+\hspace{1em}myQueriedActionStatus & 1 & 16 & 18.500 & 0.001 & 0.537\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of valency - neutral}}\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{16} & \cellcolor{gray!6}{37.500} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.701}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of valency - good}}\\
+\hspace{1em}myQueriedActionStatus & 1 & 17 & 9.520 & 0.007 & 0.359\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of Action Status - highTypeFreq}}\\
+\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{2.900} & \cellcolor{gray!6}{0.064} & \cellcolor{gray!6}{0.106}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of Action Status - lowTypeFreq}}\\
+\hspace{1em}myValence & 2 & 49 & 0.174 & 0.841 & 0.007\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of Action Status - highTypeFreq}}\\
+\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{116} & \cellcolor{gray!6}{14.900} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.204}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of Action Status - lowTypeFreq}}\\
+\hspace{1em}myValence & 2 & 116 & 7.100 & 0.001 & 0.109\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Difference scores comparing high type frequency against low
+type
+frequency}\label{difference-scores-comparing-high-type-frequency-against-low-type-frequency-4}
+
+\begin{table}
+
+\caption{\label{tab:acceptability-other-d-high-vs-low-tf-sw2}SW for difference scores comparing high vs. low difference type frequency conditions for third party acceptability}
+\centering
+\begin{tabular}[t]{llrrl}
+\toprule
+myValence & population & W & p.value & p<=.05\\
+\midrule
+bad & city & 0.910 & 0.001 & ***\\
+neutral & city & 0.944 & 0.018 & *\\
+good & city & 0.842 & 0.000 & ***\\
+bad & testable & 0.951 & 0.000 & ***\\
+neutral & testable & 0.920 & 0.000 & ***\\
+\addlinespace
+good & testable & 0.861 & 0.000 & ***\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As shown in Table \ref{tab:acceptability-other-d-high-vs-low-tf-sw2}, a
+number of cells deviated from normality. TODO: TRY TO HEAL IT BY
+TRANSFORMING
+
+As shown in Table
+\ref{tab:acceptability-other-d-high-vs-low-tf-aov-show2}, we observed a
+marginal main effect of Valency on difference scores for first-party
+acceptability.
+
+As shown in Table
+\ref{tab:acceptability-other-d-high-vs-low-tf-aov-show2}, separate
+ANOVAs for each valency pair revealed a strong main effect of Action
+Status only for the bad vs.~good comparison, and a marginal one for the
+neutral vs.~good comparison.
+
+\begin{table}
+
+\caption{\label{tab:acceptability-other-d-high-vs-low-tf-aov-show2}ANOVA for difference scores comparing the high vs low type frequency conditions for third-person acceptability. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Differences for each frequency condition.}
+\centering
+\begin{tabular}[t]{llrrrrr}
+\toprule
+myValence & Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{city - Overall}}\\
+\cellcolor{gray!6}{\hspace{1em}} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{2.900} & \cellcolor{gray!6}{0.064} & \cellcolor{gray!6}{0.106}\\
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{testable - Overall}}\\
+\hspace{1em} & myValence & 2 & 116 & 14.900 & 0.000 & 0.204\\
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{testable - By valency}}\\
+\cellcolor{gray!6}{\hspace{1em}neutral vs. good} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{76} & \cellcolor{gray!6}{6.460} & \cellcolor{gray!6}{0.013} & \cellcolor{gray!6}{0.078}\\
+\hspace{1em}neutral vs. good & myValence & 1 & 33 & 3.930 & 0.056 & 0.106\\
+\cellcolor{gray!6}{\hspace{1em}bad vs. good} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{78} & \cellcolor{gray!6}{29.100} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.272}\\
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{city - By valency}}\\
+\hspace{1em}bad vs. good & myValence & 1 & 33 & 4.850 & 0.035 & 0.128\\
+\cellcolor{gray!6}{\hspace{1em}bad vs. neutral} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{78} & \cellcolor{gray!6}{8.210} & \cellcolor{gray!6}{0.005} & \cellcolor{gray!6}{0.095}\\
+\hspace{1em}bad vs. neutral & myValence & 1 & 32 & 0.465 & 0.500 & 0.014\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+
+\subsubsection{First-party acceptability (difference
+scores)}\label{first-party-acceptability-difference-scores-1}
+
+\paragraph{Difference scores against single
+actions}\label{difference-scores-against-single-actions-3}
+
+\begin{table}
+
+\caption{\label{tab:acceptability-self-d-vs-single-sw2}SW for difference scores against single occurrence actions for first party acceptability.}
+\centering
+\begin{tabular}[t]{lllrrl}
+\toprule
+myValence & myQueriedActionStatus & population & W & p.value & p<=.05\\
+\midrule
+bad & highTypeFreq & city & 0.941 & 0.335 & \\
+neutral & highTypeFreq & city & 0.776 & 0.001 & ***\\
+good & highTypeFreq & city & 0.821 & 0.003 & **\\
+bad & lowTypeFreq & city & 0.946 & 0.391 & \\
+neutral & lowTypeFreq & city & 0.831 & 0.006 & **\\
+\addlinespace
+good & lowTypeFreq & city & 0.679 & 0.000 & ***\\
+bad & highTypeFreq & testable & 0.932 & 0.016 & *\\
+neutral & highTypeFreq & testable & 0.923 & 0.011 & *\\
+good & highTypeFreq & testable & 0.790 & 0.000 & ***\\
+bad & lowTypeFreq & testable & 0.943 & 0.040 & *\\
+\addlinespace
+neutral & lowTypeFreq & testable & 0.926 & 0.014 & *\\
+good & lowTypeFreq & testable & 0.693 & 0.000 & ***\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As shown in Table \ref{tab:acceptability-self-d-vs-single-sw2}, a number
+of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+
+As shown in Table \ref{tab:acceptability-self-d-vs-single-aov-show2}, we
+observed the expected main effect of Valency on first-party
+acceptability. Further, we observed a main effect of Action Status as
+well as an interaction between Action Status and Valency. (Not that
+including the factor Action Status is redundant with the direct
+difference score below.)
+
+As shown in Table \ref{tab:acceptability-self-d-vs-single-aov-show2},
+separate ANOVAs for each valency revealed a strong main effect of Action
+Status only for neutral scenarios. The main effect was not significant
+for good or bad scenarios. Again, this is redundant with the direct
+difference scores.
+
+Finally, Table \ref{tab:acceptability-self-d-vs-single-aov-show2} shows
+separate ANOVAs for each Action Status. The main effect of valency was
+significant only for high type frequency scenarios.
+
+\begin{table}
+
+\caption{\label{tab:acceptability-self-d-vs-single-aov-show2}ANOVA for difference scores comparing each frequency condition to the single occurrence condition for first-person acceptability. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency f. (Bottom). Differences for each frequency condition.}
+\centering
+\begin{tabular}[t]{lrrrrr}
+\toprule
+Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Overall}}\\
+\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{4.100} & \cellcolor{gray!6}{0.023} & \cellcolor{gray!6}{0.143}\\
+\hspace{1em}myQueriedActionStatus & 1 & 49 & 10.400 & 0.002 & 0.158\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus:myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{3.430} & \cellcolor{gray!6}{0.040} & \cellcolor{gray!6}{0.103}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Overall}}\\
+\hspace{1em}myValence & 2 & 116 & 1.150 & 0.321 & 0.019\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{116} & \cellcolor{gray!6}{16.600} & \cellcolor{gray!6}{0.000} & \cellcolor{gray!6}{0.123}\\
+\hspace{1em}myQueriedActionStatus:myValence & 2 & 116 & 0.916 & 0.403 & 0.014\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of valency - good}}\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{38} & \cellcolor{gray!6}{11.300} & \cellcolor{gray!6}{0.002} & \cellcolor{gray!6}{0.230}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of valency - neutral}}\\
+\hspace{1em}myQueriedActionStatus & 1 & 38 & 13.400 & 0.001 & 0.261\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of valency - bad}}\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{40} & \cellcolor{gray!6}{2.280} & \cellcolor{gray!6}{0.139} & \cellcolor{gray!6}{0.054}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of valency - bad}}\\
+\hspace{1em}myQueriedActionStatus & 1 & 16 & 1.610 & 0.223 & 0.091\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of valency - neutral}}\\
+\cellcolor{gray!6}{\hspace{1em}myQueriedActionStatus} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{16} & \cellcolor{gray!6}{9.450} & \cellcolor{gray!6}{0.007} & \cellcolor{gray!6}{0.371}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of valency - good}}\\
+\hspace{1em}myQueriedActionStatus & 1 & 17 & 0.937 & 0.347 & 0.052\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of Action Status - highTypeFreq}}\\
+\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{5.310} & \cellcolor{gray!6}{0.008} & \cellcolor{gray!6}{0.178}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{city - Follow-up of Action Status - lowTypeFreq}}\\
+\hspace{1em}myValence & 2 & 49 & 1.560 & 0.220 & 0.060\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of Action Status - highTypeFreq}}\\
+\cellcolor{gray!6}{\hspace{1em}myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{116} & \cellcolor{gray!6}{1.590} & \cellcolor{gray!6}{0.209} & \cellcolor{gray!6}{0.027}\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{testable - Follow-up of Action Status - lowTypeFreq}}\\
+\hspace{1em}myValence & 2 & 116 & 0.384 & 0.682 & 0.007\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Difference scores comparing high type frequency against low
+type
+frequency}\label{difference-scores-comparing-high-type-frequency-against-low-type-frequency-5}
+
+\begin{table}
+
+\caption{\label{tab:acceptability-self-d-high-vs-low-tf-sw2}SW acceptability for participants themselves for high vs. low difference scores}
+\centering
+\begin{tabular}[t]{llrrl}
+\toprule
+myValence & population & W & p.value & p<=.05\\
+\midrule
+bad & city & 0.910 & 0.001 & ***\\
+neutral & city & 0.944 & 0.018 & *\\
+good & city & 0.842 & 0.000 & ***\\
+bad & testable & 0.951 & 0.000 & ***\\
+neutral & testable & 0.920 & 0.000 & ***\\
+\addlinespace
+good & testable & 0.861 & 0.000 & ***\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As shown in Table \ref{tab:acceptability-self-d-high-vs-low-tf-sw2}, a
+number of cells deviated from normality. TODO: TRY TO HEAL IT BY
+TRANSFORMING
+
+As shown in Table
+\ref{tab:city-acceptability-self-d-high-vs-low-tf-aov-show}, we observed
+the expected main effect of Valency on difference scores for first-party
+acceptability.
+
+As shown in Table
+\ref{tab:acceptability-self-d-high-vs-low-tf-aov-show2}, separate ANOVAs
+for each valency revealed a strong main effect of Action Status only for
+neutral scenarios. The main effect was not significant for good or bad
+scenarios. Again, this is redundant with the direct difference scores.
+
+\begin{table}
+
+\caption{\label{tab:acceptability-self-d-high-vs-low-tf-aov-show2}ANOVA for difference scores comparing the high vs low type frequency conditions for first-person acceptability. (Top) Overall ANOVA. (Bottom) Differences between frequency conditions separately for each valency.}
+\centering
+\begin{tabular}[t]{llrrrrr}
+\toprule
+myValence & Effect & df1 & df2 & $F$ & $p$ & $\eta_p^2$\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{city - Overall}}\\
+\cellcolor{gray!6}{\hspace{1em}} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{49} & \cellcolor{gray!6}{5.310} & \cellcolor{gray!6}{0.008} & \cellcolor{gray!6}{0.178}\\
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{testable - Overall}}\\
+\hspace{1em} & myValence & 2 & 116 & 1.590 & 0.209 & 0.027\\
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{testable - By valency}}\\
+\cellcolor{gray!6}{\hspace{1em}neutral vs. good} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{76} & \cellcolor{gray!6}{3.520} & \cellcolor{gray!6}{0.064} & \cellcolor{gray!6}{0.044}\\
+\hspace{1em}neutral vs. good & myValence & 1 & 33 & 7.810 & 0.009 & 0.191\\
+\cellcolor{gray!6}{\hspace{1em}bad vs. good} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{78} & \cellcolor{gray!6}{0.332} & \cellcolor{gray!6}{0.566} & \cellcolor{gray!6}{0.004}\\
+\addlinespace[0.3em]
+\multicolumn{7}{l}{\textbf{city - By valency}}\\
+\hspace{1em}bad vs. good & myValence & 1 & 33 & 1.540 & 0.223 & 0.045\\
+\cellcolor{gray!6}{\hspace{1em}bad vs. neutral} & \cellcolor{gray!6}{myValence} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{78} & \cellcolor{gray!6}{1.170} & \cellcolor{gray!6}{0.282} & \cellcolor{gray!6}{0.015}\\
+\hspace{1em}bad vs. neutral & myValence & 1 & 32 & 3.900 & 0.057 & 0.109\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+
+\section{Unused}\label{unused}
+
+\subsection{Power analysis (REMOVE IN
+PAPER)}\label{power-analysis-remove-in-paper}
+
+We use the SIMR package for power analysis \citep{Green2016}.
+
+See
+\url{https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12504}
+for usage of extend and powerCurve
 
   \bibliography{/Users/endress/ansgar.bib}
 

@@ -19,6 +19,7 @@ output:
     toc_float: yes
     fig_caption: yes
     highlight: tango
+    mathjax: local
   html_document:
     theme: spacelab
     number_sections: yes
@@ -27,15 +28,19 @@ output:
     toc_float: yes
     fig_caption: yes
     highlight: tango
+    mathjax: local
 csl: /Users/endress/csl_files/science.csl
 keywords: Keywords
-abstract: Abstract (to be written). Discuss quorum sensing [@Sumpter2009]
+abstract: Abstract (to be written). Argument structure - See below. Analysis structure - 1. Descriptives of difference scores and tests against zero. 2. GLMMs, with reference to ANOVA. Discuss quorum sensing [@Sumpter2009] Discuss moral repetition effect, and tolerance principle and submit to psych sci. In intro. Different formal perspectives suggest that mere frequency should not be relevant, From a learning perspective,  [Explanation of tolerance principle; argue later that threshold is 8/ln(8) = 3.8, but that we did not vary this experimentally as it's too long; general explanation of tolerance principle- When having a productive rule is faster than listing all items as exception]. From a representational perspective, dispositions. intrinsic properties of banana; bayesian argument. From a social perspective, majority. Whatever the moral frequency guy argues.
 ---
 
 ```{r setup, echo = FALSE, include=FALSE}
 rm (list=ls())
 
-options (digits = 3)
+
+options(digits = 3,
+        knitr.kable.NA = '')
+
 knitr::opts_chunk$set(
     # Run the chunk
     eval = TRUE,
@@ -73,8 +78,21 @@ if (Sys.info()[["user"]] %in% c("ansgar", "endress")){
     source("http://endress.org/progs/null.R")
 }
 
-library (knitr)
-library (kableExtra)
+
+librarian::shelf(
+    knitr,
+    kableExtra,
+    janitor,
+    purrr,
+    ggpubr)
+
+# Set default theme
+#theme_set(theme_linedraw(14))
+#theme_set(cowplot::theme_minimal_grid(14))
+theme_set(ggthemes::theme_clean(14))
+theme_update(legend.position = "bottom",
+             legend.justification = "center")
+
 ```
 
 ```{r set-parameters}
@@ -118,19 +136,43 @@ VALENCE.IS.BETWEEN.SUBJECTS <- TRUE
 set.seed (1207100)
 ```
 
-```{r helper-functions}
 
+
+```{r read-data, include = FALSE}
+
+dat.social.type.token.sequential.raw <- dplyr::bind_rows(
+    read.testable.results("../data/994749_sequential_1/results", 
+                          n.subj.info.lines = 2,
+                          comment.char = "",
+                          ignore.col.prefixes = IGNORE.COL.PREFIXES,
+                          stringsAsFactors = FALSE) %>% 
+        dplyr::mutate(population = "city", .before = 1),
+    read.testable.results("../data/159771_sequential_testable/results",
+                          n.subj.info.lines = 2,
+                          comment.char = "",
+                          ignore.col.prefixes = IGNORE.COL.PREFIXES,
+                          stringsAsFactors = FALSE) %>% 
+        dplyr::mutate(population = "testable", .before = 1))
+    
+
+l.populations <- dat.social.type.token.sequential.raw %>% 
+    pull(population) %>% 
+    levels2 %>% 
+    as.list
+
+    
 
 ```
 
 
-```{r read-data, include = FALSE}
-dat.social.type.token.sequential.raw <- read.testable.results("../data/994749_sequential_1/results", 
-                                                   n.subj.info.lines = 2,
-                                                   comment.char = "",
-                                                   ignore.col.prefixes = IGNORE.COL.PREFIXES,
-                                                   stringsAsFactors = FALSE) 
+```{r helper-functions}
 
+map.by.population <- function(...){
+    l.populations %>% 
+        purrr::set_names() %>% 
+        purrr::map(...)
+}
+        
 ```
 
 
@@ -160,7 +202,10 @@ We next analyze the SD and combine the results with the data frame for the main 
 
 ```{r analyze-sd3}
 
+# Run for city students only
+
 dat.social.type.token.sequential.sd3 <- dat.social.type.token.sequential.raw %>% 
+    dplyr::filter(population == "city") %>% 
     dplyr::filter(myPhase == "SD3") %>% 
     dplyr::mutate(max.response = str_count(responseOptions, ";") + 1) %>% 
     dplyr::mutate(responseCode = as.numeric(responseCode)) %>% 
@@ -169,9 +214,9 @@ dat.social.type.token.sequential.sd3 <- dat.social.type.token.sequential.raw %>%
     dplyr::mutate(responseCode = ifelse(mySD3reversed == "TRUE",
                                           max.response + 1 - responseCode,
                                           responseCode)) %>% 
-    dplyr::group_by(filename, myPhase, mySD3subScale) %>% 
+    dplyr::group_by(population, filename, myPhase, mySD3subScale) %>% 
     dplyr::summarize(score = sum(responseCode)) %>% 
-    tidyr::pivot_wider(id_cols = c(filename, myPhase),
+    tidyr::pivot_wider(id_cols = c(population, filename, myPhase),
                        names_from = mySD3subScale,
                        values_from = score) %>% 
     dplyr::ungroup()
@@ -209,7 +254,7 @@ dplyr::left_join(
         janitor::adorn_percentages("row"),
     by = "scale",
     suffix = c(".N", ".P")) %>% 
-    knitr::kable(caption = "Number of participants in each group of the SD3 scales",
+    knitr::kable(caption = "Number of participants in each group of the SD3 scales. Note that this applies to city students only",
                  booktabs = TRUE,
                  col.names = str_remove(names(.), "\\..$")) %>% 
     kableExtra::add_header_above(c(" " = 1, "N" = 3, "Percentage" = 3), bold = TRUE) %>% 
@@ -226,7 +271,8 @@ dat.social.type.token.sequential <-
         dat.social.type.token.sequential.raw %>% 
             dplyr::filter(myPhase == "experiment"),
         dat.social.type.token.sequential.sd3 %>% 
-            dplyr::select(-c(myPhase)),
+            dplyr::ungroup() %>% 
+            dplyr::select(-myPhase, -population),
         by = "filename") 
     
 
@@ -261,7 +307,7 @@ dat.social.type.token.sequential <-
 ```{r make-averages}
 
 dat.social.type.token.sequential.m <- dat.social.type.token.sequential %>% 
-    dplyr::group_by(filename, age, gender, 
+    dplyr::group_by(population, filename, age, gender, 
                     Machiavellianism, Narcissism, Psychopathy, 
                     Machiavellianism.group, Narcissism.group, Psychopathy.group, 
                     myQueriedActionStatus, myValence, question, scoring) %>% 
@@ -276,18 +322,25 @@ dat.social.type.token.sequential.m <- dat.social.type.token.sequential %>%
 
 make.diff.score <- function(x, y, relative = TRUE){
     
-    if (relative) {
+    if((x == 0) && (y == 0)){
         
-        (x - y) / (x + y)
+        return(0)
+    
+    }
+    
+    if(relative) {
+        
+        return((x - y) / (x + y))
+        
     } else {
         
-        x - y 
+        return(x - y)
     }
         
 }
 
 dat.social.type.token.sequential.m.wide <- dat.social.type.token.sequential.m %>% 
-    tidyr::pivot_wider(id_cols = c(filename, age, gender, 
+    tidyr::pivot_wider(id_cols = c(population, filename, age, gender, 
                                    Machiavellianism, Narcissism, Psychopathy, 
                                    Machiavellianism.group, Narcissism.group, Psychopathy.group,
                                    myValence),
@@ -360,7 +413,7 @@ dat.social.type.token.sequential.m.wide <- dat.social.type.token.sequential.m.wi
                   mean.first.party.acceptablity_raw = mean(dplyr::c_across(tidyr::matches("^[^d].*first.party.acceptablity_raw")))) 
 ```
 
-```{r save-for-students}
+```{r save-for-students, eval - FALSE}
 
 xlsx::write.xlsx (
     data.frame (column = names (dat.social.type.token.sequential.m.wide)),
@@ -449,52 +502,214 @@ The difference score comparing the high and the low typ frequency condition reve
 `r clearpage()`
 
 # Raw ratings
-## Ratings (analyzed using ANOVAs)
+## Ratings 
 
-```{r print-descriptives-ratings-raw}
+```{r print-descriptives-ratings}
 
-dat.social.type.token.sequential.m %>% 
-    dplyr::filter(scoring == "raw") %>% 
-    dplyr::select(-scoring) %>% 
-    dplyr::group_by(myValence, myQueriedActionStatus, question) %>% 
-    dplyr::summarize(
-        N = n(),
-        M = mean(rating),
-        SE = se(rating),
-        d = M/sd(rating),
-        # That's correct only for raw ratings
-        p = wilcox.p(rating, mu = 2.5)
+dplyr::left_join(
+    dat.social.type.token.sequential.m %>% 
+        dplyr::filter(scoring == "raw") %>% 
+        dplyr::select(-scoring) %>% 
+        dplyr::group_by(population, myValence, myQueriedActionStatus, question) %>% 
+        dplyr::summarize(
+            N = n(),
+            M = mean(rating),
+            SE = se(rating),
+            d = M/sd(rating),
+            # That's correct only for raw ratings
+            p = wilcox.p(rating, mu = 2.5)) %>% 
+        dplyr::ungroup(),
+    
+    dat.social.type.token.sequential.m %>% 
+        dplyr::filter(scoring == "bin") %>% 
+        dplyr::select(-scoring) %>% 
+        dplyr::group_by(population, myValence, myQueriedActionStatus, question) %>% 
+        dplyr::summarize(
+            N = n(),
+            M = mean(rating),
+            SE = se(rating),
+            d = M/sd(rating),
+            # That's correct only for raw ratings
+            p = wilcox.p(rating, mu = .5)
         ) %>% 
-    dplyr::arrange (question, myValence, myQueriedActionStatus) %>% 
-    tidyr::unite(pack.col, myValence, question, sep = " - ") %>% 
+        dplyr::ungroup(),
+    by = c("population", "myValence", "myQueriedActionStatus", "question")) %>% 
+    dplyr::select(-N.y) %>% 
+    dplyr::rename(N = N.x) %>% 
+    dplyr::arrange (population, question, myValence, myQueriedActionStatus) %>% 
+    tidyr::unite(pack.col, population, myValence, question, sep = " - ") %>% 
     kable.packed("pack.col", 
-                 caption = "Descriptive for the untransformed data. The p value reflects a Wilcoxon test against the scale midpoint of 2.5.",
-                 col.names = c("", "N", "M", "SE", "Cohen's d", "p"),
+                 caption = "Descriptives for the untransformed as well as the binary ratings. The p value reflects a Wilcoxon test against the scale midpoint of 2.5 or the chance level of .5.",
+                 col.names = c("", "N", rep(c("M", "SE", "Cohen's d", "p"), 2)),
                  booktabs = TRUE,
-                 longtable=TRUE) %>% 
+                 longtable = TRUE) %>% 
+    kableExtra::add_header_above(header = c(" " = 2, "Raw ratings" = 4, "Binary ratings" = 4), bold = TRUE) %>% 
     kableExtra::kable_styling(latex_options = "repeat_header") %>% 
     kableExtra::kable_classic_2()
 
 
 ```
 
-```{r plot-ratings-raw, fig.cap = "Raw ratings"}
+```{r plot-ratings-raw-testable, fig.cap = "Ratings for testable participants. NOTE THAT WE HAVE SPECIFIC PLOTS FOR BINARY RATINGS BELOW. (a) Raw ratings. (b) Binary ratings"}
 
-dat.social.type.token.sequential.m %>% 
+ggpubr::ggarrange (
+    # Raw ratings
+    dat.social.type.token.sequential.m %>% 
+        dplyr::filter(population == "testable") %>% 
+        dplyr::filter(scoring == "raw") %>% 
+        dplyr::mutate(myQueriedActionStatus = str_wrap(myQueriedActionStatus, 10)) %>% 
+        dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+        dplyr::mutate(question = str_wrap(question, 20)) %>% 
+        ggplot (aes (x = myQueriedActionStatus, y = rating)) %>% 
+        violin_plot_template(yintercept = 2.5) +
+        theme (axis.title.x = element_blank(),
+               axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
+        ylab ("Rating (raw)") + 
+    
+        #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+        facet_grid(question ~ myValence),
+    
+    # Binary ratings
+    dat.social.type.token.sequential.m %>% 
+        dplyr::filter(population == "testable") %>% 
+        dplyr::filter(scoring == "bin") %>% 
+        dplyr::mutate(myQueriedActionStatus = str_wrap(myQueriedActionStatus, 10)) %>% 
+        dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+        dplyr::mutate(question = str_wrap(question, 20)) %>% 
+        ggplot (aes (x = myQueriedActionStatus, y = rating)) %>% 
+        violin_plot_template(yintercept = .5) +
+        theme (axis.title.x = element_blank(),
+               axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
+        ylab ("Rating (raw)") + 
+        #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+        facet_grid(question ~ myValence),
+    
+    nrow = 1,
+    labels = "auto",
+    common.legend = TRUE,
+    legend = "bottom")
+
+
+```
+
+```{r plot-ratings-raw-city, fig.cap = "Ratings for City students. NOTE THAT WE HAVE SPECIFIC PLOTS FOR BINARY RATINGS BELOW.  (a) Raw ratings. (b) Binary ratings. "}
+
+ggpubr::ggarrange (
+
+    # Raw ratings
+    dat.social.type.token.sequential.m %>% 
+        dplyr::filter(population == "city") %>% 
+        dplyr::filter(scoring == "raw") %>% 
+        dplyr::mutate(myQueriedActionStatus = str_wrap(myQueriedActionStatus, 10)) %>% 
+        dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+        dplyr::mutate(question = str_wrap(question, 20)) %>% 
+        ggplot (aes (x = myQueriedActionStatus, y = rating)) %>% 
+        violin_plot_template(yintercept = 2.5) +
+        theme (axis.title.x = element_blank(),
+               axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
+        ylab ("Rating (raw)") + 
+        #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+        facet_grid(question ~ myValence),
+    
+    # Binary ratings
+    dat.social.type.token.sequential.m %>% 
+        dplyr::filter(population == "city") %>% 
+        dplyr::filter(scoring == "bin") %>% 
+        dplyr::mutate(myQueriedActionStatus = str_wrap(myQueriedActionStatus, 10)) %>% 
+        dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+        dplyr::mutate(question = str_wrap(question, 20)) %>% 
+        ggplot (aes (x = myQueriedActionStatus, y = rating)) %>% 
+        violin_plot_template(yintercept = .5) +
+        theme (axis.title.x = element_blank(),
+               axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
+        ylab ("Rating (raw)") + 
+        #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+        facet_grid(question ~ myValence),
+    
+        nrow = 1,
+    labels = "auto",
+    common.legend = TRUE,
+    legend = "bottom")
+
+    
+
+
+```
+
+`r clearpage()`
+
+
+## Difference scores
+```{r city-prepare-diff-scores-raw}
+dat.social.type.token.sequential.m.d <- dat.social.type.token.sequential.m.wide %>% 
+    dplyr::ungroup() %>% 
+    tidyr::pivot_longer(starts_with(fixed ("d.")),
+                        names_to = "Contrast",
+                        values_to = "d") 
+
+# 2 x scoring
+# 3 x questions
+# 3 types of difference scores (against single: 2 x scores + high vs. low: 1 score)
+if(nrow(dat.social.type.token.sequential.m.wide) * 2 * 3 * 3 !=  nrow(dat.social.type.token.sequential.m.d)){
+    stop("Check the creation of difference scores")
+}
+
+
+dat.social.type.token.sequential.m.d <- dplyr::bind_rows(
+    # We need to separate them as there is no myQueriedActionStatus for the difference scores comparing 
+    # the high and low frequency condition 
+    
+    dat.social.type.token.sequential.m.d %>% 
+        dplyr::filter(str_starts(Contrast, "d.vs.single", negate = FALSE)) %>% 
+        tidyr::separate_wider_delim(Contrast,
+                                    delim = "_",
+                                    names = c("Contrast", "myQueriedActionStatus", "question", "scoring"), 
+                                    too_few = "error"),
+    
+
+    dat.social.type.token.sequential.m.d %>% 
+        dplyr::filter(str_starts(Contrast, "d.vs.single", negate = TRUE)) %>%
+        tidyr::separate_wider_delim(Contrast,
+                                    delim = "_",
+                                    names = c("Contrast", "question", "scoring"), 
+                                    too_few = "error")
+)
+
+```
+
+
+```{r testable-plot-difference-vs-single-raw, fig.cap = "Raw difference scores vs. single occurrence actions for Testable participants"}
+
+dat.social.type.token.sequential.m.d %>% 
     dplyr::filter(scoring == "raw") %>% 
-    dplyr::mutate(myQueriedActionStatus = str_wrap(myQueriedActionStatus, 10)) %>% 
+    dplyr::filter(population == "testable") %>% 
+    dplyr::filter(Contrast == "d.vs.single") %>% 
     dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
     dplyr::mutate(question = str_wrap(question, 20)) %>% 
-    ggplot (aes (x = myQueriedActionStatus, y = rating)) +
-        theme_light(14) +
+    ggplot (aes (x = myQueriedActionStatus, y = d)) %>% 
+    violin_plot_template(yintercept = 0) +
     theme (axis.title.x = element_blank(),
            axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
-    ylab ("Rating (raw)") + 
-    geom_violin() +
-    geom_dotplot(binaxis='y', stackdir='center', dotsize=1) +
-    stat_summary(fun.data=mean_se, 
-                 geom="pointrange", color="red") +
-    geom_hline(yintercept=2.5, linetype = "dotted") +
+    ylab ("Difference score (raw)") + 
+    #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+    facet_grid(question ~ myValence, scale = "free")
+
+
+```
+
+```{r city-plot-difference-vs-single-raw, fig.cap = "Raw difference scores vs. single occurrence actions for City Students"}
+
+dat.social.type.token.sequential.m.d %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(population == "city") %>% 
+    dplyr::filter(Contrast == "d.vs.single") %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_wrap(question, 20)) %>% 
+    ggplot (aes (x = myQueriedActionStatus, y = d)) %>% 
+    violin_plot_template(yintercept = 0) +
+    theme (axis.title.x = element_blank(),
+           axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
+    ylab ("Difference score (raw)") + 
     #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
     facet_grid(question ~ myValence)
 
@@ -503,8 +718,1754 @@ dat.social.type.token.sequential.m %>%
 
 ```
 
+```{r print-difference-vs-single}
+
+dat.social.type.token.sequential.m.d %>% 
+    #dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(Contrast == "d.vs.single") %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::group_by(population, scoring, question, myValence, myQueriedActionStatus) %>% 
+    dplyr::summarize(N = n(),
+                     M = mean(d),
+                     SE = se(d),
+                     cohen.d = M/sd(d),
+                     p = wilcox.p(d, 0)) %>% 
+    tidyr::pivot_wider(id_cols = c(population, question, myValence, myQueriedActionStatus),
+                       names_from = scoring,
+                       values_from = c(N, M, SE, cohen.d, p),
+                       names_vary = "slowest") %>% 
+    dplyr::select(-N_raw) %>% 
+    tidyr::unite(pack.col, population, question, sep = " - ") %>% 
+    kable.packed("pack.col", 
+                 caption = "Descriptive for the difference scores against the single occurrence condition using the binary as well as the untransformed data. The p value reflects a Wilcoxon test against zero.",
+                 col.names = c("Valency", "Action Status", "N", rep(c("M", "SE", "Cohen's d", "p"), 2)),
+                 booktabs = TRUE,
+                 longtable = TRUE) %>% 
+    kableExtra::add_header_above(header = c(" " = 3, "Binary ratings" = 4, "Raw ratings" = 4), bold = TRUE) %>% 
+    kableExtra::kable_styling(latex_options = "repeat_header") %>% 
+    kableExtra::kable_classic_2()
+
+
+```
+
 `r clearpage()`
 
+```{r plot-difference-high-vs-low-type-frequency-raw, fig.cap = "Raw difference scores high vs. low type frequency actions"}
+
+dat.social.type.token.sequential.m.d %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(Contrast != "d.vs.single") %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_wrap(question, 20)) %>% 
+    ggplot (aes (x = question, y = d)) %>% 
+        violin_plot_template(yintercept = 0) +
+    theme (axis.title.x = element_blank(),
+           axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) +
+    ylab ("Difference score (raw)") + 
+    #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+    facet_grid(population ~ myValence, scales = "free")
+
+
+
+
+```
+
+```{r print-difference-high-vs-low-type-frequency}
+
+dat.social.type.token.sequential.m.d %>% 
+    #dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(Contrast != "d.vs.single") %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::group_by(population, scoring, question, myValence) %>% 
+    dplyr::summarize(N = n(),
+                     M = mean(d),
+                     SE = se(d),
+                     cohen.d = M/sd(d),
+                     p = wilcox.p(d, 0)) %>% 
+    tidyr::pivot_wider(id_cols = c(population, question, myValence),
+                       names_from = scoring,
+                       values_from = c(N, M, SE, cohen.d, p),
+                       names_vary = "slowest") %>% 
+    dplyr::select(-N_raw) %>% 
+    tidyr::unite(pack.col, population, question, sep = " - ") %>% 
+    kable.packed("pack.col", 
+                 caption = "Descriptive for the difference scores comparing high and low type frequency conditions using the binary as well as untransformed data. The p value reflects a Wilcoxon test against zero.",
+                 col.names = c("Valency", "N", rep(c("M", "SE", "Cohen's d", "p"), 2)),
+                 booktabs = TRUE,
+                 longtable = TRUE) %>% 
+    kableExtra::add_header_above(header = c(" " = 2, "Binary ratings" = 4, "Raw ratings" = 4), bold = TRUE) %>% 
+    kableExtra::kable_styling(latex_options = "repeat_header") %>% 
+    kableExtra::kable_classic_2()
+    
+```
+
+### Prevalence (difference scores; everything is printed in Appendix)
+
+```{r prevalence-d-vs-single-sw, results = 'hide'}
+
+#get.lambda.trans 
+
+dat.social.type.token.sequential.prevalence.d.vs.single.sw <- 
+    calculate.shapiro.wilk.test.for.cells(
+        dat.social.type.token.sequential.m.d  %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            dplyr::filter(question == "prevalence") %>% 
+            dplyr::filter(Contrast == "d.vs.single"),
+        c("myValence",
+          "myQueriedActionStatus",
+          "population"),
+        "d")
+
+dat.social.type.token.sequential.prevalence.d.vs.single.sw %>% 
+    kable (caption = "SW for difference scores vs. single occurrence actions for untranformed (raw) prevalence ratings.", booktabs = TRUE, escape = FALSE) %>% 
+    kableExtra::kable_classic_2()
+
+
+ 
+```
+
+As shown in Table \ref{tab:prevalence-d-vs-single-sw2}, a number of cells deviated from normality
+
+
+```{r prevalence-d-vs-single-aov-calculate}
+
+aov.social.type.token.sequential.prevalence.d.vs.single <-
+    map.by.population(~ aov(
+        d ~ myQueriedActionStatus * myValence + 
+            Error (filename/(myQueriedActionStatus)), 
+        data = dat.social.type.token.sequential.m.d %>% 
+            dplyr::filter(scoring == "raw") %>%
+            dplyr::filter(population == .x) %>%
+            dplyr::filter(Contrast == "d.vs.single") %>% 
+            dplyr::filter(question == "prevalence")))
+
+
+dat.aov.social.type.token.sequential.prevalence.d.vs.single <- 
+    aov.social.type.token.sequential.prevalence.d.vs.single %>% 
+    purrr::map(~ report.aov(.x,
+                     .correct.for.repeated.tests = FALSE,
+                     .return.df = TRUE,
+                     .print.results = FALSE) %>%
+                   dplyr::select(-c("model.name"))) %>% 
+    purrr::set_names(names(aov.social.type.token.sequential.prevalence.d.vs.single)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+
+```{r prevalence-d-vs-single-aov-ez-calculate}
+
+aov.social.type.token.sequential.prevalence.d.vs.single.ez <- 
+    map.by.population(~ ezANOVA(
+        data = dat.social.type.token.sequential.m.d %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            dplyr::filter(Contrast == "d.vs.single") %>% 
+            dplyr::filter(question == "prevalence"),
+        dv = .(d),
+        wid = .(filename),
+        between = .(myValence),
+        within = .(myQueriedActionStatus),
+        detailed = TRUE,
+        type = 3))
+
+aov.social.type.token.sequential.prevalence.d.vs.single.ez.sphericity <- 
+    aov.social.type.token.sequential.prevalence.d.vs.single.ez %>% 
+    purrr::map(~ extract.sphericity.from.ezANOVA(.x)) %>% 
+    purrr::set_names(names(aov.social.type.token.sequential.prevalence.d.vs.single.ez))
+
+```
+As shown in Table \ref{tab:prevalence-d-vs-single-aov-show2}, we observed no main effect of Valency on the difference score against single occurrence actions for prevalence. We observed a main effect of Action Status as well as a marginal interaction between Action Status and Valency. 
+
+```{r prevalence-d-vs-single-aov-follow-up-valency}
+
+dat.aov.social.type.token.sequential.prevalence.d.vs.single.followup.valency <- 
+    dat.social.type.token.sequential.m.d %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(Contrast == "d.vs.single") %>% 
+    dplyr::filter(question == "prevalence") %>% 
+    dplyr::group_by(population, myValence) %>% 
+    tidyr::nest() %>% 
+    # data is the column created by nest
+    dplyr::mutate(aov =  map(data,
+                             ~ aov(
+                                 d ~ myQueriedActionStatus + 
+                                     Error (filename/(myQueriedActionStatus)), 
+                                 data = .x) %>% 
+                                 report.aov(.correct.for.repeated.tests = FALSE,
+                                            .return.df = TRUE,
+                                            .print.results = FALSE)
+    )) %>% 
+    dplyr::select(-data) %>% 
+    unnest %>% 
+    dplyr::select(-model.name) %>% 
+    dplyr::arrange(population, myValence)
+
+```
+
+As shown in Table \ref{tab:prevalence-d-vs-single-aov-show2}, separate ANOVAs for each valency revealed a strong main effect of Action Status only for all three valencies.
+
+
+```{r prevalence-d-vs-single-aov-follow-up-action-status}
+
+dat.aov.social.type.token.sequential.prevalence.d.vs.single.followup.actionStatus <- 
+    dat.social.type.token.sequential.m.d %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(Contrast == "d.vs.single") %>% 
+    dplyr::filter(question == "prevalence") %>% 
+    dplyr::group_by(population, myQueriedActionStatus) %>% 
+    dplyr::group_modify(~ aov(
+        d ~ myValence,
+        data = .x) %>%
+            report.aov(.correct.for.repeated.tests = FALSE,
+                       .return.df = TRUE,
+                       .print.results = FALSE)) %>% 
+    dplyr::select(-model.name) 
+
+
+
+```    
+
+Finally, Table \ref{tab:prevalence-d-vs-single-aov-show2} shows separate ANOVAs for each Action Status. The main effect of valency was significant only for high type frequency scenarios. 
+
+```{r prevalence-d-vs-single-aov-show, results = 'hide'}
+
+if (!is.null (aov.social.type.token.sequential.prevalence.d.vs.single.ez.sphericity)){
+    warning ("There were sphericity corrections available that you ignored, do something about them.")    
+}
+
+dplyr::bind_rows(
+    # Overall anova
+    dat.aov.social.type.token.sequential.prevalence.d.vs.single %>% 
+        dplyr::mutate(model.type = "Overall") %>% 
+        tidyr::unite(model.type, population, model.type, sep = " - "),
+    
+    # Follow-up valency
+    dat.aov.social.type.token.sequential.prevalence.d.vs.single.followup.valency %>% 
+        dplyr::mutate(model.type = "Follow-up of valency") %>% 
+        tidyr::unite(model.type, population, model.type, myValence, sep = " - "),
+    
+    # Follow-up action status
+    dat.aov.social.type.token.sequential.prevalence.d.vs.single.followup.actionStatus %>%
+        dplyr::mutate(model.type = "Follow-up of Action Status") %>% 
+        tidyr::unite(model.type, population, model.type, myQueriedActionStatus, sep = " - "),
+) %>%  
+    setNames(replace_default_column_labels(names (.))) %>%
+    kable.packed("model.type",
+                  caption = "ANOVA for difference scores comparing each frequency condition to the single occurrence condition for untransformed prevalence ratings.  (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency . (Bottom). Differences for each frequency conditions separately.",
+                  booktabs = TRUE, escape = FALSE) %>%
+            kableExtra::kable_styling(latex_options =
+                              c("striped")) %>%
+    kableExtra::kable_classic_2()
+
+
+```
+
+
+#### Difference scores comparing high type frequency against low type frequency
+
+```{r prevalence-d-high-vs-low-tf-sw, results = 'hide'}
+
+#get.lambda.trans 
+
+dat.social.type.token.sequential.prevalence.d.high.vs.low.tf.sw <- 
+    calculate.shapiro.wilk.test.for.cells(
+        dat.social.type.token.sequential.m.d  %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            dplyr::filter(Contrast == "d.high.vs.low.TypeFreq"),
+        c("myValence", "population"),
+        "d")
+
+dat.social.type.token.sequential.prevalence.d.high.vs.low.tf.sw %>% 
+    kable (caption = "SW acceptability for raw prevalence ratings for difference scores comparing high vs. low type frequency conditions", booktabs = TRUE, escape = FALSE) %>% 
+    kableExtra::kable_classic_2()
+
+
+ 
+```
+
+As shown in Table \ref{tab:prevalence-d-high-vs-low-tf-sw2}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+
+
+```{r prevalence-d-high-vs-low-tf-aov-calculate}
+
+aov.social.type.token.sequential.prevalence.d.high.vs.low.tf <- 
+    map.by.population(~ aov(
+        d ~  myValence, 
+        data = dat.social.type.token.sequential.m.d %>% 
+            dplyr::filter(scoring == "raw") %>%
+            dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
+            dplyr::filter(population == .x) %>% 
+            dplyr::filter(question == "prevalence")))
+
+dat.aov.social.type.token.sequential.prevalence.d.high.vs.low.tf <- 
+    aov.social.type.token.sequential.prevalence.d.high.vs.low.tf %>% 
+    purrr::map(~ report.aov(.x,
+                            .correct.for.repeated.tests = FALSE,
+                            .return.df = TRUE,
+                            .print.results = FALSE) %>%
+                   dplyr::select(-c("model.name"))) %>% 
+    purrr::set_names(names(aov.social.type.token.sequential.prevalence.d.high.vs.low.tf)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+
+```{r prevalence-d-high-vs-low-tf-aov-ez-calculate}
+aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.ez <- 
+    map.by.population(~ ezANOVA(
+        data = dat.social.type.token.sequential.m.d %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            dplyr::filter(population == .x) %>% 
+            dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
+            dplyr::filter(question == "prevalence"),
+        dv = .(d),
+        wid = .(filename),
+        between = .(myValence),
+        within = NULL,
+        detailed = TRUE,
+        type = 3))
+
+aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.ez.sphericity <- 
+    aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.ez %>% 
+    purrr::map(~extract.sphericity.from.ezANOVA(.x)) %>% 
+    purrr::set_names(names(aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.ez))
+
+```
+As shown in Table \ref{tab:prevalence-d-high-vs-low-tf-aov-show2}, we observed a marginal main effect of Valency on difference scores for first-party acceptability. 
+
+
+```{r prevalence-d-high-vs-low-tf-aov-follow-up-valency}
+
+v.valencies <- levels(dat.social.type.token.sequential.m.d$myValence)
+
+dat.aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.followup.valency <- 
+    purrr::map(v.valencies,
+               ~ dat.social.type.token.sequential.m.d %>% 
+                   dplyr::ungroup() %>% 
+                   dplyr::filter(scoring == "raw") %>% 
+                   dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
+                   dplyr::filter(question == "prevalence") %>% 
+                   dplyr::mutate(myValence.excluded = .x, .before = 1) %>% 
+                   dplyr::filter(myValence != myValence.excluded)) %>% 
+    dplyr::bind_rows() %>% 
+    dplyr::group_by(population, myValence.excluded) %>% 
+    tidyr::nest() %>% 
+    # data is the column created by nest
+    dplyr::mutate(aov =  map(data,
+                             ~ aov(
+                                 d ~ myValence,
+                                 data = .x) %>% 
+                                 report.aov(.correct.for.repeated.tests = FALSE,
+                                            .return.df = TRUE,
+                                            .print.results = FALSE)
+    )) %>% 
+    dplyr::select(-data) %>% 
+    unnest(cols = c(aov)) %>% 
+    dplyr::mutate(myValence =  str_c (v.valencies[!(v.valencies %in% myValence.excluded)], 
+                                      collapse = " vs. "), 
+                  .before = 1) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::select(-model.name, -myValence.excluded) %>% 
+    dplyr::arrange(population, myValence)
+
+
+```
+As shown in Table \ref{tab:prevalence-d-high-vs-low-tf-aov-show2}, separate ANOVAs for each valency pair revealed a strong main effect of Action Status only for the bad vs. good comparison the the neutral vs. good comparison. 
+
+```{r prevalence-d-high-vs-low-tf-aov-show, results = 'hide'}
+
+if (!is.null (aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.ez.sphericity)){
+    warning ("There were sphericity corrections available that you ignored, do something about them.")    
+}
+
+
+dplyr::bind_rows(
+    # Overall anova
+    dat.aov.social.type.token.sequential.prevalence.d.high.vs.low.tf %>% 
+        dplyr::mutate(model.type = "Overall") %>% 
+        tidyr::unite(model.type, population, model.type, sep = " - "),
+    
+    # By valency
+    dat.aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.followup.valency %>% 
+        dplyr::mutate(model.type = "By valency") %>% 
+        tidyr::unite(model.type, population, model.type, sep = " - ")
+) %>% 
+    dplyr::select(model.type, myValence, effect, everything()) %>% 
+    setNames(replace_default_column_labels(names (.))) %>%
+    kable.packed("model.type",
+                 caption = "ANOVA for difference scores comparing the high vs low type frequency conditions for raw prevalence ratings.  (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Differences for each frequency condition separately.",
+                 booktabs = TRUE, escape = FALSE) %>%
+    kable_styling(latex_options =
+                      c("striped")) %>%
+    kableExtra::kable_classic_2()
+
+
+```
+
+
+`r clearpage()`
+
+
+### Third-party acceptability (difference scores)
+
+#### Difference scores against single actions
+
+```{r acceptability-other-d-vs-single-sw, results = 'hide'}
+
+#get.lambda.trans 
+
+dat.social.type.token.sequential.acceptability.other.d.vs.single.sw <- 
+    calculate.shapiro.wilk.test.for.cells(
+        dat.social.type.token.sequential.m.d  %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            dplyr::filter(question == "third.party.acceptability") %>% 
+            dplyr::filter(Contrast == "d.vs.single"),
+        c("myValence",
+          "myQueriedActionStatus",
+          "population"),
+        "d")
+
+dat.social.type.token.sequential.acceptability.other.d.vs.single.sw %>% 
+    kable (caption = "SW acceptability for difference scores against single occurrence conditions for third party acceptability.", booktabs = TRUE, escape = FALSE) %>% 
+    kableExtra::kable_classic_2()
+
+
+ 
+```
+
+As shown in Table \ref{tab:acceptability-other-d-vs-single-sw2}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+
+
+```{r acceptability-other-d-vs-single-aov-calculate}
+
+aov.social.type.token.sequential.acceptability.other.d.vs.single <- 
+    map.by.population(~ aov(
+        d ~ myQueriedActionStatus * myValence + 
+            Error (filename/(myQueriedActionStatus)), 
+        data = dat.social.type.token.sequential.m.d %>% 
+            dplyr::filter(scoring == "raw") %>%
+            dplyr::filter(population == .x) %>% 
+            dplyr::filter(Contrast == "d.vs.single") %>% 
+            dplyr::filter(question == "third.party.acceptability")))
+        
+dat.aov.social.type.token.sequential.acceptability.other.d.vs.single <- 
+    aov.social.type.token.sequential.acceptability.other.d.vs.single %>% 
+    purrr::map(~ report.aov(.x,
+           .correct.for.repeated.tests = FALSE,
+           .return.df = TRUE,
+           .print.results = FALSE) %>%
+               dplyr::select(-c("model.name"))) %>% 
+    purrr::set_names(names(aov.social.type.token.sequential.acceptability.other.d.vs.single)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+
+```
+
+
+```{r acceptability-other-d-vs-single-aov-ez-calculate}
+aov.social.type.token.sequential.acceptability.other.d.vs.single.ez <- 
+    map.by.population(~ ezANOVA(
+        data = dat.social.type.token.sequential.m.d %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            dplyr::filter(population == .x) %>% 
+            dplyr::filter(Contrast == "d.vs.single") %>% 
+            dplyr::filter(question == "third.party.acceptability"),
+        dv = .(d),
+        wid = .(filename),
+        between = .(myValence),
+        within = .(myQueriedActionStatus),
+        detailed = TRUE,
+        type = 3))
+
+aov.social.type.token.sequential.acceptability.other.d.vs.single.ez.sphericity <- 
+    map(aov.social.type.token.sequential.acceptability.other.d.vs.single.ez,
+        ~ extract.sphericity.from.ezANOVA(.x)) %>% 
+    purrr::set_names(names(aov.social.type.token.sequential.acceptability.other.d.vs.single.ez))
+
+```
+As shown in Table \ref{tab:acceptability-other-d-vs-single-aov-show2}, we observed no main effect of Valency on the difference score against single occurrence actions for first-party acceptability. , we observed a main effect of Action Status as well as an interaction between Action Status and Valency. 
+
+
+```{r acceptability-other-d-vs-single-aov-follow-up-valency2}
+dat.aov.social.type.token.sequential.acceptability.other.d.vs.single.followup.valency <- 
+    dat.social.type.token.sequential.m.d %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(Contrast == "d.vs.single") %>% 
+    dplyr::filter(question == "third.party.acceptability") %>% 
+    dplyr::group_by(population, myValence) %>% 
+    tidyr::nest() %>% 
+    # data is the column created by nest
+    dplyr::mutate(aov =  map(data,
+                             ~ aov(
+                                 d ~ myQueriedActionStatus + 
+                                     Error (filename/(myQueriedActionStatus)), 
+                                 data = .x) %>% 
+                                 report.aov(.correct.for.repeated.tests = FALSE,
+                                            .return.df = TRUE,
+                                            .print.results = FALSE)
+    )) %>% 
+    dplyr::select(-data) %>% 
+    unnest %>% 
+    dplyr::select(-model.name) 
+
+```
+
+As shown in Table \ref{tab:acceptability-other-d-vs-single-aov-show2}, separate ANOVAs for each valency revealed a strong main effect of Action Status only for neutral scenarios. The main effect was not significant for good or bad scenarios. Again, this is redundant with the direct difference scores.
+
+
+
+
+```{r acceptability-other-d-vs-single-aov-follow-up-action-status}
+
+dat.aov.social.type.token.sequential.acceptability.other.d.vs.single.followup.actionStatus <- 
+    dat.social.type.token.sequential.m.d %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(Contrast == "d.vs.single") %>% 
+    dplyr::filter(question == "third.party.acceptability") %>% 
+    dplyr::group_by(population, myQueriedActionStatus) %>% 
+    dplyr::group_modify(~ aov(
+        d ~ myValence,
+        data = .x) %>%
+            report.aov(.correct.for.repeated.tests = FALSE,
+                       .return.df = TRUE,
+                       .print.results = FALSE)) %>% 
+    dplyr::select(-model.name) 
+
+
+
+
+```    
+Finally, Table \ref{tab:acceptability-other-d-vs-single-aov-show} shows separate ANOVAs for each Action Status. The main effect of valency was marginal;ly significant only for high type frequency scenarios. 
+
+
+```{r acceptability-other-d-vs-single-aov-show, results = 'hide'}
+
+if (!is.null (aov.social.type.token.sequential.acceptability.other.d.vs.single.ez.sphericity)){
+    warning ("There were sphericity corrections available that you ignored, do something about them.")    
+}
+
+dplyr::bind_rows(
+    # Overall anova
+    dat.aov.social.type.token.sequential.acceptability.other.d.vs.single %>% 
+        dplyr::mutate(model.type = "Overall") %>% 
+        tidyr::unite(model.type, population, model.type, sep = " - "),
+    
+    # Follow-up valency
+    dat.aov.social.type.token.sequential.acceptability.other.d.vs.single.followup.valency %>% 
+        dplyr::mutate(model.type = "Follow-up of valency") %>% 
+        tidyr::unite(model.type, population, model.type, myValence, sep = " - "),
+    
+    # Follow-up action status
+    dat.aov.social.type.token.sequential.acceptability.other.d.vs.single.followup.actionStatus %>%
+        dplyr::mutate(model.type = "Follow-up of Action Status") %>% 
+        tidyr::unite(model.type, population, model.type, myQueriedActionStatus, sep = " - "),
+) %>%  
+    setNames(replace_default_column_labels(names (.))) %>%
+    kable.packed("model.type",
+                  caption = "ANOVA for difference scores comparing each frequency condition to the single occurrence condition for raw third-person acceptability ratings. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Differences for each frequency conditions separately.",
+                  booktabs = TRUE, escape = FALSE) %>%
+            kable_styling(latex_options =
+                              c("striped")) %>%
+    kableExtra::kable_classic_2()
+
+
+```
+
+
+#### Difference scores comparing high type frequency against low type frequency
+
+```{r acceptability-other-d-high-vs-low-tf-sw, results = 'hide'}
+
+#get.lambda.trans 
+
+dat.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.sw <- 
+    calculate.shapiro.wilk.test.for.cells(
+        dat.social.type.token.sequential.m.d  %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            dplyr::filter(Contrast == "d.high.vs.low.TypeFreq"),
+        c("myValence", "population"),
+        "d")
+
+dat.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.sw %>% 
+    kable (caption = "SW for difference scores comparing high vs. low difference type frequency conditions for third party acceptability", booktabs = TRUE, escape = FALSE) %>% 
+    kableExtra::kable_classic_2()
+
+
+ 
+```
+
+As shown in Table \ref{tab:acceptability-other-d-high-vs-low-tf-sw2}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+
+```{r acceptability-other-d-high-vs-low-tf-aov-calculate}
+
+aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf <- 
+    map.by.population(~ aov(
+        d ~  myValence, 
+        data = dat.social.type.token.sequential.m.d %>% 
+            dplyr::filter(scoring == "raw") %>%
+            dplyr:::filter(population == .x) %>% 
+            dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
+            dplyr::filter(question == "third.party.acceptability")))
+
+dat.aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf <- 
+    aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf %>% 
+    purrr::map(~ report.aov(.x,
+           .correct.for.repeated.tests = FALSE,
+           .return.df = TRUE,
+           .print.results = FALSE) %>%
+               dplyr::select(-c("model.name"))) %>% 
+    purrr::set_names(names(aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+
+```{r acceptability-other-d-high-vs-low-tf-aov-ez-calculate}
+
+aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.ez <- 
+    map.by.population(~ ezANOVA(
+        data = dat.social.type.token.sequential.m.d %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            dplyr::filter(population == .x) %>% 
+            dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
+            dplyr::filter(question == "third.party.acceptability"),
+        dv = .(d),
+        wid = .(filename),
+        between = .(myValence),
+        within = NULL,
+        detailed = TRUE,
+        type = 3))
+
+aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.ez.sphericity <- 
+    aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.ez %>% 
+    purrr::map(~ extract.sphericity.from.ezANOVA(.x)) %>% 
+    purrr::set_names(names(aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.ez))
+
+
+```
+As shown in Table \ref{tab:acceptability-other-d-high-vs-low-tf-aov-show2}, we observed a marginal main effect of Valency on difference scores for first-party acceptability. 
+
+```{r acceptability-other-d-high-vs-low-tf-aov-follow-up-valency}
+
+v.valencies <- levels(dat.social.type.token.sequential.m.d$myValence)
+
+dat.aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.followup.valency <- 
+    purrr::map(v.valencies,
+               ~ dat.social.type.token.sequential.m.d %>% 
+                   dplyr::ungroup() %>% 
+                   dplyr::filter(scoring == "raw") %>% 
+                   dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
+                   dplyr::filter(question == "third.party.acceptability") %>% 
+                   dplyr::mutate(myValence.excluded = .x, .before = 1) %>% 
+                   dplyr::filter(myValence != myValence.excluded)) %>% 
+    dplyr::bind_rows() %>% 
+    dplyr::group_by(population, myValence.excluded) %>% 
+    tidyr::nest() %>% 
+    # data is the column created by nest
+    dplyr::mutate(aov =  map(data,
+                             ~ aov(
+                                 d ~ myValence,
+                                 data = .x) %>% 
+                                 report.aov(.correct.for.repeated.tests = FALSE,
+                                            .return.df = TRUE,
+                                            .print.results = FALSE)
+    )) %>% 
+    dplyr::select(-data) %>% 
+    unnest(cols = c(aov)) %>% 
+    dplyr::mutate(myValence =  str_c (v.valencies[!(v.valencies %in% myValence.excluded)], 
+                                      collapse = " vs. "), 
+                  .before = 1) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::select(-model.name, -myValence.excluded) 
+
+
+```
+As shown in Table \ref{tab:acceptability-other-d-high-vs-low-tf-aov-show2}, separate ANOVAs for each valency pair revealed a strong main effect of Action Status only for the bad vs. good comparison, and a marginal one for the neutral vs. good comparison. 
+
+
+```{r acceptability-other-d-high-vs-low-tf-aov-show, results = 'hide'}
+
+if (!is.null (aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.ez.sphericity)){
+    warning ("There were sphericity corrections available that you ignored, do something about them.")    
+}
+
+
+dplyr::bind_rows(
+    # Overall anova
+    dat.aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf %>% 
+        dplyr::mutate(model.type = "Overall") %>% 
+        tidyr::unite(model.type, population, model.type, sep = " - "),
+    
+    # By valency
+    dat.aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.followup.valency %>% 
+        dplyr::mutate(model.type = "By valency") %>% 
+        tidyr::unite(model.type, population, model.type, sep = " - ") 
+) %>% 
+    dplyr::select(model.type, myValence, effect, everything()) %>% 
+        setNames(replace_default_column_labels(names (.))) %>%
+        kable.packed("model.type",
+                     caption = "ANOVA for difference scores comparing the high vs low type frequency conditions for third-person acceptability. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Differences for each frequency condition.",
+                     booktabs = TRUE, escape = FALSE) %>%
+    kableExtra::kable_styling(latex_options =
+                      c("striped")) %>%
+    kableExtra::kable_classic_2()
+
+
+```
+
+
+`r clearpage()`
+
+### First-party acceptability (difference scores)
+#### Difference scores against single actions
+
+```{r acceptability-self-d-vs-single-sw, results = 'hide'}
+
+#get.lambda.trans 
+
+dat.social.type.token.sequential.acceptability.self.d.vs.single.sw <- 
+    calculate.shapiro.wilk.test.for.cells(
+        dat.social.type.token.sequential.m.d  %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            dplyr::filter(question == "first.party.acceptablity") %>% 
+            dplyr::filter(Contrast == "d.vs.single"),
+        c("myValence",
+          "myQueriedActionStatus", 
+          "population"),
+        "d")
+
+dat.social.type.token.sequential.acceptability.self.d.vs.single.sw %>% 
+    kable (caption = "SW for difference scores against single occurrence actions for first party acceptability.", booktabs = TRUE, escape = FALSE) %>% 
+    kableExtra::kable_classic_2()
+
+
+ 
+```
+
+As shown in Table \ref{tab:acceptability-self-d-vs-single-sw2}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+
+```{r acceptability-self-d-vs-single-aov-calculate}
+
+aov.social.type.token.sequential.acceptability.self.d.vs.single <- 
+    map.by.population(~ aov(
+        d ~ myQueriedActionStatus * myValence + 
+            Error (filename/(myQueriedActionStatus)), 
+        data = dat.social.type.token.sequential.m.d %>% 
+            dplyr::filter(scoring == "raw") %>%
+            dplyr:::filter(population == .x) %>% 
+            dplyr::filter(Contrast == "d.vs.single") %>% 
+            dplyr::filter(question == "first.party.acceptablity"))) 
+
+dat.aov.social.type.token.sequential.acceptability.self.d.vs.single <- 
+    aov.social.type.token.sequential.acceptability.self.d.vs.single %>% 
+    purrr::map(~report.aov(.x,
+           .correct.for.repeated.tests = FALSE,
+           .return.df = TRUE,
+           .print.results = FALSE) %>%
+    dplyr::select(-c("model.name"))) %>% 
+    purrr::set_names(names(aov.social.type.token.sequential.acceptability.self.d.vs.single)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+
+```{r acceptability-self-d-vs-single-aov-ez-calculate}
+aov.social.type.token.sequential.acceptability.self.d.vs.single.ez <- 
+    map.by.population(~ ezANOVA(
+        data = dat.social.type.token.sequential.m.d %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            dplyr:::filter(population == .x) %>% 
+            dplyr::filter(Contrast == "d.vs.single") %>% 
+            dplyr::filter(question == "first.party.acceptablity"),
+        dv = .(d),
+        wid = .(filename),
+        between = .(myValence),
+        within = .(myQueriedActionStatus),
+        detailed = TRUE,
+        type = 3))
+
+aov.social.type.token.sequential.acceptability.self.d.vs.single.ez.sphericity <- 
+    aov.social.type.token.sequential.acceptability.self.d.vs.single.ez %>% 
+    purrr::map(~ extract.sphericity.from.ezANOVA(.x)) %>% 
+    purrr::set_names(names(aov.social.type.token.sequential.acceptability.self.d.vs.single.ez))
+
+```
+As shown in Table \ref{tab:acceptability-self-d-vs-single-aov-show2}, we observed the expected main effect of Valency on first-party acceptability. Further, we observed a main effect of Action Status as well as an interaction between Action Status and Valency. (Not that including the factor Action Status is redundant with the direct difference score below.)
+
+```{r acceptability-self-d-vs-single-aov-follow-up-valency}
+dat.aov.social.type.token.sequential.acceptability.self.d.vs.single.followup.valency <- 
+    dat.social.type.token.sequential.m.d %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(Contrast == "d.vs.single") %>% 
+    dplyr::filter(question == "first.party.acceptablity") %>% 
+    dplyr::group_by(population, myValence) %>% 
+    tidyr::nest() %>% 
+    # data is the column created by nest
+    dplyr::mutate(aov =  map(data,
+                             ~ aov(
+                                 d ~ myQueriedActionStatus + 
+                                     Error (filename/(myQueriedActionStatus)), 
+                                 data = .x) %>% 
+                                 report.aov(.correct.for.repeated.tests = FALSE,
+                                            .return.df = TRUE,
+                                            .print.results = FALSE)
+    )) %>% 
+    dplyr::select(-data) %>% 
+    unnest %>% 
+    dplyr::select(-model.name)
+
+
+
+```
+As shown in Table \ref{tab:acceptability-self-d-vs-single-aov-show2}, separate ANOVAs for each valency revealed a strong main effect of Action Status only for neutral scenarios. The main effect was not significant for good or bad scenarios. Again, this is redundant with the direct difference scores.
+
+```{r acceptability-self-d-vs-single-aov-follow-up-action-status}
+
+dat.aov.social.type.token.sequential.acceptability.self.d.vs.single.followup.actionStatus <- 
+    dat.social.type.token.sequential.m.d %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(Contrast == "d.vs.single") %>% 
+    dplyr::filter(question == "first.party.acceptablity") %>% 
+    dplyr::group_by(population, myQueriedActionStatus) %>% 
+    dplyr::group_modify(~ aov(
+        d ~ myValence,
+        data = .x) %>%
+            report.aov(.correct.for.repeated.tests = FALSE,
+                       .return.df = TRUE,
+                       .print.results = FALSE)) %>% 
+    dplyr::select(-model.name) 
+
+
+
+
+```    
+Finally, Table \ref{tab:acceptability-self-d-vs-single-aov-show2} shows separate ANOVAs for each Action Status. The main effect of valency was significant only for high type frequency scenarios. 
+
+```{r acceptability-self-d-vs-single-aov-show, results = 'hide'}
+
+if (!is.null (aov.social.type.token.sequential.acceptability.self.d.vs.single.ez.sphericity)){
+    warning ("There were sphericity corrections available that you ignored, do something about them.")    
+}
+
+dplyr::bind_rows(
+    # Overall anova
+    dat.aov.social.type.token.sequential.acceptability.self.d.vs.single %>% 
+        dplyr::mutate(model.type = "Overall") %>% 
+        tidyr::unite(model.type, population, model.type, sep = " - "),
+    
+    # Follow-up valency
+    dat.aov.social.type.token.sequential.acceptability.self.d.vs.single.followup.valency %>% 
+        dplyr::mutate(model.type = "Follow-up of valency") %>% 
+        tidyr::unite(model.type, population, model.type, myValence, sep = " - "),
+    
+    # Follow-up action status
+    dat.aov.social.type.token.sequential.acceptability.self.d.vs.single.followup.actionStatus %>%
+        dplyr::mutate(model.type = "Follow-up of Action Status") %>% 
+        tidyr::unite(model.type, population, model.type, myQueriedActionStatus, sep = " - ")
+) %>%  
+    setNames(replace_default_column_labels(names (.))) %>%
+    kable.packed("model.type",
+                  caption = "ANOVA for difference scores comparing each frequency condition to the single occurrence condition for first-person acceptability. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency f. (Bottom). Differences for each frequency condition.",
+                  booktabs = TRUE, escape = FALSE) %>%
+            kable_styling(latex_options =
+                              c("striped")) %>%
+    kableExtra::kable_classic_2()
+
+
+```
+
+#### Difference scores comparing high type frequency against low type frequency
+
+```{r acceptability-self-d-high-vs-low-tf-sw, results = 'hide'}
+
+#get.lambda.trans 
+
+dat.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.sw <- 
+    calculate.shapiro.wilk.test.for.cells(
+        dat.social.type.token.sequential.m.d  %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            dplyr::filter(Contrast == "d.high.vs.low.TypeFreq"),
+        c("myValence", "population"),
+        "d")
+
+dat.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.sw %>% 
+    kable (caption = "SW acceptability for participants themselves for high vs. low difference scores", booktabs = TRUE, escape = FALSE) %>% 
+    kableExtra::kable_classic_2()
+
+
+ 
+```
+
+As shown in Table \ref{tab:acceptability-self-d-high-vs-low-tf-sw2}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+
+
+```{r acceptability-self-d-high-vs-low-tf-aov-calculate}
+
+aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf <- 
+    map.by.population(~ aov(
+    d ~  myValence, 
+    data = dat.social.type.token.sequential.m.d %>% 
+        dplyr::filter(scoring == "raw") %>%
+        dplyr:::filter(population == .x) %>% 
+        dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
+        dplyr::filter(question == "first.party.acceptablity")))
+
+dat.aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf <- 
+    aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf %>% 
+    purrr::map(~ report.aov(.x,
+                            .correct.for.repeated.tests = FALSE,
+                            .return.df = TRUE,
+                            .print.results = FALSE) %>%
+                   dplyr::select(-c("model.name"))) %>% 
+    purrr::set_names(names(aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+
+```{r acceptability-self-d-high-vs-low-tf-aov-ez-calculate}
+aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.ez <- 
+    map.by.population(~ ezANOVA(
+        data = dat.social.type.token.sequential.m.d %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
+            dplyr::filter(question == "first.party.acceptablity"),
+        dv = .(d),
+        wid = .(filename),
+        between = .(myValence),
+        within = NULL,
+        detailed = TRUE,
+        type = 3))
+
+aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.ez.sphericity <- 
+    aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.ez %>% 
+    purrr::map(~ extract.sphericity.from.ezANOVA(.x)) %>% 
+    purrr::set_names(names(aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.ez))
+
+```
+As shown in Table \ref{tab:city-acceptability-self-d-high-vs-low-tf-aov-show}, we observed the expected main effect of Valency on difference scores for first-party acceptability. 
+
+
+```{r acceptability-self-d-high-vs-low-tf-aov-follow-up-valency}
+
+v.valencies <- levels(dat.social.type.token.sequential.m.d$myValence)
+
+dat.aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.followup.valency <- 
+    purrr::map(v.valencies,
+               ~ dat.social.type.token.sequential.m.d %>% 
+                   dplyr::ungroup() %>% 
+                   dplyr::filter(scoring == "raw") %>% 
+                   dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
+                   dplyr::filter(question == "first.party.acceptablity") %>% 
+                   dplyr::mutate(myValence.excluded = .x, .before = 1) %>% 
+                   dplyr::filter(myValence != myValence.excluded)) %>% 
+    dplyr::bind_rows() %>% 
+    dplyr::group_by(population, myValence.excluded) %>% 
+    tidyr::nest() %>% 
+    # data is the column created by nest
+    dplyr::mutate(aov =  map(data,
+                             ~ aov(
+                                 d ~ myValence,
+                                 data = .x) %>% 
+                                 report.aov(.correct.for.repeated.tests = FALSE,
+                                            .return.df = TRUE,
+                                            .print.results = FALSE)
+    )) %>% 
+    dplyr::select(-data) %>% 
+    unnest(cols = c(aov)) %>% 
+    dplyr::mutate(myValence =  str_c(v.valencies[!(v.valencies %in% myValence.excluded)], 
+                                      collapse = " vs. "), 
+                  .before = 1) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::select(-model.name, -myValence.excluded) 
+
+
+```
+As shown in Table \ref{tab:acceptability-self-d-high-vs-low-tf-aov-show2}, separate ANOVAs for each valency revealed a strong main effect of Action Status only for neutral scenarios. The main effect was not significant for good or bad scenarios. Again, this is redundant with the direct difference scores.
+
+
+
+```{r acceptability-self-d-high-vs-low-tf-aov-show, result = 'hide'}
+
+if (!is.null (aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.ez.sphericity)){
+    warning ("There were sphericity corrections available that you ignored, do something about them.")    
+}
+
+
+dplyr::bind_rows(
+    # Overall anova
+    dat.aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf %>% 
+        dplyr::mutate(model.type = "Overall") %>% 
+        tidyr::unite(model.type, population, model.type, sep = " - "),
+    
+    # By valencyy
+    dat.aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.followup.valency %>% 
+        dplyr::mutate(model.type = "By valency") %>% 
+        tidyr::unite(model.type, population, model.type, sep = " - ")
+) %>% 
+    dplyr::select(model.type, myValence, effect, everything()) %>% 
+        setNames(replace_default_column_labels(names (.))) %>%
+        kable.packed("model.type",
+                     caption = "ANOVA for difference scores comparing the high vs low type frequency conditions for first-person acceptability. (Top) Overall ANOVA. (Bottom) Differences between frequency conditions separately for each valency.",
+                     booktabs = TRUE, escape = FALSE) %>%
+    kable_styling(latex_options =
+                      c("striped")) %>%
+    kableExtra::kable_classic_2()
+
+
+```
+
+
+
+`r clearpage()`
+
+
+# Binary ratings (analyzed using GLMER)
+
+We analyze the binary ratings using two types of GLMMs. For valency, we set the reference level to neutral. For the frequency condition, we fit a GLMMM including all frequency conditions and setting the reference level to single occurrence events (corresponding to the first type of difference scores); we also fit a GLMM excluding the single ocurrence events (corresponding to the second type of differences scores).
+
+## Ratings
+
+
+```{r plot-ratings-bin, fig.cap = "Bin ratings"}
+
+map.by.population(~ dat.social.type.token.sequential.m %>% 
+                   dplyr::filter(scoring == "bin") %>% 
+                   dplyr:::filter(population == .x) %>% 
+                   dplyr::mutate(myQueriedActionStatus = str_wrap(myQueriedActionStatus, 10)) %>% 
+                   dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+                   dplyr::mutate(question = str_wrap(question, 20)) %>% 
+                   ggplot (aes (x = myQueriedActionStatus, y = rating)) %>% 
+                      violin_plot_template(yintercept = 0) +
+                   theme (axis.title.x = element_blank(),
+                          axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
+                   ylab ("Rating (binary)") + 
+                   #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+                   facet_grid(question ~ myValence)) %>% 
+    ggpubr::ggarrange(plotlist = .,
+                      nrow = 1,
+                      #labels = "auto",
+                      labels = names(.), 
+                      common.legend = TRUE,
+                      legend = "bottom")
+
+
+
+
+```
+
+```{r prepare-data-for-bin-glmer}
+
+# All three frequency conditions (i.e., single, low type frequency, high type frequency)
+dat.social.type.token.sequential.for.glmm.3freq.cond <- dat.social.type.token.sequential %>%
+    dplyr::filter(scoring == "bin") %>% 
+    dplyr::mutate(myQueriedActionStatus = factor(myQueriedActionStatus,
+                                                 levels = c("single", "lowTypeFreq", "highTypeFreq")),
+                  myValence = factor(myValence, 
+                                     levels = c("neutral", "bad", "good")),
+                  question = factor(question,
+                                    levels = c("first.party.acceptablity", "third.party.acceptability", "prevalence"))) %>% 
+    dplyr::mutate(across(c(filename, myQueriedAction), factor))
+
+
+# Two frequency conditions (i.e., low type frequency, high type frequency, but not single)
+dat.social.type.token.sequential.for.glmm.2freq.cond <- dat.social.type.token.sequential %>% 
+    dplyr::filter(scoring == "bin") %>% 
+    dplyr::filter(myQueriedActionStatus != "single") %>% 
+    dplyr::mutate(myQueriedActionStatus = factor(myQueriedActionStatus,
+                                                 levels = c("lowTypeFreq", "highTypeFreq")),
+                  myValence = factor(myValence, 
+                                     levels = c("neutral", "bad", "good")),
+                  question = factor(question,
+                                    levels = c("first.party.acceptablity", "third.party.acceptability", "prevalence"))) %>% 
+    dplyr::mutate(across(c(filename, myQueriedAction), factor))
+
+
+```
+
+## Overall (GLM)
+
+```{r overall-glmer-bin-calculate-3freq.cond}
+
+
+lmer.social.type.token.sequential.bin.overall.3freq.cond.1 <- 
+    map.by.population(~  glmer(
+        rating ~ question * myQueriedActionStatus * myValence + 
+            (1|filename) + (1|myQueriedAction), 
+        control=glmerControl(optimizer="bobyqa"),
+        family="binomial",
+        data = dat.social.type.token.sequential.for.glmm.3freq.cond %>% 
+            dplyr::filter(population == .x)))
+
+
+# Remove random factor; keep it  
+# lmer.social.type.token.sequential.bin.overall.3freq.cond.2 <- 
+#     lmer.social.type.token.sequential.bin.overall.3freq.cond.1 %>% 
+#     purrr::map (~ update(.x,
+#                          ~ . - (1|myQueriedAction)))
+
+# purrr::map2(lmer.social.type.token.sequential.bin.overall.3freq.cond.1,
+#             lmer.social.type.token.sequential.bin.overall.3freq.cond.2,
+#             ~ anova(.x, .y))
+
+# Remove triple interactions; keep it
+# lmer.social.type.token.sequential.bin.overall.3freq.cond.3 <- 
+#     lmer.social.type.token.sequential.bin.overall.3freq.cond.1 %>% 
+#     purrr::map (~ update(.x,
+#                          ~ . - question:myQueriedActionStatus:myValence))
+# 
+# purrr::map2(lmer.social.type.token.sequential.bin.overall.3freq.cond.1,
+#             lmer.social.type.token.sequential.bin.overall.3freq.cond.3,
+#             ~ anova(.x, .y))
+
+lmer.social.type.token.sequential.bin.overall.3freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.overall.3freq.cond.1 %>%
+    purrr::map(~ extract.results.from.binary.model(.x)) %>%
+    purrr::list_rbind(names_to = "population") 
+
+
+```
+
+```{r overall-glmer-bin-calculate-2freq.cond}
+
+
+lmer.social.type.token.sequential.bin.overall.2freq.cond.1 <- 
+    map.by.population(~  glmer(
+        rating ~ question * myQueriedActionStatus * myValence + 
+            (1|filename) + (1|myQueriedAction), 
+        control=glmerControl(optimizer="bobyqa"),
+        family="binomial",
+        data = dat.social.type.token.sequential.for.glmm.2freq.cond %>% 
+            dplyr::filter(population == .x)))
+
+
+# Remove random factor; keep it
+# lmer.social.type.token.sequential.bin.overall.2freq.cond.2 <-
+#     lmer.social.type.token.sequential.bin.overall.2freq.cond.1 %>%
+#     purrr::map (~ update(.x,
+#                          ~ . - (1|myQueriedAction)))
+# 
+# purrr::map2(lmer.social.type.token.sequential.bin.overall.2freq.cond.1,
+#             lmer.social.type.token.sequential.bin.overall.2freq.cond.2,
+#             ~ anova(.x, .y))
+
+# Remove triple interactions; keep it
+# lmer.social.type.token.sequential.bin.overall.2freq.cond.3 <-
+#     lmer.social.type.token.sequential.bin.overall.2freq.cond.1 %>%
+#     purrr::map (~ update(.x,
+#                          ~ . - question:myQueriedActionStatus:myValence))
+#  
+# purrr::map2(lmer.social.type.token.sequential.bin.overall.2freq.cond.1,
+#             lmer.social.type.token.sequential.bin.overall.2freq.cond.3,
+#             ~ anova(.x, .y))
+
+lmer.social.type.token.sequential.bin.overall.2freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.overall.2freq.cond.1 %>%
+    purrr::map(~ extract.results.from.binary.model(.x)) %>%
+    purrr::list_rbind(names_to = "population") 
+
+
+```
+
+
+### Prevalence (GLMM)
+
+
+```{r prevalence-glmer-bin-calculate-3freq.cond}
+
+lmer.social.type.token.sequential.bin.prevalence.3freq.cond.1 <- 
+    map.by.population(~  glmer(
+        rating ~ myQueriedActionStatus * myValence + 
+            (1|filename) + (1|myQueriedAction), 
+        control=glmerControl(optimizer="bobyqa"),
+        family="binomial",
+        data = dat.social.type.token.sequential.for.glmm.3freq.cond %>% 
+            dplyr::filter(population == .x) %>% 
+            dplyr::filter(question == "prevalence")))
+
+# Remove random factor  
+lmer.social.type.token.sequential.bin.prevalence.3freq.cond.2 <- 
+    lmer.social.type.token.sequential.bin.prevalence.3freq.cond.1 %>% 
+    purrr::map (~ update(.x,
+                         ~ . - (1|myQueriedAction)))
+
+# purrr::map2(lmer.social.type.token.sequential.bin.prevalence.3freq.cond.1,
+#             lmer.social.type.token.sequential.bin.prevalence.3freq.cond.2,
+#             ~ anova(.x, .y))
+    
+
+## Remove interaction
+lmer.social.type.token.sequential.bin.prevalence.3freq.cond.3 <- 
+    lmer.social.type.token.sequential.bin.prevalence.3freq.cond.1 %>% 
+    purrr::map(~ update(.x, ~ . - myQueriedActionStatus:myValence))
+
+purrr::map2(
+    lmer.social.type.token.sequential.bin.prevalence.3freq.cond.1,
+    lmer.social.type.token.sequential.bin.prevalence.3freq.cond.3,
+    ~ anova(.x, .y))
+
+# Keep full models
+
+lmer.social.type.token.sequential.bin.prevalence.3freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.prevalence.3freq.cond.1 %>% 
+    purrr::map(~ extract.results.from.binary.model(.x)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+```{r city-prevalence-glmer-bin-calculate-2freq.cond}
+
+lmer.social.type.token.sequential.bin.prevalence.2freq.cond.1 <- 
+    map.by.population(~  glmer(
+        rating ~ myQueriedActionStatus * myValence + 
+            (1|filename) + (1|myQueriedAction), 
+        control=glmerControl(optimizer="bobyqa"),
+        family="binomial",
+        data = dat.social.type.token.sequential.for.glmm.2freq.cond %>% 
+            dplyr::filter(population == .x) %>% 
+            dplyr::filter(question == "prevalence")))
+
+# Remove random factor  
+lmer.social.type.token.sequential.bin.prevalence.2freq.cond.2 <- 
+    lmer.social.type.token.sequential.bin.prevalence.2freq.cond.1 %>% 
+    purrr::map (~ update(.x,
+                         ~ . - (1|myQueriedAction)))
+
+# purrr::map2(lmer.social.type.token.sequential.bin.prevalence.2freq.cond.1,
+#             lmer.social.type.token.sequential.bin.prevalence.2freq.cond.2,
+#             ~ anova(.x, .y))
+    
+
+## Remove interaction
+lmer.social.type.token.sequential.bin.prevalence.2freq.cond.3 <- 
+    lmer.social.type.token.sequential.bin.prevalence.2freq.cond.1 %>% 
+    purrr::map(~ update(.x, ~ . - myQueriedActionStatus:myValence))
+
+# purrr::map2(
+#     lmer.social.type.token.sequential.bin.prevalence.2freq.cond.1,
+#     lmer.social.type.token.sequential.bin.prevalence.2freq.cond.3,
+#     ~ anova(.x, .y))
+
+# Keep full models
+
+lmer.social.type.token.sequential.bin.prevalence.2freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.prevalence.2freq.cond.1 %>% 
+    purrr::map(~ extract.results.from.binary.model(.x)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+
+
+### Third-party acceptability
+
+```{r city-acceptability-other-glmer-bin-calculate-3freq.cond}
+
+
+lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.1 <- 
+    map.by.population(~ glmer(rating ~ myQueriedActionStatus * myValence + 
+        (1|filename) + (1|myQueriedAction), 
+    control = glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.social.type.token.sequential.for.glmm.3freq.cond %>% 
+        dplyr::filter(population == .x) %>% 
+        dplyr::filter(question == "third.party.acceptability")))
+
+    
+# Remove random factor  
+lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.2 <- 
+    lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.1 %>% 
+    purrr::map(~update(., ~ . - (1|myQueriedAction)))
+    
+# purrr:::map2(
+#     lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.1,
+#     lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.2,
+#     ~ anova(.x, .y))
+
+## Remove interaction
+lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.3 <- 
+    lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.1 %>% 
+    purrr::map(~ update(.x, ~ . - myQueriedActionStatus:myValence)  )
+
+# purrr::map2(lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.1,
+#             lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.3,
+#             ~ anova(.x, .y))
+
+# Keep full model
+
+lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.1 %>% 
+    purrr::map(~ extract.results.from.binary.model(.x)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+
+    
+```
+
+```{r city-acceptability-other-glmer-bin-calculate-2freq.cond}
+
+
+lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.1 <- 
+    map.by.population(~ glmer(rating ~ myQueriedActionStatus * myValence + 
+        (1|filename) + (1|myQueriedAction), 
+    control = glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.social.type.token.sequential.for.glmm.2freq.cond %>% 
+        dplyr::filter(population == .x) %>% 
+        dplyr::filter(question == "third.party.acceptability")))
+
+    
+# Remove random factor  
+lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.2 <- 
+    lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.1 %>% 
+    purrr::map(~update(., ~ . - (1|myQueriedAction)))
+    
+# purrr:::map2(
+#     lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.1,
+#     lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.2,
+#     ~ anova(.x, .y))
+
+## Remove interaction
+lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.3 <- 
+    lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.1 %>% 
+    purrr::map(~ update(.x, ~ . - myQueriedActionStatus:myValence)  )
+
+# purrr::map2(lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.1,
+#             lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.3,
+#             ~ anova(.x, .y))
+
+# Keep full model in consistence with 3 freq condition model abvoe
+
+lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.1 %>% 
+    purrr::map(~ extract.results.from.binary.model(.x)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+
+```
+
+
+### First-party acceptability
+
+```{r city-acceptability-self-glmer-bin-calculate-3freq.cond}
+
+
+lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.1 <- 
+    map.by.population(~ glmer(rating ~ myQueriedActionStatus * myValence + 
+        (1|filename) + (1|myQueriedAction), 
+    control = glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.social.type.token.sequential.for.glmm.3freq.cond %>% 
+        dplyr::filter(population == .x) %>% 
+        dplyr::filter(question == "first.party.acceptablity")))
+
+    
+# Remove random factor  
+lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.2 <-
+    lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.1 %>% 
+    purrr::map(~  update(.x, ~ . - (1|myQueriedAction)))
+    
+# purrr::map2(lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.1,
+#       lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.2,
+#       ~ anova(.x, .y))
+
+## Remove interaction
+lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.3 <- 
+    lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.1 %>% 
+    purrr::map(~ update(.x, ~ . - myQueriedActionStatus:myValence))
+
+# purrr::map2(lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.1,
+#       lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.3,
+#        ~ anova(.x, .y))
+
+# Keep full model for consistency
+
+lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.1 %>% 
+    purrr::map(~ extract.results.from.binary.model(.x)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+```{r city-acceptability-self-glmer-bin-calculate-2freq.cond}
+
+
+lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.1 <- 
+    map.by.population(~ glmer(rating ~ myQueriedActionStatus * myValence + 
+        (1|filename) + (1|myQueriedAction), 
+    control = glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.social.type.token.sequential.for.glmm.2freq.cond %>% 
+        dplyr::filter(population == .x) %>% 
+        dplyr::filter(question == "first.party.acceptablity")))
+
+    
+# Remove random factor  
+lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.2 <-
+    lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.1 %>% 
+    purrr::map(~  update(.x, ~ . - (1|myQueriedAction)))
+    
+# purrr::map2(lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.1,
+#       lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.2,
+#       ~ anova(.x, .y))
+
+## Remove interaction
+lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.3 <- 
+    lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.1 %>% 
+    purrr::map(~ update(.x, ~ . - myQueriedActionStatus:myValence))
+
+# purrr::map2(lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.1,
+#       lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.3,
+#        ~ anova(.x, .y))
+
+# Keep full model for consistency
+
+lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.1 %>% 
+    purrr::map(~ extract.results.from.binary.model(.x)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+
+
+```{r city-glmer-print-3freq.cond}
+
+dplyr::bind_rows(
+    lmer.social.type.token.sequential.bin.overall.3freq.cond.results %>% 
+        dplyr::mutate(pack.col = "Overall", .before = 1),
+    
+    lmer.social.type.token.sequential.bin.prevalence.3freq.cond.results %>% 
+        dplyr::mutate(pack.col = "Prevalence", .before = 1),
+    
+    lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.results %>% 
+        dplyr::mutate(pack.col = "Third party acceptability", .before = 1),
+    
+    lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.results %>% 
+        dplyr::mutate(pack.col = "First party acceptability", .before = 1)
+) %>% 
+    dplyr::arrange(population, pack.col) %>% 
+    tidyr::unite(pack.col, population, pack.col, sep = " - ") %>% 
+    dplyr::select (-c("t_log", "p_log")) %>% 
+    #filter (!grepl ("Intercept", term)) %>% 
+    dplyr::filter(p_or < .1) %>% 
+    kable.packed (
+    "pack.col",
+    caption = "GLMER results, using the full models comparing the three frequency conditions. ONLY EFFECTS < .1 ARE SHOWN; CHANGE THIS",
+    col.names = str_remove(names (.[,-1]), "_.*$"),
+       booktabs = TRUE, escape = FALSE) %>%
+    kableExtra::kable_classic() %>%
+    kableExtra::add_header_above(c(" " = 1, "Log-odds" = 3, "Odd ratios" = 3, " " = 2),
+                                 bold = TRUE) %>% 
+    kableExtra::kable_styling(latex_options =
+                                  c("scale_down",
+                              "hold_position",
+                              "full_width"))
+
+```
+
+
+```{r city-glmer-print-2freq.cond}
+dplyr::bind_rows(
+    lmer.social.type.token.sequential.bin.overall.2freq.cond.results %>% 
+        dplyr::mutate(pack.col = "Overall", .before = 1),
+    
+    lmer.social.type.token.sequential.bin.prevalence.2freq.cond.results %>% 
+        dplyr::mutate(pack.col = "Prevalence", .before = 1),
+    
+    lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.results %>% 
+        dplyr::mutate(pack.col = "Third party acceptability", .before = 1),
+    
+    lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.results %>% 
+        dplyr::mutate(pack.col = "First party acceptability", .before = 1)
+) %>% 
+    dplyr::arrange(population, pack.col) %>% 
+    tidyr::unite(pack.col, population, pack.col, sep = " - ") %>% 
+    dplyr::select (-c("t_log", "p_log")) %>% 
+    dplyr::filter(p_or < .1) %>% 
+    #filter (!grepl ("Intercept", term)) %>% 
+    kable.packed (
+    "pack.col",
+    caption = "GLMER results, using the full models comparing the two frequency conditions. ONLY EFFECTS < .1 ARE SHOWN; CHANGE THIS",
+    col.names = str_remove(names (.[,-1]), "_.*$"),
+       booktabs = TRUE, escape = FALSE) %>%
+    kableExtra::kable_classic() %>%
+    kableExtra::add_header_above(c(" " = 1, "Log-odds" = 3, "Odd ratios" = 3, " " = 2),
+                                 bold = TRUE) %>% 
+    kableExtra::kable_styling(latex_options =
+                                  c("scale_down",
+                              "hold_position",
+                              "full_width"))
+
+```
+
+
+
+
+## Difference scores (GLMER or ANOVA?)
+
+```{r plot-difference-vs-single-bin, fig.cap = "Binary difference scores vs. single occurrence actions"}
+
+dat.social.type.token.sequential.m.wide %>% 
+    group_by (myValence) %>% 
+    dplyr::select(starts_with(fixed ("d."))) %>% 
+    dplyr::select(ends_with(fixed ("_bin"))) %>% 
+    dplyr::select(contains (fixed ("vs.single"))) %>% 
+    tidyr::pivot_longer(-c(myValence),
+                        names_to = "Contrast",
+                        values_to = "d") %>% 
+    dplyr::mutate(Contrast = Contrast %>% 
+                       str_remove ("_bin$") %>% 
+                       str_remove ("^d\\.vs\\.single\\_")) %>% 
+    tidyr::separate(Contrast, c("myQueriedActionStatus", "question"), sep = "_") %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_wrap(question, 20)) %>% 
+    ggplot (aes (x = myQueriedActionStatus, y = d)) %>% 
+        violin_plot_template(yintercept = 0) +
+    theme (axis.title.x = element_blank(),
+           axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
+    ylab ("Difference score (binary)") + 
+    #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+    facet_grid(question ~ myValence)
+
+
+
+
+```
+
+
+```{r plot-difference-high-vs-low-type-frequency-bin, fig.cap = "Binary difference scores high vs. low type frequency actions"}
+
+dat.social.type.token.sequential.m.wide %>% 
+    group_by (myValence) %>% 
+    dplyr::select(starts_with(fixed ("d."))) %>% 
+    dplyr::select(ends_with(fixed ("_bin"))) %>% 
+    dplyr::select(-contains (fixed ("vs.single"))) %>% 
+    tidyr::pivot_longer(-c(myValence),
+                        names_to = "question",
+                        values_to = "d") %>%
+    dplyr::mutate(question = question %>% 
+                       str_remove ("_bin$") %>% 
+                       str_remove ("^d\\.high\\.vs\\.low\\.TypeFreq_")) %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_wrap(question, 20)) %>% 
+    ggplot (aes (x = question, y = d)) %>% 
+    violin_plot_template(yintercept = 0) +
+    theme (axis.title.x = element_blank(),
+           axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) +
+    ylab ("Difference score (binary)") + 
+    #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+    facet_grid(. ~ myValence)
+
+
+
+
+```
+
+### Prevalence 
+
+### Third-party acceptability
+
+### First-party acceptability
+
+`r clearpage()`
+
+
+# Appendix
+
+
+
+## ANOVAS for difference scores for raw data
+### Prevalence (difference scores; everything is printed in Appendix)
+
+```{r prevalence-d-vs-single-sw2, ref.label = 'prevalence-d-vs-single-sw', echo = FALSE, results = 'markup'}
+```
+
+As shown in Table \ref{tab:prevalence-d-vs-single-sw2}, a number of cells deviated from normality
+
+As shown in Table \ref{tab:prevalence-d-vs-single-aov-show2}, we observed no main effect of Valency on the difference score against single occurrence actions for prevalence. We observed a main effect of Action Status as well as a marginal interaction between Action Status and Valency. 
+
+
+As shown in Table \ref{tab:prevalence-d-vs-single-aov-show2}, separate ANOVAs for each valency revealed a strong main effect of Action Status only for all three valencies.
+
+Finally, Table \ref{tab:prevalence-d-vs-single-aov-show2} shows separate ANOVAs for each Action Status. The main effect of valency was significant only for high type frequency scenarios. 
+
+```{r prevalence-d-vs-single-aov-show2, ref.label = 'prevalence-d-vs-single-aov-show', echo = FALSE, results = 'markup'}
+```
+
+
+#### Difference scores comparing high type frequency against low type frequency
+
+```{r prevalence-d-high-vs-low-tf-sw2, ref.label = 'prevalence-d-high-vs-low-tf-sw', echo = FALSE, results = 'markup'}
+```
+
+As shown in Table \ref{tab:prevalence-d-high-vs-low-tf-sw2}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+
+
+As shown in Table \ref{tab:prevalence-d-high-vs-low-tf-aov-show2}, we observed a marginal main effect of Valency on difference scores for first-party acceptability. 
+
+As shown in Table \ref{tab:prevalence-d-high-vs-low-tf-aov-show2}, separate ANOVAs for each valency pair revealed a strong main effect of Action Status only for the bad vs. good comparison the the neutral vs. good comparison. 
+
+```{r prevalence-d-high-vs-low-tf-aov-show2, ref.label = 'prevalence-d-high-vs-low-tf-aov-show', echo = FALSE, results = 'markup'}
+```
+
+`r clearpage()`
+
+
+### Third-party acceptability (difference scores)
+
+#### Difference scores against single actions
+
+```{r acceptability-other-d-vs-single-sw2, ref.label = 'acceptability-other-d-vs-single-sw', echo = FALSE, results = 'markup'}
+```
+
+As shown in Table \ref{tab:acceptability-other-d-vs-single-sw2}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+
+
+
+As shown in Table \ref{tab:acceptability-other-d-vs-single-aov-show2}, we observed no main effect of Valency on the difference score against single occurrence actions for first-party acceptability. , we observed a main effect of Action Status as well as an interaction between Action Status and Valency. 
+
+
+
+As shown in Table \ref{tab:acceptability-other-d-vs-single-aov-show2}, separate ANOVAs for each valency revealed a strong main effect of Action Status only for neutral scenarios. The main effect was not significant for good or bad scenarios. Again, this is redundant with the direct difference scores.
+
+
+Finally, Table \ref{tab:acceptability-other-d-vs-single-aov-show} shows separate ANOVAs for each Action Status. The main effect of valency was marginal;ly significant only for high type frequency scenarios. 
+
+
+```{r acceptability-other-d-vs-single-aov-show2, ref.label = 'acceptability-other-d-vs-single-aov-show', echo = FALSE, results = 'markup'}
+```
+
+
+
+#### Difference scores comparing high type frequency against low type frequency
+
+```{r acceptability-other-d-high-vs-low-tf-sw2, ref.label = 'acceptability-other-d-high-vs-low-tf-sw', echo = FALSE, results = 'markup'}
+```
+
+
+
+As shown in Table \ref{tab:acceptability-other-d-high-vs-low-tf-sw2}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+
+
+As shown in Table \ref{tab:acceptability-other-d-high-vs-low-tf-aov-show2}, we observed a marginal main effect of Valency on difference scores for first-party acceptability. 
+
+
+As shown in Table \ref{tab:acceptability-other-d-high-vs-low-tf-aov-show2}, separate ANOVAs for each valency pair revealed a strong main effect of Action Status only for the bad vs. good comparison, and a marginal one for the neutral vs. good comparison. 
+
+
+```{r acceptability-other-d-high-vs-low-tf-aov-show2, ref.label = 'acceptability-other-d-high-vs-low-tf-aov-show', echo = FALSE, results = 'markup'}
+```
+
+
+
+`r clearpage()`
+
+### First-party acceptability (difference scores)
+#### Difference scores against single actions
+
+```{r acceptability-self-d-vs-single-sw2, ref.label = 'acceptability-self-d-vs-single-sw', echo = FALSE, results = 'markup'}
+```
+
+As shown in Table \ref{tab:acceptability-self-d-vs-single-sw2}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+
+
+As shown in Table \ref{tab:acceptability-self-d-vs-single-aov-show2}, we observed the expected main effect of Valency on first-party acceptability. Further, we observed a main effect of Action Status as well as an interaction between Action Status and Valency. (Not that including the factor Action Status is redundant with the direct difference score below.)
+
+
+As shown in Table \ref{tab:acceptability-self-d-vs-single-aov-show2}, separate ANOVAs for each valency revealed a strong main effect of Action Status only for neutral scenarios. The main effect was not significant for good or bad scenarios. Again, this is redundant with the direct difference scores.
+
+
+Finally, Table \ref{tab:acceptability-self-d-vs-single-aov-show2} shows separate ANOVAs for each Action Status. The main effect of valency was significant only for high type frequency scenarios. 
+
+```{r acceptability-self-d-vs-single-aov-show2, ref.label = 'acceptability-self-d-vs-single-aov-show', echo = FALSE, results = 'markup'}
+```
+
+
+
+#### Difference scores comparing high type frequency against low type frequency
+
+```{r acceptability-self-d-high-vs-low-tf-sw2, ref.label = 'acceptability-self-d-high-vs-low-tf-sw', echo = FALSE, results = 'markup'}
+```
+
+As shown in Table \ref{tab:acceptability-self-d-high-vs-low-tf-sw2}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
+
+
+
+As shown in Table \ref{tab:city-acceptability-self-d-high-vs-low-tf-aov-show}, we observed the expected main effect of Valency on difference scores for first-party acceptability. 
+
+
+As shown in Table \ref{tab:acceptability-self-d-high-vs-low-tf-aov-show2}, separate ANOVAs for each valency revealed a strong main effect of Action Status only for neutral scenarios. The main effect was not significant for good or bad scenarios. Again, this is redundant with the direct difference scores.
+
+
+
+```{r acceptability-self-d-high-vs-low-tf-aov-show2, ref.label = 'acceptability-self-d-high-vs-low-tf-aov-show', echo = FALSE, results = 'markup'}
+```
+
+`r clearpage()`
+
+
+`r knitr::knit_exit()`
+
+# Unused 
+## Power analysis (REMOVE IN PAPER)
+We use the SIMR package for power analysis [@Green2016]. 
+
+See https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12504 for usage of extend and powerCurve
+
+```{r city-power-prevalence, eval = FALSE}
+library (simr)
+
+
+lmer.social.type.token.sequential.bin.acceptability.other.pwr.numberCond <- 
+    powerSim (
+        lmer.social.type.token.sequential.bin.acceptability.other.1,
+        fcompare(~ myQueriedActionStatus),
+        nsim = 10)
+# 75.20% power with "bad"" as base-level for valency
+# 85% power with "bad"" as base-level for valency
+
+powerSim (
+    lmer.social.type.token.sequential.bin.acceptability.other.no.single.1,
+    fcompare(~ myQueriedActionStatus),
+    nsim = 10)
+
+
+#lastResult()$errors 
+#valency:genderMatch
+#questionType:genderMatch
+
+
+# https://stackoverflow.com/questions/57093394/confirm-succesful-extend-using-simr-package-in-r
+# lmer.social.type.tokens.prevalence.bin.city.5.extended <- 
+#     extend (
+#         lmer.social.type.tokens.prevalence.bin.city.5,
+#         #within = "questionType + numberCond + valency + genderMatch + scenarioID",
+#         within = "questionType + scenarioID",
+#         n = 100)
+
+#getData (social.type.token.females.prevalence.bin.lmer5.extended) %>% 
+#    nrow()
+
+# pc <- powerCurve2 (
+#     lmer.social.type.tokens.prevalence.bin.city.5.extended,
+#     "questionType:valency:genderMatch",
+#     #within = "questionType + numberCond + valency + genderMatch + scenarioID",
+#     within = "questionType + scenarioID",
+#     breaks=seq(50, 100, 10),
+#     nsim = 100)
+
+#print(pc)
+# 84% power from 70 participants with neutral as base-level for bad
+
+#plot(pc) 
+
+
+```
+
+`r clearpage()`
+
+## ANOVAS
 ### Prevalence 
 
 ```{r city-prevalence-sw}
@@ -517,7 +2478,8 @@ dat.social.type.token.sequential.prevalence.sw <-
             dplyr::filter(scoring == "raw") %>% 
             dplyr::filter(question == "prevalence"),
         c("myValence",
-          "myQueriedActionStatus"),
+          "myQueriedActionStatus",
+          "population"),
         "rating")
 
 dat.social.type.token.sequential.prevalence.sw %>% 
@@ -535,6 +2497,7 @@ aov.social.type.token.sequential.prevalence <- aov(
         Error (filename/(myQueriedActionStatus)), 
     data = dat.social.type.token.sequential.m %>% 
         dplyr::filter(scoring == "raw") %>% 
+        dplyr::filter(population == "city") %>% 
         dplyr::filter(question == "prevalence"))
 
 dat.aov.social.type.token.sequential.prevalence <- report.aov(aov.social.type.token.sequential.prevalence,
@@ -549,6 +2512,7 @@ dat.aov.social.type.token.sequential.prevalence <- report.aov(aov.social.type.to
 aov.social.type.token.sequential.prevalence.ez <- ezANOVA(
     data = dat.social.type.token.sequential.m %>% 
         dplyr::filter(scoring == "raw") %>% 
+        dplyr::filter(population == "city") %>% 
         dplyr::filter(question == "prevalence"),
     dv = .(rating),
     wid = .(filename),
@@ -570,6 +2534,7 @@ As shown in Table \ref{tab:city-prevalence-aov-show}, we observed the expected m
 dat.aov.social.type.token.sequential.prevalence.followup.valency <- 
 dat.social.type.token.sequential.m %>% 
     dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(population == "city") %>% 
     dplyr::filter(question == "prevalence") %>% 
     dplyr::group_by(myValence) %>% 
     tidyr::nest() %>% 
@@ -602,6 +2567,7 @@ dat.aov.social.type.token.sequential.prevalence.followup.actionStatus <-
                ~ dat.social.type.token.sequential.m %>%
                    dplyr::ungroup() %>% 
                    dplyr::filter(scoring == "raw") %>% 
+                   dplyr::filter(population == "city") %>% 
                    dplyr::filter(question == "prevalence") %>% 
                    dplyr::mutate(myQueriedActionStatus.excluded = .x, .before = 1) %>% 
                    dplyr::filter(myQueriedActionStatus != myQueriedActionStatus.excluded)) %>% 
@@ -654,7 +2620,7 @@ dplyr::bind_rows(
 ) %>%  
     setNames(replace_default_column_labels(names (.))) %>%
     kable.packed("model.type",
-                  caption = "ANOVA for prevalence judgments and unprocessed ratings. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for prevalence ratings. (Bottom). Follow-up ANOVAs leaving out one of the frequency conditions. Prevalence judgements were affected by Valency and the Frequency Condition. The latter effect reached significance for all valencies separately. Prevalence judgments different across all frequency conditions.",
+                  caption = "ANOVA for prevalence judgments and unprocessed ratings FOR CITY STUDENTS ONLY. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for prevalence ratings. (Bottom). Follow-up ANOVAs leaving out one of the frequency conditions. Prevalence judgements were affected by Valency and the Frequency Condition. The latter effect reached significance for all valencies separately. Prevalence judgments different across all frequency conditions.",
                   booktabs = TRUE, escape = FALSE) %>%
             kable_styling(latex_options =
                               c("hold_position", "striped", "scale_down")) %>%
@@ -677,7 +2643,8 @@ dat.social.type.token.sequential.acceptability.other.sw <-
             dplyr::filter(scoring == "raw") %>% 
             dplyr::filter(question == "third.party.acceptability"),
         c("myValence",
-          "myQueriedActionStatus"),
+          "myQueriedActionStatus",
+          "population"),
         "rating")
 
 dat.social.type.token.sequential.acceptability.other.sw %>% 
@@ -694,6 +2661,7 @@ aov.social.type.token.sequential.acceptability.other <- aov(
         Error (filename/(myQueriedActionStatus)), 
     data = dat.social.type.token.sequential.m %>% 
         dplyr::filter(scoring == "raw") %>% 
+        dplyr::filter(population == "city") %>% 
         dplyr::filter(question == "third.party.acceptability"))
 
 dat.aov.social.type.token.sequential.acceptability.other <- report.aov(aov.social.type.token.sequential.acceptability.other,
@@ -703,10 +2671,12 @@ dat.aov.social.type.token.sequential.acceptability.other <- report.aov(aov.socia
     dplyr::select(-c("model.name"))
 
 ```
+
 ```{r city-acceptability-other-aov-ez-calculate}
 aov.social.type.token.sequential.acceptability.other.ez <- ezANOVA(
     data = dat.social.type.token.sequential.m %>% 
         dplyr::filter(scoring == "raw") %>% 
+        dplyr::filter(population == "city") %>% 
         dplyr::filter(question == "third.party.acceptability"),
     dv = .(rating),
     wid = .(filename),
@@ -727,6 +2697,7 @@ As shown in Table \ref{tab:city-acceptability-other-aov-show}, we observed the e
 dat.aov.social.type.token.sequential.acceptability.other.followup.valency <- 
     dat.social.type.token.sequential.m %>% 
     dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(population == "city") %>% 
     dplyr::filter(question == "third.party.acceptability") %>% 
     dplyr::group_by(myValence) %>% 
     tidyr::nest() %>% 
@@ -760,6 +2731,7 @@ dat.aov.social.type.token.sequential.acceptability.other.followup.actionStatus <
                ~ dat.social.type.token.sequential.m %>%
                    dplyr::ungroup() %>% 
                    dplyr::filter(scoring == "raw") %>% 
+                   dplyr::filter(population == "city") %>% 
                    dplyr::filter(question == "third.party.acceptability") %>% 
                    dplyr::mutate(myQueriedActionStatus.excluded = .x, .before = 1) %>% 
                    dplyr::filter(myQueriedActionStatus != myQueriedActionStatus.excluded)) %>% 
@@ -812,7 +2784,7 @@ dplyr::bind_rows(
 ) %>%  
     setNames(replace_default_column_labels(names (.))) %>%
     kable.packed("model.type",
-                  caption = "ANOVA for third-person acceptability. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Follow-up ANOVAs leaving out one of the frequency conditions. Third party acceptability was affected by Valency and by the Frequency Condition. The effect of frequency condition reach significant for all valencies, but was stronger for neutral scenarios. The the effect of frequency condition was significant for all pairs of frequency conditions.",
+                  caption = "ANOVA for third-person acceptability for CITY STUDENTS ONLY. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Follow-up ANOVAs leaving out one of the frequency conditions. Third party acceptability was affected by Valency and by the Frequency Condition. The effect of frequency condition reach significant for all valencies, but was stronger for neutral scenarios. The the effect of frequency condition was significant for all pairs of frequency conditions.",
                   booktabs = TRUE, escape = FALSE) %>%
             kable_styling(latex_options =
                               c("hold_position", "striped", "scale_down")) %>%
@@ -836,7 +2808,8 @@ dat.social.type.token.sequential.acceptability.self.sw <-
             dplyr::filter(scoring == "raw") %>% 
             dplyr::filter(question == "first.party.acceptablity"),
         c("myValence",
-          "myQueriedActionStatus"),
+          "myQueriedActionStatus",
+          "population"),
         "rating")
 
 dat.social.type.token.sequential.acceptability.self.sw %>% 
@@ -854,6 +2827,7 @@ aov.social.type.token.sequential.acceptability.self <- aov(
         Error (filename/(myQueriedActionStatus)), 
     data = dat.social.type.token.sequential.m %>% 
         dplyr::filter(scoring == "raw") %>% 
+        dplyr::filter(population == "city") %>% 
         dplyr::filter(question == "first.party.acceptablity"))
 
 dat.aov.social.type.token.sequential.acceptability.self <- report.aov(aov.social.type.token.sequential.acceptability.self,
@@ -868,6 +2842,7 @@ dat.aov.social.type.token.sequential.acceptability.self <- report.aov(aov.social
 aov.social.type.token.sequential.acceptability.self.ez <- ezANOVA(
     data = dat.social.type.token.sequential.m %>% 
         dplyr::filter(scoring == "raw") %>% 
+        dplyr::filter(population == "city") %>% 
         dplyr::filter(question == "first.party.acceptablity"),
     dv = .(rating),
     wid = .(filename),
@@ -888,6 +2863,7 @@ As shown in Table \ref{tab:city-acceptability-self-aov-show}, we observed the ex
 dat.aov.social.type.token.sequential.acceptability.self.followup.valency <- 
 dat.social.type.token.sequential.m %>% 
     dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(population == "city") %>% 
     dplyr::filter(question == "first.party.acceptablity") %>% 
     dplyr::group_by(myValence) %>% 
     tidyr::nest() %>% 
@@ -921,6 +2897,7 @@ dat.aov.social.type.token.sequential.acceptability.self.followup.actionStatus <-
                ~ dat.social.type.token.sequential.m %>%
                    dplyr::ungroup() %>% 
                    dplyr::filter(scoring == "raw") %>% 
+                   dplyr::filter(population == "city") %>% 
                    dplyr::filter(question == "first.party.acceptablity") %>% 
                    dplyr::mutate(myQueriedActionStatus.excluded = .x, .before = 1) %>% 
                    dplyr::filter(myQueriedActionStatus != myQueriedActionStatus.excluded)) %>% 
@@ -974,7 +2951,7 @@ dplyr::bind_rows(
 ) %>%  
     setNames(replace_default_column_labels(names (.))) %>%
     kable.packed("model.type",
-                  caption = "ANOVA for first-person acceptability. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Follow-up ANOVAs leaving out one of the frequency conditions. First party-acceptability were affected by both valency and Frequency Condition. An interaction between these factors suggested that the effect of the frequency condition was not significant for bad actions, and much stronger for neutral actions than for good actions. All frequency conditions differed from one another.",
+                  caption = "ANOVA for first-person acceptability FOR CITY STUDENTS ONLY. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency. (Bottom). Follow-up ANOVAs leaving out one of the frequency conditions. First party-acceptability were affected by both valency and Frequency Condition. An interaction between these factors suggested that the effect of the frequency condition was not significant for bad actions, and much stronger for neutral actions than for good actions. All frequency conditions differed from one another.",
                   booktabs = TRUE, escape = FALSE) %>%
             kable_styling(latex_options =
                               c("hold_position", "striped", "scale_down")) %>%
@@ -984,15 +2961,17 @@ dplyr::bind_rows(
 
   
 ```{r city-acceptability-self-aov-follow-up-valency-action-status}
+
 tidyr::expand_grid(myValence = c("bad", "neutral", "good"),
                    myQueriedActionStatus.excluded = v.myQueriedActionStatuses) %>% 
     purrr::pmap_df(~ dat.social.type.token.sequential.m %>%
-                                             dplyr::ungroup() %>% 
-                                             dplyr::filter(scoring == "raw") %>% 
-                                             dplyr::filter(question == "first.party.acceptablity") %>% 
-                                             dplyr::filter(myValence == ..1) %>% 
-                                             dplyr::mutate(myQueriedActionStatus.excluded = ..2, .before = 1) %>% 
-                                             dplyr::filter(myQueriedActionStatus != myQueriedActionStatus.excluded)) %>% 
+                       dplyr::ungroup() %>% 
+                       dplyr::filter(scoring == "raw") %>% 
+                       dplyr::filter(population == "city") %>% 
+                       dplyr::filter(question == "first.party.acceptablity") %>% 
+                       dplyr::filter(myValence == ..1) %>% 
+                       dplyr::mutate(myQueriedActionStatus.excluded = ..2, .before = 1) %>% 
+                       dplyr::filter(myQueriedActionStatus != myQueriedActionStatus.excluded)) %>% 
     dplyr::group_by(myValence, myQueriedActionStatus.excluded) %>% 
     tidyr::nest()  %>% 
     dplyr::mutate(aov =  map(data,
@@ -1023,984 +3002,9 @@ tidyr::expand_grid(myValence = c("bad", "neutral", "good"),
 `r clearpage()`
 
 
-## Difference scores
-```{r city-prepare-diff-scores-raw}
-dat.social.type.token.sequential.m.d <- dat.social.type.token.sequential.m.wide %>% 
-    dplyr::ungroup() %>% 
-    tidyr::pivot_longer(starts_with(fixed ("d.")),
-                        names_to = "Contrast",
-                        values_to = "d") 
-
-# 2 x scoring
-# 3 x questions
-# (against single: 2 x scores + high vs. low: 1 score)
-if(nrow(dat.social.type.token.sequential.m.wide) * 2 * 3 * 3 !=  nrow(dat.social.type.token.sequential.m.d)){
-    stop("Check the creation of difference scores")
-}
-
-
-dat.social.type.token.sequential.m.d <- dplyr::bind_rows(
-    # We need to separate them as there is no myQueriedActionStatus for the difference scores comparing 
-    # the high and low frequency condition 
-    
-    dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(str_starts(Contrast, "d.vs.single", negate = FALSE)) %>% 
-        tidyr::separate_wider_delim(Contrast,
-                                    delim = "_",
-                                    names = c("Contrast", "myQueriedActionStatus", "question", "scoring"), 
-                                    too_few = "error"),
-    
-
-    dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(str_starts(Contrast, "d.vs.single", negate = TRUE)) %>%
-        tidyr::separate_wider_delim(Contrast,
-                                    delim = "_",
-                                    names = c("Contrast", "question", "scoring"), 
-                                    too_few = "error")
-)
-
-```
-
-
-```{r city-plot-difference-vs-single-raw, fig.cap = "Raw difference scores vs. single occurrence actions"}
-
-dat.social.type.token.sequential.m.d %>% 
-    dplyr::filter(scoring == "raw") %>% 
-    dplyr::filter(Contrast == "d.vs.single") %>% 
-    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::mutate(question = str_wrap(question, 20)) %>% 
-    ggplot (aes (x = myQueriedActionStatus, y = d)) +
-        theme_light(14) +
-    theme (axis.title.x = element_blank(),
-           axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
-    ylab ("Difference score (raw)") + 
-    geom_violin() +
-    geom_dotplot(binaxis='y', stackdir='center', dotsize=1) +
-    stat_summary(fun.data=mean_se, 
-                 geom="pointrange", color="red") +
-    geom_hline(yintercept=0, linetype = "dotted") +
-    #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
-    facet_grid(question ~ myValence)
-
-
-
-
-```
-
-```{r city-print-difference-vs-single-raw}
-
-dat.social.type.token.sequential.m.d %>% 
-    dplyr::filter(scoring == "raw") %>% 
-    dplyr::filter(Contrast == "d.vs.single") %>% 
-    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::group_by(question, myValence, myQueriedActionStatus) %>% 
-    dplyr::summarize(N = n(),
-                     M = mean(d),
-                     SE = se(d),
-                     cohen.d = M/sd(d),
-                     p = wilcox.p(d, 0)) %>% 
-    kable.packed("question", 
-                 caption = "Descriptive for the difference scores against the single occurrence condition using the untransformed data. The p value reflects a Wilcoxon test against zero.",
-                 col.names = c("Valency", "Action Status", "N", "M", "SE", "Cohen's d", "p"),
-                 booktabs = TRUE,
-                 longtable = TRUE) %>% 
-    kableExtra::kable_styling(latex_options = "repeat_header") %>% 
-    kableExtra::kable_classic_2()
-    
-```
-
-
-```{r plot-difference-high-vs-low-type-frequency-raw, fig.cap = "Raw difference scores high vs. low type frequency actions"}
-
-dat.social.type.token.sequential.m.d %>% 
-    dplyr::filter(scoring == "raw") %>% 
-    dplyr::filter(Contrast != "d.vs.single") %>% 
-    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::mutate(question = str_wrap(question, 20)) %>% 
-    ggplot (aes (x = question, y = d)) +
-        theme_light(14) +
-    theme (axis.title.x = element_blank(),
-           axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
-    ylab ("Difference score (raw)") + 
-    geom_violin() +
-    geom_dotplot(binaxis='y', stackdir='center', dotsize=1) +
-    stat_summary(fun.data=mean_se, 
-                 geom="pointrange", color="red") +
-    geom_hline(yintercept=0, linetype = "dotted") +
-    #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
-    facet_grid(. ~ myValence)
-
-
-
-
-```
-
-```{r city-print-difference-high-vs-low-type-frequency-raw}
-
-dat.social.type.token.sequential.m.d %>% 
-    dplyr::filter(scoring == "raw") %>% 
-    dplyr::filter(Contrast != "d.vs.single") %>% 
-    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::group_by(question, myValence) %>% 
-    dplyr::summarize(N = n(),
-                     M = mean(d),
-                     SE = se(d),
-                     cohen.d = M/sd(d),
-                     p = wilcox.p(d, 0)) %>% 
-    kable.packed("question", 
-                 caption = "Descriptive for the difference scores against the single occurrence condition using the untransformed data. The p value reflects a Wilcoxon test against zero.",
-                 col.names = c("Valency", "N", "M", "SE", "Cohen's d", "p"),
-                 booktabs = TRUE,
-                 longtable = TRUE) %>% 
-    kableExtra::kable_styling(latex_options = "repeat_header") %>% 
-    kableExtra::kable_classic_2()
-    
-```
-
-### Prevalence 
-
-```{r city-prevalence-d-vs-single-sw}
-
-#get.lambda.trans 
-
-dat.social.type.token.sequential.prevalence.d.vs.single.sw <- 
-    calculate.shapiro.wilk.test.for.cells(
-        dat.social.type.token.sequential.m.d  %>% 
-            dplyr::filter(scoring == "raw") %>% 
-            dplyr::filter(question == "prevalence") %>% 
-            dplyr::filter(Contrast == "d.vs.single"),
-        c("myValence",
-          "myQueriedActionStatus"),
-        "d")
-
-dat.social.type.token.sequential.prevalence.d.vs.single.sw %>% 
-    kable (caption = "SW acceptability for participants themselves", booktabs = TRUE, escape = FALSE) %>% 
-    kableExtra::kable_classic_2()
-
-
- 
-```
-
-As shown in Table \ref{tab:city-prevalence-d-vs-single-sw}, no of cells deviated from normality. 
-
-
-
-```{r city-prevalence-d-vs-single-aov-calculate}
-
-aov.social.type.token.sequential.prevalence.d.vs.single <- aov(
-    d ~ myQueriedActionStatus * myValence + 
-        Error (filename/(myQueriedActionStatus)), 
-    data = dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(scoring == "raw") %>%
-        dplyr::filter(Contrast == "d.vs.single") %>% 
-        dplyr::filter(question == "prevalence"))
-
-dat.aov.social.type.token.sequential.prevalence.d.vs.single <- report.aov(aov.social.type.token.sequential.prevalence.d.vs.single,
-           .correct.for.repeated.tests = FALSE,
-           .return.df = TRUE,
-           .print.results = FALSE) %>%
-    dplyr::select(-c("model.name"))
-
-```
-
-
-```{r city-prevalence-d-vs-single-aov-ez-calculate}
-aov.social.type.token.sequential.prevalence.d.vs.single.ez <- ezANOVA(
-    data = dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(scoring == "raw") %>% 
-        dplyr::filter(Contrast == "d.vs.single") %>% 
-        dplyr::filter(question == "prevalence"),
-    dv = .(d),
-    wid = .(filename),
-    between = .(myValence),
-    within = .(myQueriedActionStatus),
-    detailed = TRUE,
-    type = 3)
-
-aov.social.type.token.sequential.prevalence.d.vs.single.ez.sphericity <- 
-    extract.sphericity.from.ezANOVA(aov.social.type.token.sequential.prevalence.d.vs.single.ez)
-
-```
-As shown in Table \ref{tab:city-prevalence-d-vs-single-aov-show}, we observed no main effect of Valency on the difference score against single occurrence actions for prevalence. We observed a main effect of Action Status as well as a marginal interaction between Action Status and Valency. 
-
-```{r city-prevalence-d-vs-single-aov-follow-up-valency}
-dat.aov.social.type.token.sequential.prevalence.d.vs.single.followup.valency <- 
-    dat.social.type.token.sequential.m.d %>% 
-    dplyr::filter(scoring == "raw") %>% 
-    dplyr::filter(Contrast == "d.vs.single") %>% 
-    dplyr::filter(question == "prevalence") %>% 
-    dplyr::group_by(myValence) %>% 
-    tidyr::nest() %>% 
-    # data is the column created by nest
-    dplyr::mutate(aov =  map(data,
-                             ~ aov(
-                                 d ~ myQueriedActionStatus + 
-                                     Error (filename/(myQueriedActionStatus)), 
-                                 data = .x) %>% 
-                                 report.aov(.correct.for.repeated.tests = FALSE,
-                                            .return.df = TRUE,
-                                            .print.results = FALSE)
-    )) %>% 
-    dplyr::select(-data) %>% 
-    unnest %>% 
-    dplyr::select(-model.name) 
-
-```
-
-As shown in Table \ref{tab:city-prevalence-d-vs-single-aov-show}, separate ANOVAs for each valency revealed a strong main effect of Action Status only for all three valencies.
-
-
-```{r city-prevalence-d-vs-single-aov-follow-up-action-status}
-
-dat.aov.social.type.token.sequential.prevalence.d.vs.single.followup.actionStatus <- 
-    dat.social.type.token.sequential.m.d %>% 
-    dplyr::filter(scoring == "raw") %>% 
-    dplyr::filter(Contrast == "d.vs.single") %>% 
-    dplyr::filter(question == "prevalence") %>% 
-    dplyr::group_by(myQueriedActionStatus) %>% 
-    dplyr::group_modify(~ aov(
-        d ~ myValence,
-        data = .x) %>%
-            report.aov(.correct.for.repeated.tests = FALSE,
-                       .return.df = TRUE,
-                       .print.results = FALSE)) %>% 
-    dplyr::select(-model.name) 
-
-
-
-```    
-
-Finally, Table \ref{tab:city-prevalence-d-vs-single-aov-show} shows separate ANOVAs for each Action Status. The main effect of valency was significant only for high type frequency scenarios. 
-
-```{r city-prevalence-d-vs-single-aov-show}
-
-if (!is.null (aov.social.type.token.sequential.prevalence.d.vs.single.ez.sphericity)){
-    warning ("There were sphericity corrections available that you ignored, do something about them.")    
-}
-
-dplyr::bind_rows(
-    # Overall anova
-    dat.aov.social.type.token.sequential.prevalence.d.vs.single %>% 
-        dplyr::mutate(model.type = "Overall"),
-    
-    # Follow-up valency
-    dat.aov.social.type.token.sequential.prevalence.d.vs.single.followup.valency %>% 
-        dplyr::mutate(model.type = "Follow-up of valency") %>% 
-        tidyr::unite(model.type, model.type, myValence, sep = ": "),
-    
-    # Follow-up action status
-    dat.aov.social.type.token.sequential.prevalence.d.vs.single.followup.actionStatus %>%
-        dplyr::mutate(model.type = "Follow-up of Action Status") %>% 
-        tidyr::unite(model.type, model.type, myQueriedActionStatus, sep = ": "),
-) %>%  
-    setNames(replace_default_column_labels(names (.))) %>%
-    kable.packed("model.type",
-                  caption = "ANOVA for difference scores comparing each frequency condition to the single occurrence condition. first-person acceptability. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.",
-                  booktabs = TRUE, escape = FALSE) %>%
-            kable_styling(latex_options =
-                              c("hold_position", "striped")) %>%
-    kableExtra::kable_classic_2()
-
-
-```
-
-
-#### Difference scores comparing high type frequency against low type frequency
-
-```{r city-prevalence-d-high-vs-low-tf-sw}
-
-#get.lambda.trans 
-
-dat.social.type.token.sequential.prevalence.d.high.vs.low.tf.sw <- 
-    calculate.shapiro.wilk.test.for.cells(
-        dat.social.type.token.sequential.m.d  %>% 
-            dplyr::filter(scoring == "raw") %>% 
-            dplyr::filter(Contrast == "d.high.vs.low.TypeFreq"),
-        c("myValence"),
-        "d")
-
-dat.social.type.token.sequential.prevalence.d.high.vs.low.tf.sw %>% 
-    kable (caption = "SW acceptability for participants themselves for high vs. low difference scores", booktabs = TRUE, escape = FALSE) %>% 
-    kableExtra::kable_classic_2()
-
-
- 
-```
-
-As shown in Table \ref{tab:city-prevalence-d-high-vs-low-tf-sw}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
-
-
-```{r city-typrevalence-d-high-vs-low-tf-aov-calculate}
-
-aov.social.type.token.sequential.prevalence.d.high.vs.low.tf <- aov(
-    d ~  myValence, 
-    data = dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(scoring == "raw") %>%
-        dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
-        dplyr::filter(question == "prevalence"))
-
-dat.aov.social.type.token.sequential.prevalence.d.high.vs.low.tf <- report.aov(aov.social.type.token.sequential.prevalence.d.high.vs.low.tf,
-           .correct.for.repeated.tests = FALSE,
-           .return.df = TRUE,
-           .print.results = FALSE) %>%
-    dplyr::select(-c("model.name"))
-
-```
-
-
-```{r city-prevalence-d-high-vs-low-tf-aov-ez-calculate}
-aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.ez <- ezANOVA(
-    data = dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(scoring == "raw") %>% 
-        dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
-        dplyr::filter(question == "prevalence"),
-    dv = .(d),
-    wid = .(filename),
-    between = .(myValence),
-    within = NULL,
-    detailed = TRUE,
-    type = 3)
-
-aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.ez.sphericity <- 
-    extract.sphericity.from.ezANOVA(aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.ez)
-
-```
-As shown in Table \ref{tab:city-prevalence-d-high-vs-low-tf-aov-show}, we observed a marginal main effect of Valency on difference scores for first-party acceptability. 
-
-
-```{r city-prevalence-d-high-vs-low-tf-aov-follow-up-valency}
-
-v.valencies <- levels(dat.social.type.token.sequential.m.d$myValence)
-
-dat.aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.followup.valency <- 
-    purrr::map(v.valencies,
-               ~ dat.social.type.token.sequential.m.d %>% 
-                   dplyr::ungroup() %>% 
-                   dplyr::filter(scoring == "raw") %>% 
-                   dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
-                   dplyr::filter(question == "prevalence") %>% 
-                   dplyr::mutate(myValence.excluded = .x, .before = 1) %>% 
-                   dplyr::filter(myValence != myValence.excluded)) %>% 
-    dplyr::bind_rows() %>% 
-    dplyr::group_by(myValence.excluded) %>% 
-    tidyr::nest() %>% 
-    # data is the column created by nest
-    dplyr::mutate(aov =  map(data,
-                             ~ aov(
-                                 d ~ myValence,
-                                 data = .x) %>% 
-                                 report.aov(.correct.for.repeated.tests = FALSE,
-                                            .return.df = TRUE,
-                                            .print.results = FALSE)
-    )) %>% 
-    dplyr::select(-data) %>% 
-    unnest(cols = c(aov)) %>% 
-    dplyr::mutate(myValence =  str_c (v.valencies[!(v.valencies %in% myValence.excluded)], 
-                                      collapse = " vs. "), 
-                  .before = 1) %>% 
-    dplyr::ungroup() %>% 
-    dplyr::select(-model.name, -myValence.excluded) 
-
-
-```
-As shown in Table \ref{tab:city-prevalence-d-high-vs-low-tf-aov-show}, separate ANOVAs for each valency pair revealed a strong main effect of Action Status only for the bad vs. good comparison the the neutral vs. good comparison. 
-
-```{r city-prevalence-d-high-vs-low-tf-aov-show}
-
-if (!is.null (aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.ez.sphericity)){
-    warning ("There were sphericity corrections available that you ignored, do something about them.")    
-}
-
-
-dplyr::bind_rows(
-    # Overall anova
-    dat.aov.social.type.token.sequential.prevalence.d.high.vs.low.tf %>% 
-        dplyr::mutate(model.type = "Overall"),
-    
-    # By valencyy
-    dat.aov.social.type.token.sequential.prevalence.d.high.vs.low.tf.followup.valency %>% 
-        dplyr::mutate(model.type = "By valency")
-) %>% 
-    dplyr::select(model.type, myValence, effect, everything()) %>% 
-    setNames(replace_default_column_labels(names (.))) %>%
-    kable.packed("model.type",
-                 caption = "ANOVA for difference scores comparing the high vs low type frequency conditions for prevalence. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.",
-                 booktabs = TRUE, escape = FALSE) %>%
-    kable_styling(latex_options =
-                      c("hold_position", "striped")) %>%
-    kableExtra::kable_classic_2()
-
-
-```
-
-
 `r clearpage()`
 
-
-### Third-party acceptability
-
-#### Difference scores against single actions
-
-```{r city-acceptability-other-d-vs-single-sw}
-
-#get.lambda.trans 
-
-dat.social.type.token.sequential.acceptability.other.d.vs.single.sw <- 
-    calculate.shapiro.wilk.test.for.cells(
-        dat.social.type.token.sequential.m.d  %>% 
-            dplyr::filter(scoring == "raw") %>% 
-            dplyr::filter(question == "third.party.acceptability") %>% 
-            dplyr::filter(Contrast == "d.vs.single"),
-        c("myValence",
-          "myQueriedActionStatus"),
-        "d")
-
-dat.social.type.token.sequential.acceptability.other.d.vs.single.sw %>% 
-    kable (caption = "SW acceptability for participants themselves", booktabs = TRUE, escape = FALSE) %>% 
-    kableExtra::kable_classic_2()
-
-
- 
-```
-
-As shown in Table \ref{tab:city-acceptability-other-d-vs-single-sw}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
-
-
-```{r city-acceptability-other-d-vs-single-aov-calculate}
-
-aov.social.type.token.sequential.acceptability.other.d.vs.single <- aov(
-    d ~ myQueriedActionStatus * myValence + 
-        Error (filename/(myQueriedActionStatus)), 
-    data = dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(scoring == "raw") %>%
-        dplyr::filter(Contrast == "d.vs.single") %>% 
-        dplyr::filter(question == "third.party.acceptability"))
-
-dat.aov.social.type.token.sequential.acceptability.other.d.vs.single <- report.aov(aov.social.type.token.sequential.acceptability.other.d.vs.single,
-           .correct.for.repeated.tests = FALSE,
-           .return.df = TRUE,
-           .print.results = FALSE) %>%
-    dplyr::select(-c("model.name"))
-
-```
-
-
-```{r city-acceptability-other-d-vs-single-aov-ez-calculate}
-aov.social.type.token.sequential.acceptability.other.d.vs.single.ez <- ezANOVA(
-    data = dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(scoring == "raw") %>% 
-        dplyr::filter(Contrast == "d.vs.single") %>% 
-        dplyr::filter(question == "third.party.acceptability"),
-    dv = .(d),
-    wid = .(filename),
-    between = .(myValence),
-    within = .(myQueriedActionStatus),
-    detailed = TRUE,
-    type = 3)
-
-aov.social.type.token.sequential.acceptability.other.d.vs.single.ez.sphericity <- 
-    extract.sphericity.from.ezANOVA(aov.social.type.token.sequential.acceptability.other.d.vs.single.ez)
-
-```
-As shown in Table \ref{tab:city-acceptability-other-d-vs-single-aov-show}, we observed no main effect of Valency on the difference score against single occurrence actions for first-party acceptability. , we observed a main effect of Action Status as well as an interaction between Action Status and Valency. 
-
-
-```{r city-acceptability-other-d-vs-single-aov-follow-up-valency}
-dat.aov.social.type.token.sequential.acceptability.other.d.vs.single.followup.valency <- 
-    dat.social.type.token.sequential.m.d %>% 
-    dplyr::filter(scoring == "raw") %>% 
-    dplyr::filter(Contrast == "d.vs.single") %>% 
-    dplyr::filter(question == "third.party.acceptability") %>% 
-    dplyr::group_by(myValence) %>% 
-    tidyr::nest() %>% 
-    # data is the column created by nest
-    dplyr::mutate(aov =  map(data,
-                             ~ aov(
-                                 d ~ myQueriedActionStatus + 
-                                     Error (filename/(myQueriedActionStatus)), 
-                                 data = .x) %>% 
-                                 report.aov(.correct.for.repeated.tests = FALSE,
-                                            .return.df = TRUE,
-                                            .print.results = FALSE)
-    )) %>% 
-    dplyr::select(-data) %>% 
-    unnest %>% 
-    dplyr::select(-model.name) 
-
-```
-
-As shown in Table \ref{tab:city-acceptability-other-d-vs-single-aov-show}, separate ANOVAs for each valency revealed a strong main effect of Action Status only for neutral scenarios. The main effect was not significant for good or bad scenarios. Again, this is redundant with the direct difference scores.
-
-
-
-
-```{r city-acceptability-other-d-vs-single-aov-follow-up-action-status}
-
-dat.aov.social.type.token.sequential.acceptability.other.d.vs.single.followup.actionStatus <- 
-    dat.social.type.token.sequential.m.d %>% 
-    dplyr::filter(scoring == "raw") %>% 
-    dplyr::filter(Contrast == "d.vs.single") %>% 
-    dplyr::filter(question == "third.party.acceptability") %>% 
-    dplyr::group_by(myQueriedActionStatus) %>% 
-    dplyr::group_modify(~ aov(
-        d ~ myValence,
-        data = .x) %>%
-            report.aov(.correct.for.repeated.tests = FALSE,
-                       .return.df = TRUE,
-                       .print.results = FALSE)) %>% 
-    dplyr::select(-model.name) 
-
-
-
-
-```    
-Finally, Table \ref{tab:city-acceptability-other-d-vs-single-aov-show} shows separate ANOVAs for each Action Status. The main effect of valency was marginal;ly significant only for high type frequency scenarios. 
-
-
-```{r city-acceptability-other-d-vs-single-aov-show}
-
-if (!is.null (aov.social.type.token.sequential.acceptability.other.d.vs.single.ez.sphericity)){
-    warning ("There were sphericity corrections available that you ignored, do something about them.")    
-}
-
-dplyr::bind_rows(
-    # Overall anova
-    dat.aov.social.type.token.sequential.acceptability.other.d.vs.single %>% 
-        dplyr::mutate(model.type = "Overall"),
-    
-    # Follow-up valency
-    dat.aov.social.type.token.sequential.acceptability.other.d.vs.single.followup.valency %>% 
-        dplyr::mutate(model.type = "Follow-up of valency") %>% 
-        tidyr::unite(model.type, model.type, myValence, sep = ": "),
-    
-    # Follow-up action status
-    dat.aov.social.type.token.sequential.acceptability.other.d.vs.single.followup.actionStatus %>%
-        dplyr::mutate(model.type = "Follow-up of Action Status") %>% 
-        tidyr::unite(model.type, model.type, myQueriedActionStatus, sep = ": "),
-) %>%  
-    setNames(replace_default_column_labels(names (.))) %>%
-    kable.packed("model.type",
-                  caption = "ANOVA for difference scores comparing each frequency condition to the single occurrence condition. third-person acceptability. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.",
-                  booktabs = TRUE, escape = FALSE) %>%
-            kable_styling(latex_options =
-                              c("hold_position", "striped")) %>%
-    kableExtra::kable_classic_2()
-
-
-```
-
-
-#### Difference scores comparing high type frequency against low type frequency
-
-```{r city-acceptability-other-d-high-vs-low-tf-sw}
-
-#get.lambda.trans 
-
-dat.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.sw <- 
-    calculate.shapiro.wilk.test.for.cells(
-        dat.social.type.token.sequential.m.d  %>% 
-            dplyr::filter(scoring == "raw") %>% 
-            dplyr::filter(Contrast == "d.high.vs.low.TypeFreq"),
-        c("myValence"),
-        "d")
-
-dat.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.sw %>% 
-    kable (caption = "SW acceptability for participants themselves for high vs. low difference scores", booktabs = TRUE, escape = FALSE) %>% 
-    kableExtra::kable_classic_2()
-
-
- 
-```
-
-As shown in Table \ref{tab:city-acceptability-other-d-high-vs-low-tf-sw}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
-
-```{r city-tyacceptability-other-d-high-vs-low-tf-aov-calculate}
-
-aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf <- aov(
-    d ~  myValence, 
-    data = dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(scoring == "raw") %>%
-        dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
-        dplyr::filter(question == "third.party.acceptability"))
-
-dat.aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf <- report.aov(aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf,
-           .correct.for.repeated.tests = FALSE,
-           .return.df = TRUE,
-           .print.results = FALSE) %>%
-    dplyr::select(-c("model.name"))
-
-```
-
-
-```{r city-acceptability-other-d-high-vs-low-tf-aov-ez-calculate}
-aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.ez <- ezANOVA(
-    data = dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(scoring == "raw") %>% 
-        dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
-        dplyr::filter(question == "third.party.acceptability"),
-    dv = .(d),
-    wid = .(filename),
-    between = .(myValence),
-    within = NULL,
-    detailed = TRUE,
-    type = 3)
-
-aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.ez.sphericity <- 
-    extract.sphericity.from.ezANOVA(aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.ez)
-
-```
-As shown in Table \ref{tab:city-acceptability-other-d-high-vs-low-tf-aov-show}, we observed a marginal main effect of Valency on difference scores for first-party acceptability. 
-
-```{r city-acceptability-other-d-high-vs-low-tf-aov-follow-up-valency}
-
-v.valencies <- levels(dat.social.type.token.sequential.m.d$myValence)
-
-dat.aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.followup.valency <- 
-    purrr::map(v.valencies,
-               ~ dat.social.type.token.sequential.m.d %>% 
-                   dplyr::ungroup() %>% 
-                   dplyr::filter(scoring == "raw") %>% 
-                   dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
-                   dplyr::filter(question == "third.party.acceptability") %>% 
-                   dplyr::mutate(myValence.excluded = .x, .before = 1) %>% 
-                   dplyr::filter(myValence != myValence.excluded)) %>% 
-    dplyr::bind_rows() %>% 
-    dplyr::group_by(myValence.excluded) %>% 
-    tidyr::nest() %>% 
-    # data is the column created by nest
-    dplyr::mutate(aov =  map(data,
-                             ~ aov(
-                                 d ~ myValence,
-                                 data = .x) %>% 
-                                 report.aov(.correct.for.repeated.tests = FALSE,
-                                            .return.df = TRUE,
-                                            .print.results = FALSE)
-    )) %>% 
-    dplyr::select(-data) %>% 
-    unnest(cols = c(aov)) %>% 
-    dplyr::mutate(myValence =  str_c (v.valencies[!(v.valencies %in% myValence.excluded)], 
-                                      collapse = " vs. "), 
-                  .before = 1) %>% 
-    dplyr::ungroup() %>% 
-    dplyr::select(-model.name, -myValence.excluded) 
-
-
-```
-As shown in Table \ref{tab:city-acceptability-other-d-high-vs-low-tf-aov-show}, separate ANOVAs for each valency pair revealed a strong main effect of Action Status only for the bad vs. good comparison, and a marginal one for the neutral vs. good comparison. 
-
-
-```{r city-acceptability-other-d-high-vs-low-tf-aov-show}
-
-if (!is.null (aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.ez.sphericity)){
-    warning ("There were sphericity corrections available that you ignored, do something about them.")    
-}
-
-
-dplyr::bind_rows(
-    # Overall anova
-    dat.aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf %>% 
-        dplyr::mutate(model.type = "Overall"),
-    
-    # By valencyy
-    dat.aov.social.type.token.sequential.acceptability.other.d.high.vs.low.tf.followup.valency %>% 
-        dplyr::mutate(model.type = "By valency")
-) %>% 
-    dplyr::select(model.type, myValence, effect, everything()) %>% 
-        setNames(replace_default_column_labels(names (.))) %>%
-        kable.packed("model.type",
-                     caption = "ANOVA for difference scores comparing the high vs low type frequency conditions for first-person acceptability. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.",
-                     booktabs = TRUE, escape = FALSE) %>%
-    kable_styling(latex_options =
-                      c("hold_position", "striped")) %>%
-    kableExtra::kable_classic_2()
-
-
-```
-
-
-`r clearpage()`
-
-### First-party acceptability
-#### Difference scores against single actions
-
-```{r city-acceptability-self-d-vs-single-sw}
-
-#get.lambda.trans 
-
-dat.social.type.token.sequential.acceptability.self.d.vs.single.sw <- 
-    calculate.shapiro.wilk.test.for.cells(
-        dat.social.type.token.sequential.m.d  %>% 
-            dplyr::filter(scoring == "raw") %>% 
-            dplyr::filter(question == "first.party.acceptablity") %>% 
-            dplyr::filter(Contrast == "d.vs.single"),
-        c("myValence",
-          "myQueriedActionStatus"),
-        "d")
-
-dat.social.type.token.sequential.acceptability.self.d.vs.single.sw %>% 
-    kable (caption = "SW acceptability for participants themselves", booktabs = TRUE, escape = FALSE) %>% 
-    kableExtra::kable_classic_2()
-
-
- 
-```
-
-As shown in Table \ref{tab:city-acceptability-self-d-vs-single-sw}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
-
-```{r city-acceptability-self-d-vs-single-aov-calculate}
-
-aov.social.type.token.sequential.acceptability.self.d.vs.single <- aov(
-    d ~ myQueriedActionStatus * myValence + 
-        Error (filename/(myQueriedActionStatus)), 
-    data = dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(scoring == "raw") %>%
-        dplyr::filter(Contrast == "d.vs.single") %>% 
-        dplyr::filter(question == "first.party.acceptablity"))
-
-dat.aov.social.type.token.sequential.acceptability.self.d.vs.single <- report.aov(aov.social.type.token.sequential.acceptability.self.d.vs.single,
-           .correct.for.repeated.tests = FALSE,
-           .return.df = TRUE,
-           .print.results = FALSE) %>%
-    dplyr::select(-c("model.name"))
-
-```
-
-
-```{r city-acceptability-self-d-vs-single-aov-ez-calculate}
-aov.social.type.token.sequential.acceptability.self.d.vs.single.ez <- ezANOVA(
-    data = dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(scoring == "raw") %>% 
-        dplyr::filter(Contrast == "d.vs.single") %>% 
-        dplyr::filter(question == "first.party.acceptablity"),
-    dv = .(d),
-    wid = .(filename),
-    between = .(myValence),
-    within = .(myQueriedActionStatus),
-    detailed = TRUE,
-    type = 3)
-
-aov.social.type.token.sequential.acceptability.self.d.vs.single.ez.sphericity <- 
-    extract.sphericity.from.ezANOVA(aov.social.type.token.sequential.acceptability.self.d.vs.single.ez)
-
-```
-As shown in Table \ref{tab:city-acceptability-self-d-vs-single-aov-show}, we observed the expected main effect of Valency on first-party acceptability. Further, we observed a main effect of Action Status as well as an interaction between Action Status and Valency. (Not that including the factor Action Status is redundant with the direct difference score below.)
-
-```{r city-acceptability-self-d-vs-single-aov-follow-up-valency}
-dat.aov.social.type.token.sequential.acceptability.self.d.vs.single.followup.valency <- 
-    dat.social.type.token.sequential.m.d %>% 
-    dplyr::filter(scoring == "raw") %>% 
-    dplyr::filter(Contrast == "d.vs.single") %>% 
-    dplyr::filter(question == "first.party.acceptablity") %>% 
-    dplyr::group_by(myValence) %>% 
-    tidyr::nest() %>% 
-    # data is the column created by nest
-    dplyr::mutate(aov =  map(data,
-                             ~ aov(
-                                 d ~ myQueriedActionStatus + 
-                                     Error (filename/(myQueriedActionStatus)), 
-                                 data = .x) %>% 
-                                 report.aov(.correct.for.repeated.tests = FALSE,
-                                            .return.df = TRUE,
-                                            .print.results = FALSE)
-    )) %>% 
-    dplyr::select(-data) %>% 
-    unnest %>% 
-    dplyr::select(-model.name)
-
-
-
-```
-As shown in Table \ref{tab:city-acceptability-self-d-vs-single-aov-show}, separate ANOVAs for each valency revealed a strong main effect of Action Status only for neutral scenarios. The main effect was not significant for good or bad scenarios. Again, this is redundant with the direct difference scores.
-
-```{r city-acceptability-self-d-vs-single-aov-follow-up-action-status}
-
-dat.aov.social.type.token.sequential.acceptability.self.d.vs.single.followup.actionStatus <- 
-    dat.social.type.token.sequential.m.d %>% 
-    dplyr::filter(scoring == "raw") %>% 
-    dplyr::filter(Contrast == "d.vs.single") %>% 
-    dplyr::filter(question == "first.party.acceptablity") %>% 
-    dplyr::group_by(myQueriedActionStatus) %>% 
-    dplyr::group_modify(~ aov(
-        d ~ myValence,
-        data = .x) %>%
-            report.aov(.correct.for.repeated.tests = FALSE,
-                       .return.df = TRUE,
-                       .print.results = FALSE)) %>% 
-    dplyr::select(-model.name) 
-
-
-
-
-```    
-Finally, Table \ref{tab:city-acceptability-self-d-vs-single-aov-show} shows separate ANOVAs for each Action Status. The main effect of valency was significant only for high type frequency scenarios. 
-
-```{r city-acceptability-self-d-vs-single-aov-show}
-
-if (!is.null (aov.social.type.token.sequential.acceptability.self.d.vs.single.ez.sphericity)){
-    warning ("There were sphericity corrections available that you ignored, do something about them.")    
-}
-
-dplyr::bind_rows(
-    # Overall anova
-    dat.aov.social.type.token.sequential.acceptability.self.d.vs.single %>% 
-        dplyr::mutate(model.type = "Overall"),
-    
-    # Follow-up valency
-    dat.aov.social.type.token.sequential.acceptability.self.d.vs.single.followup.valency %>% 
-        dplyr::mutate(model.type = "Follow-up of valency") %>% 
-        tidyr::unite(model.type, model.type, myValence, sep = ": "),
-    
-    # Follow-up action status
-    dat.aov.social.type.token.sequential.acceptability.self.d.vs.single.followup.actionStatus %>%
-        dplyr::mutate(model.type = "Follow-up of Action Status") %>% 
-        tidyr::unite(model.type, model.type, myQueriedActionStatus, sep = ": "),
-) %>%  
-    setNames(replace_default_column_labels(names (.))) %>%
-    kable.packed("model.type",
-                  caption = "ANOVA for difference scores comparing each frequency condition to the single occurrence condition. first-person acceptability. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.",
-                  booktabs = TRUE, escape = FALSE) %>%
-            kable_styling(latex_options =
-                              c("hold_position", "striped")) %>%
-    kableExtra::kable_classic_2()
-
-
-```
-
-#### Difference scores comparing high type frequency against low type frequency
-
-```{r city-acceptability-self-d-high-vs-low-tf-sw}
-
-#get.lambda.trans 
-
-dat.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.sw <- 
-    calculate.shapiro.wilk.test.for.cells(
-        dat.social.type.token.sequential.m.d  %>% 
-            dplyr::filter(scoring == "raw") %>% 
-            dplyr::filter(Contrast == "d.high.vs.low.TypeFreq"),
-        c("myValence"),
-        "d")
-
-dat.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.sw %>% 
-    kable (caption = "SW acceptability for participants themselves for high vs. low difference scores", booktabs = TRUE, escape = FALSE) %>% 
-    kableExtra::kable_classic_2()
-
-
- 
-```
-
-As shown in Table \ref{tab:city-acceptability-self-d-high-vs-low-tf-sw}, a number of cells deviated from normality. TODO: TRY TO HEAL IT BY TRANSFORMING
-
-
-```{r city-tyacceptability-self-d-high-vs-low-tf-aov-calculate}
-
-aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf <- aov(
-    d ~  myValence, 
-    data = dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(scoring == "raw") %>%
-        dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
-        dplyr::filter(question == "first.party.acceptablity"))
-
-dat.aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf <- report.aov(aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf,
-           .correct.for.repeated.tests = FALSE,
-           .return.df = TRUE,
-           .print.results = FALSE) %>%
-    dplyr::select(-c("model.name"))
-
-```
-
-
-```{r city-acceptability-self-d-high-vs-low-tf-aov-ez-calculate}
-aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.ez <- ezANOVA(
-    data = dat.social.type.token.sequential.m.d %>% 
-        dplyr::filter(scoring == "raw") %>% 
-        dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
-        dplyr::filter(question == "first.party.acceptablity"),
-    dv = .(d),
-    wid = .(filename),
-    between = .(myValence),
-    within = NULL,
-    detailed = TRUE,
-    type = 3)
-
-aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.ez.sphericity <- 
-    extract.sphericity.from.ezANOVA(aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.ez)
-
-```
-As shown in Table \ref{tab:city-acceptability-self-d-high-vs-low-tf-aov-show}, we observed the expected main effect of Valency on difference scores for first-party acceptability. 
-
-
-```{r city-acceptability-self-d-high-vs-low-tf-aov-follow-up-valency}
-
-v.valencies <- levels(dat.social.type.token.sequential.m.d$myValence)
-
-dat.aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.followup.valency <- 
-    purrr::map(v.valencies,
-               ~ dat.social.type.token.sequential.m.d %>% 
-                   dplyr::ungroup() %>% 
-                   dplyr::filter(scoring == "raw") %>% 
-                   dplyr::filter(Contrast == "d.high.vs.low.TypeFreq") %>% 
-                   dplyr::filter(question == "first.party.acceptablity") %>% 
-                   dplyr::mutate(myValence.excluded = .x, .before = 1) %>% 
-                   dplyr::filter(myValence != myValence.excluded)) %>% 
-    dplyr::bind_rows() %>% 
-    dplyr::group_by(myValence.excluded) %>% 
-    tidyr::nest() %>% 
-    # data is the column created by nest
-    dplyr::mutate(aov =  map(data,
-                             ~ aov(
-                                 d ~ myValence,
-                                 data = .x) %>% 
-                                 report.aov(.correct.for.repeated.tests = FALSE,
-                                            .return.df = TRUE,
-                                            .print.results = FALSE)
-    )) %>% 
-    dplyr::select(-data) %>% 
-    unnest(cols = c(aov)) %>% 
-    dplyr::mutate(myValence =  str_c(v.valencies[!(v.valencies %in% myValence.excluded)], 
-                                      collapse = " vs. "), 
-                  .before = 1) %>% 
-    dplyr::ungroup() %>% 
-    dplyr::select(-model.name, -myValence.excluded) 
-
-
-```
-As shown in Table \ref{tab:city-acceptability-self-d-high-vs-low-tf-aov-show}, separate ANOVAs for each valency revealed a strong main effect of Action Status only for neutral scenarios. The main effect was not significant for good or bad scenarios. Again, this is redundant with the direct difference scores.
-
-
-
-```{r city-acceptability-self-d-high-vs-low-tf-aov-show}
-
-if (!is.null (aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.ez.sphericity)){
-    warning ("There were sphericity corrections available that you ignored, do something about them.")    
-}
-
-
-dplyr::bind_rows(
-    # Overall anova
-    dat.aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf %>% 
-        dplyr::mutate(model.type = "Overall"),
-    
-    # By valencyy
-    dat.aov.social.type.token.sequential.acceptability.self.d.high.vs.low.tf.followup.valency %>% 
-        dplyr::mutate(model.type = "By valency")
-) %>% 
-    dplyr::select(model.type, myValence, effect, everything()) %>% 
-        setNames(replace_default_column_labels(names (.))) %>%
-        kable.packed("model.type",
-                     caption = "ANOVA for difference scores comparing the high vs low type frequency conditions for first-person acceptability. The data combines male and female participants. (Top) Overall ANOVA. (Middle) Differences between frequency conditions separately for each valency for first person acceptability for all participants. (Bottom). Differences for each frequency conditions separately for first person acceptability for all participants.",
-                     booktabs = TRUE, escape = FALSE) %>%
-    kable_styling(latex_options =
-                      c("hold_position", "striped")) %>%
-    kableExtra::kable_classic_2()
-
-
-```
-
-
-
-`r clearpage()`
-
-# Correlations
+## Correlations
 
 ```{r correlations-vs-single-calculate}
 
@@ -2188,295 +3192,3 @@ l.dat.social.type.token.sequential.corr.high.vs.low %>%
 
 
 ```
-
-`r clearpage()`
-
-# Binary ratings (analyzed using GLMER)
-## Ratings
-
-```{r print-descriptives-ratings-bin}
-
-dat.social.type.token.sequential.m %>% 
-    dplyr::filter(scoring == "bin") %>% 
-    dplyr::select(-scoring) %>% 
-    dplyr::group_by(myValence, myQueriedActionStatus, question) %>% 
-    dplyr::summarize(
-        N = n(),
-        M = mean(rating),
-        SE = se(rating)
-        ) %>% 
-    dplyr::arrange (question, myValence, myQueriedActionStatus) %>% 
-    tidyr::unite(pack.col, myValence, question, sep = " - ") %>% 
-    kable.packed("pack.col", 
-                 caption = "Descriptives for the data into binary ratings.",
-                 col.names = c("", "N", "M", "SE"),
-                 booktabs = TRUE,
-                 longtable=TRUE) %>% 
-    kableExtra::kable_styling(latex_options = "repeat_header") %>% 
-    kableExtra::kable_classic_2()
-
-
-```
-
-```{r plot-acurracy-bin, fig.cap = "Bin ratings"}
-
-dat.social.type.token.sequential.m %>% 
-    dplyr::filter(scoring == "bin") %>% 
-    dplyr::mutate(myQueriedActionStatus = str_wrap(myQueriedActionStatus, 10)) %>% 
-    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::mutate(question = str_wrap(question, 20)) %>% 
-    ggplot (aes (x = myQueriedActionStatus, y = rating)) +
-        theme_light(14) +
-    theme (axis.title.x = element_blank(),
-           axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
-    ylab ("Rating (binary)") + 
-    geom_violin() +
-    geom_dotplot(binaxis='y', stackdir='center', dotsize=1) +
-    stat_summary(fun.data=mean_se, 
-                 geom="pointrange", color="red") +
-    geom_hline(yintercept=.5, linetype = "dotted") +
-    #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
-    facet_grid(question ~ myValence)
-
-
-
-```
-
-### Prevalence 
-
-
-
-```{r city-prevalence-glmer-bin-calculate}
-
-
-dat.social.type.token.sequential.for.glmm <- dat.social.type.token.sequential %>% 
-        dplyr::filter(scoring == "bin") %>% 
-        dplyr::mutate(myQueriedActionStatus = factor(myQueriedActionStatus,
-                                                     levels = c("single", "lowTypeFreq", "highTypeFreq")),
-                      myValence = factor(myValence, 
-                                         levels = c("neutral", "bad", "good"))) %>% 
-        dplyr::mutate(across(c(filename, myQueriedAction), factor))
-
-
-lmer.social.type.token.sequential.city.bin.prevalence.1 <- glmer(
-    rating ~ myQueriedActionStatus * myValence + 
-        (1|filename) + (1|myQueriedAction), 
-    control=glmerControl(optimizer="bobyqa"),
-    family="binomial",
-    data = dat.social.type.token.sequential.for.glmm %>% 
-                dplyr::filter(question == "prevalence"))
-
-    
-# Remove random factor  
-lmer.social.type.token.sequential.city.bin.prevalence.2 <- update(
-    lmer.social.type.token.sequential.city.bin.prevalence.1,
-    ~ . - (1|myQueriedAction))  
-    
-# anova(lmer.social.type.token.sequential.city.bin.prevalence.1,
-#       lmer.social.type.token.sequential.city.bin.prevalence.2)
-
-## Remove interaction
-lmer.social.type.token.sequential.city.bin.prevalence.3 <- update(
-    lmer.social.type.token.sequential.city.bin.prevalence.1,
-    ~ . - myQueriedActionStatus:myValence)  
-
-# anova(lmer.social.type.token.sequential.city.bin.prevalence.1,
-#       lmer.social.type.token.sequential.city.bin.prevalence.3)
-
-# Keep full model
-
-lmer.social.type.token.sequential.city.bin.prevalence.results <- 
-    extract.results.from.binary.model(lmer.social.type.token.sequential.city.bin.prevalence.1)
-
-
-```
-
-
-### Third-party acceptability
-
-```{r city-acceptability-other-glmer-bin-calculate}
-
-
-lmer.social.type.token.sequential.city.bin.acceptability.other.1 <- glmer(
-    rating ~ myQueriedActionStatus * myValence + 
-        (1|filename) + (1|myQueriedAction), 
-    control = glmerControl(optimizer="bobyqa"),
-    family = "binomial",
-    data = dat.social.type.token.sequential.for.glmm %>% 
-        dplyr::filter(question == "third.party.acceptability"))
-
-    
-# Remove random factor  
-lmer.social.type.token.sequential.city.bin.acceptability.other.2 <- update(
-    lmer.social.type.token.sequential.city.bin.acceptability.other.1,
-    ~ . - (1|myQueriedAction))  
-    
-# anova(lmer.social.type.token.sequential.city.bin.acceptability.other.1,
-#       lmer.social.type.token.sequential.city.bin.acceptability.other.2)
-
-## Remove interaction
-lmer.social.type.token.sequential.city.bin.acceptability.other.3 <- update(
-    lmer.social.type.token.sequential.city.bin.acceptability.other.1,
-    ~ . - myQueriedActionStatus:myValence)  
-
-# anova(lmer.social.type.token.sequential.city.bin.acceptability.other.1,
-#       lmer.social.type.token.sequential.city.bin.acceptability.other.3)
-
-# Keep full model
-
-lmer.social.type.token.sequential.city.bin.acceptability.other.results <- 
-    extract.results.from.binary.model(lmer.social.type.token.sequential.city.bin.acceptability.other.1)
-
-
-
-    
-```
-
-
-
-### First-party acceptability
-
-```{r city-acceptability-self-glmer-bin-calculate}
-
-
-lmer.social.type.token.sequential.city.bin.acceptability.self.1 <- glmer(
-    rating ~ myQueriedActionStatus * myValence + 
-        (1|filename) + (1|myQueriedAction), 
-    control = glmerControl(optimizer="bobyqa"),
-    family = "binomial",
-    data = dat.social.type.token.sequential.for.glmm %>% 
-        dplyr::filter(question == "first.party.acceptablity"))
-
-    
-# Remove random factor  
-lmer.social.type.token.sequential.city.bin.acceptability.self.2 <- update(
-    lmer.social.type.token.sequential.city.bin.acceptability.self.1,
-    ~ . - (1|myQueriedAction))  
-    
-# anova(lmer.social.type.token.sequential.city.bin.acceptability.self.1,
-#       lmer.social.type.token.sequential.city.bin.acceptability.self.2)
-
-## Remove interaction
-lmer.social.type.token.sequential.city.bin.acceptability.self.3 <- update(
-    lmer.social.type.token.sequential.city.bin.acceptability.self.1,
-    ~ . - myQueriedActionStatus:myValence)  
-
-# anova(lmer.social.type.token.sequential.city.bin.acceptability.self.1,
-#       lmer.social.type.token.sequential.city.bin.acceptability.self.3)
-
-# Keep full model for consistency
-
-lmer.social.type.token.sequential.city.bin.acceptability.self.results <- 
-    extract.results.from.binary.model(lmer.social.type.token.sequential.city.bin.acceptability.self.1)
-```
-
-
-```{r city-glmer-print}
-dplyr::bind_rows(
-    lmer.social.type.token.sequential.city.bin.prevalence.results %>% 
-        dplyr::mutate(pack.col = "Prevalence", .before = 1),
-    
-lmer.social.type.token.sequential.city.bin.acceptability.other.results %>% 
-        dplyr::mutate(pack.col = "Third party acceptability", .before = 1),
-
-lmer.social.type.token.sequential.city.bin.acceptability.self.results %>% 
-    dplyr::mutate(pack.col = "First party acceptability", .before = 1)
-) %>% 
-    dplyr::select (-c("t_log", "p_log")) %>% 
-    #filter (!grepl ("Intercept", term)) %>% 
-    kable.packed (
-    "pack.col",
-    caption = "GLMER results, using the full models.",
-    col.names = str_remove(names (.[,-1]), "_.*$"),
-       booktabs = TRUE, escape = FALSE) %>%
-    kableExtra::kable_classic() %>%
-    kableExtra::add_header_above(c(" " = 1, "Log-odds" = 3, "Odd ratios" = 3, " " = 2),
-                                 bold = TRUE) %>% 
-    kableExtra::kable_styling(latex_options =
-                                  c("scale_down",
-                              "hold_position",
-                              "full_width"))
-
-```
-
-
-
-
-
-
-
-## Difference scores (GLMER or ANOVA?)
-
-```{r plot-difference-vs-single-bin, fig.cap = "Binary difference scores vs. single occurrence actions"}
-
-dat.social.type.token.sequential.m.wide %>% 
-    group_by (myValence) %>% 
-    dplyr::select(starts_with(fixed ("d."))) %>% 
-    dplyr::select(ends_with(fixed ("_bin"))) %>% 
-    dplyr::select(contains (fixed ("vs.single"))) %>% 
-    tidyr::pivot_longer(-c(myValence),
-                        names_to = "Contrast",
-                        values_to = "d") %>% 
-    dplyr::mutate(Contrast = Contrast %>% 
-                       str_remove ("_bin$") %>% 
-                       str_remove ("^d\\.vs\\.single\\_")) %>% 
-    tidyr::separate(Contrast, c("myQueriedActionStatus", "question"), sep = "_") %>% 
-    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::mutate(question = str_wrap(question, 20)) %>% 
-    ggplot (aes (x = myQueriedActionStatus, y = d)) +
-        theme_light(14) +
-    theme (axis.title.x = element_blank(),
-           axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
-    ylab ("Difference score (binary)") + 
-    geom_violin() +
-    geom_dotplot(binaxis='y', stackdir='center', dotsize=1) +
-    stat_summary(fun.data=mean_se, 
-                 geom="pointrange", color="red") +
-    geom_hline(yintercept=0, linetype = "dotted") +
-    #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
-    facet_grid(question ~ myValence)
-
-
-
-
-```
-
-
-```{r plot-difference-high-vs-low-type-frequency-bin, fig.cap = "Binary difference scores high vs. low type frequency actions"}
-
-dat.social.type.token.sequential.m.wide %>% 
-    group_by (myValence) %>% 
-    dplyr::select(starts_with(fixed ("d."))) %>% 
-    dplyr::select(ends_with(fixed ("_bin"))) %>% 
-    dplyr::select(-contains (fixed ("vs.single"))) %>% 
-    tidyr::pivot_longer(-c(myValence),
-                        names_to = "question",
-                        values_to = "d") %>%
-    dplyr::mutate(question = question %>% 
-                       str_remove ("_bin$") %>% 
-                       str_remove ("^d\\.high\\.vs\\.low\\.TypeFreq_")) %>% 
-    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
-    dplyr::mutate(question = str_wrap(question, 20)) %>% 
-    ggplot (aes (x = question, y = d)) +
-        theme_light(14) +
-    theme (axis.title.x = element_blank(),
-           axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
-    ylab ("Difference score (binary)") + 
-    geom_violin() +
-    geom_dotplot(binaxis='y', stackdir='center', dotsize=1) +
-    stat_summary(fun.data=mean_se, 
-                 geom="pointrange", color="red") +
-    geom_hline(yintercept=0, linetype = "dotted") +
-    #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
-    facet_grid(. ~ myValence)
-
-
-
-
-```
-
-### Prevalence 
-
-### Third-party acceptability
-
-### First-party acceptability

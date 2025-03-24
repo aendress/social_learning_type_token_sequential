@@ -1,0 +1,577 @@
+---
+title: "Social learning from type and token frequency"
+author: |
+    | The authors
+    | City, University of London
+bibliography:
+- /Users/endress/ansgar.bib
+- /Users/endress/ansgar.own.bib
+csl: /Users/endress/csl_files/apa.csl
+output:
+  pdf_document:
+    latex_engine: xelatex
+    citation_package: natbib
+    includes:
+      in_header: /Users/endress/src/latex/ansgar.sty
+    toc: true
+    toc_depth: 4
+    number_sections: true
+    keep_tex: true
+    fig_caption: true
+    highlight: tango    
+  html_notebook:
+    theme: spacelab      
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    fig_caption: true
+    highlight: tango    
+  html_document:
+    theme: spacelab      
+    number_sections: yes
+    df_print: paged
+    toc: yes
+    toc_float: yes
+    fig_caption: true
+    highlight: tango    
+keywords: Keywords
+abstract: "XXX"
+---
+
+
+
+```{r setup, echo = FALSE, include=FALSE}
+rm (list=ls())
+
+options (digits = 3)
+knitr::opts_chunk$set(
+    # Run the chunk
+    eval = TRUE,
+    # Don't include source code
+    echo = FALSE, 
+    # Print warnings to console rather than the output file
+    warning = TRUE,  
+    # Stop on errors
+    error = FALSE,
+    # Print message to console rather than the output file
+    message = FALSE,
+    # Include chunk output into output
+    include = TRUE,
+    # Don't reformat R code
+    tidy = FALSE,
+    # Center images
+    fig.align = 'center',
+    # Default image width
+    out.width = '80%')
+
+# other knits options are here:
+# https://yihui.name/knitr/options/
+```
+
+```{r set-parameters, echo = FALSE, include=FALSE}
+# To avoid problems with write.xlsx2
+options(java.parameters = "-Xmx1000m")
+
+DATA.DIR <- "data/"
+OUTPUT.DIR <- "output/"
+
+REMOVE.INCOMPLETE.SUBJ <- TRUE
+REMOVE.CONSTANT.SUBJ <- TRUE
+
+TRIALS.PER.EXP <- 24*5
+
+ANALYZED.DATA.SETS <- c(CITY = TRUE,
+                        TESTABLE = TRUE)
+
+# Print tables/figures for individual analyses or just global ones
+PRINT.INDIVIDUAL.FIGURES <- TRUE
+PRINT.INDIVIDUAL.TABLES <- FALSE
+
+# Print likelihood ratio as 3D plot or raster plot
+PRINT.LLR.3D <- FALSE
+```
+
+
+```{r load-libraries, include = FALSE, message = TRUE, warning = TRUE}
+
+if (Sys.info()[["user"]] %in% c("ansgar", "endress")){
+    source ("/Users/endress/R.ansgar/ansgarlib/R/tt.R")
+    source ("/Users/endress/R.ansgar/ansgarlib/R/null.R")
+    #source ("helper_functions.R")
+} else {
+    # Note that these will probably not be the latest versions
+    source("http://endress.org/progs/tt.R")
+    source("http://endress.org/progs/null.R")
+}
+
+library (knitr)
+library (kableExtra)
+```
+
+```{r helper-functions}
+
+process.glmm.table %<a-% {
+    . %>% 
+        rownames_to_column("Effect") %>%
+        add_column(CI = NA, .before = "ci.lower") %>%
+        mutate_at (c("ci.lower", "ci.upper"), 
+                   function (X) signif (X, 3)) %>%
+        mutate (CI = paste (ci.lower, ci.upper, 
+                            sep = ", ")) %>% 
+        dplyr::select (-c("ci.lower", "ci.upper")) 
+}
+
+dot.box.plot <- function (dat = ., x, y, col = NULL, title = element_blank (), xlab = element_blank (), ylab = element_blank (), x.tick.labels = NULL, facet.str = NULL, facet.labels = NULL, scales = "free_x", x.angle = 90, x.rel.size = 1, drop = TRUE){
+    
+    if (is.null (facet.labels)){
+        facet.labeller <- "label_value"
+    } else {
+        facet.labeller <- as_labeller(facet.labels)
+    }
+    
+    current.plot <- dat %>% 
+        ggplot(aes(x={{ x }}, y = {{ y }}, col = {{ col }})) + 
+        #theme_dark()
+        theme_linedraw() +
+        geom_dotplot(binaxis = "y", drop = drop) +
+        geom_boxplot(alpha = 0, outlier.shape = NA) + 
+        labs(title = title,
+             x = xlab, y = ylab) + 
+        theme(plot.title = element_text(hjust = 0.5), 
+              axis.text.x = element_text(size = rel(x.rel.size),
+                                         angle = x.angle, 
+                                         vjust = 0.5)) +
+        facet_grid (as.formula (facet.str),
+                    scales = scales,
+                    labeller = facet.labeller,
+                    drop = drop) +
+        stat_summary(group=deparse(substitute (x)),
+                     fun=mean, geom="point", colour="green", pch=5, cex=4) 
+    
+    if (!is.null (x.tick.labels)){
+        current.plot <- current.plot +        
+            scale_x_discrete(labels = x.tick.labels)
+    }
+    
+    current.plot       
+}
+
+generate.tags <- function (tag.pos, all.tags = letters){
+    
+    # Generate a sequence of tags where tag.pos is TRUE
+    
+    tag.counter <- 0
+    
+    tags <- rep (NA, length (tag.pos))
+    for (i in which (tag.pos)){
+        
+        tag.counter <- tag.counter + 1
+        
+        tags[i] <- all.tags[tag.counter]
+    }
+    
+    tags    
+}
+
+
+grid.arrange.tag <- function (..., all.tags = letters, font.size = NULL, replace.label.fun = identity){
+    
+    original.args <- list (...)
+    
+    tags <- generate.tags(sapply (original.args,
+                                  is.ggplot),
+                          all.tags)
+    
+    modified.args <- mapply (
+        function (obj, tag) {
+            if (is.ggplot(obj)) {
+                if (is.null (font.size)){
+                    replace.label.fun (obj + labs (tag = tag))
+                } else {
+                    replace.label.fun (obj + labs (tag = tag) + theme(text = element_text(size=font.size)))
+                }
+            } else {
+                obj
+            }
+        },
+        original.args,
+        tags,
+        SIMPLIFY = FALSE)
+    
+    do.call (gridExtra::grid.arrange, modified.args)
+    
+}
+
+summarize.first.by.subj.then.by.overall %<a-% { 
+    . %>% 
+        group_by(ResponseId, n.saved, n.victims, number.range, number.ratio) %>% 
+        summarize_at (vars(contains("rating")),
+                      mean) %>% 
+        group_by(n.saved, n.victims, number.range, number.ratio) %>% 
+        summarize_at (vars(contains("rating")),
+                      list (~length(.), ~mean(.), ~se(.))) %>% 
+        dplyr::select (!matches ("rating"),
+                       contains ("raw"),
+                       contains ("bin")) %>% 
+        dplyr::select (-rating.bin_length) %>% 
+        dplyr::rename("N" = "rating.raw_length") 
+}
+
+model.comp.list.to.df <- function (l.model.comp = .){
+    lapply (l.model.comp,
+            function (.mod.comp) {
+                with (.mod.comp,
+                      data.frame(
+                          d.AIC = -diff (AIC),
+                          d.BIC = -diff (BIC),
+                          Chisq = Chisq[2],
+                          Df = Df[2],
+                          p.value = `Pr(>Chisq)`[2]
+                      ))
+            }) %>% 
+        dplyr::bind_rows(.id = "comparison")
+}
+
+get.rating.mean.se <- function (dat = .){
+    
+    .df.m <- dat %>% 
+        summarize_at(vars(contains("rating")), mean) %>% 
+        gather (rating.type, rating.m, contains("rating"))
+    
+    .df.se <- dat %>% 
+        summarize_at(vars(contains("rating")), se) %>% 
+        gather (rating.type, rating.se, contains("rating"))
+    
+    dplyr::left_join(.df.m, .df.se)
+}
+
+facet.labeller <- labeller (
+    
+    numberCond = c("10persons.1repetitions" = "10 person 1x", 
+                   "1persons.10repetitions" = "1 person 10x"),
+    
+    questionType = function (X) {
+        X %>% 
+            gsub ("^.*\\.", "", ., perl = TRUE) %>% 
+            paste0 (., " Question") %>% 
+            stringr::str_to_title (.)
+    }
+    
+)
+
+rename.conditions <- function (cond = .){
+    
+    cond %>% 
+        gsub ("10persons.1repetitions", "10 person 1x", ., fixed = TRUE) %>% 
+        gsub ("1persons.10repetitions", "1 person 10x", ., fixed = TRUE) %>% 
+        gsub ("^acceptability\\.", "", ., perl = TRUE) %>% 
+        gsub ("^representativeness\\.", "", ., perl = TRUE) 
+
+}
+
+```
+
+```{r themes}
+#From https://gist.github.com/jslefche/eff85ef06b4705e6efbc
+theme_black = function(base_size = 12, base_family = "") {
+    
+    theme_grey(base_size = base_size, base_family = base_family) %+replace%
+        
+        theme(
+            # Specify axis options
+            axis.line = element_blank(),  
+            axis.text.x = element_text(size = base_size*0.8, color = "white", lineheight = 0.9),  
+            axis.text.y = element_text(size = base_size*0.8, color = "white", lineheight = 0.9),  
+            axis.ticks = element_line(color = "white", size  =  0.2),  
+            axis.title.x = element_text(size = base_size, color = "white", margin = margin(0, 10, 0, 0)),  
+            axis.title.y = element_text(size = base_size, color = "white", angle = 90, margin = margin(0, 10, 0, 0)),  
+            axis.ticks.length = unit(0.3, "lines"),   
+            # Specify legend options
+            legend.background = element_rect(color = NA, fill = "black"),  
+            legend.key = element_rect(color = "white",  fill = "black"),  
+            legend.key.size = unit(1.2, "lines"),  
+            legend.key.height = NULL,  
+            legend.key.width = NULL,      
+            legend.text = element_text(size = base_size*0.8, color = "white"),  
+            legend.title = element_text(size = base_size*0.8, face = "bold", hjust = 0, color = "white"),  
+            legend.position = "right",  
+            legend.text.align = NULL,  
+            legend.title.align = NULL,  
+            legend.direction = "vertical",  
+            legend.box = NULL, 
+            # Specify panel options
+            panel.background = element_rect(fill = "black", color  =  NA),  
+            panel.border = element_rect(fill = NA, color = "white"),  
+            panel.grid.major = element_line(color = "grey35"),  
+            panel.grid.minor = element_line(color = "grey20"),  
+            panel.margin = unit(0.5, "lines"),   
+            # Specify facetting options
+            strip.background = element_rect(fill = "grey30", color = "grey10"),  
+            strip.text.x = element_text(size = base_size*0.8, color = "white"),  
+            strip.text.y = element_text(size = base_size*0.8, color = "white",angle = -90),  
+            # Specify plot options
+            plot.background = element_rect(color = "black", fill = "black"),  
+            plot.title = element_text(size = base_size*1.2, color = "white"),  
+            plot.margin = unit(rep(1, 4), "lines")
+            
+        )
+    
+}
+
+```
+
+
+# An ideal-observer model to determine typical behavior
+In our simple Bayesian decision model, observers witness a behavior $B$, potentially performed $k$ times $b_i^a$, and need to decide if actors are typical examples from the group in terms of their susceptibility to engage in a behavior, or rather outliers. Observers assume that actors behave *consistently*; that is, if actors have been observed engaging in a behavior, observers assume that the actors are susceptible to engage in it at a later time. This assumption simply reflects the finding that observers tend to explain actions by attributing consistent dispositions to actors, even when these explanations are not particularly veridical [@Jones1972; @Nisbett1973; @Watson1982].
+
+As a result, the probability for an actor to be susceptible to engaging in a behavior is independent of the number of times it is performed by the actor. This can be seen formally by using the chain rule on $P(b_1^a,\ldots, b_k^a | \text{actor})$, that is, the probability that actor $a$ is susceptible to engage in a behavior $B$ $k$ times:
+
+$$
+\begin{eqnarray*}
+P(b_1^a,\ldots, b_k^a | \text{actor}) & = P(b_k^a | b_1^a \dots b_{k-1}^a, \text{actor}) \\
+%
+& \times P(b_{k-1}^a | b_1^a \dots b_{k-2}^a, \text{actor}) \times \ldots \\
+%
+& \times P(b_2^a | b_1^a, \text{actor}) \times P(b_1^a | \text{actor})
+\end{eqnarray*}
+$$
+
+As actors are assumed to act consistently, all terms but the last one are equal to one, and the likelihood of an actor performing a behavior $k$ times is identical to the likelihood of ab actor performing it once, that is $P(b_1^a | \text{actor})$.  In other words, if humans explain behavior by attributing consistent dispositions to actors, they should be relatively insensitive to the token frequency of a behavior (though they might need a sufficient token frequency to *remember* about a dispositions; see @Endress-TypeToken).
+
+As some behaviors are inherently weirder than others, we further assume that  observers have some prior beliefs about the typicality of the behavior, and that behavior $B$ has a prior probability $P(B) = \beta$. Obersevers also have prior beliefs about the proportion of outliers $\omega$ in the group. We can thus define two hypotheses, according to which the actor is typical of a group or rather an outlier. 
+
+First, according to $H_1$, the actor is typical of a group that engages in the behavior with a large probability $\alpha$ to begin with. If so, the probabilty of observing the behavior is identical irrespective of whether the actor is typical or an outlier $P(B|\text{typical}) = P(B|\text{outlier}) = \alpha$. Second, according to $H_2$, the actor is an outlier. If so, the probability of observing the behavior if the actor is an outlier is $P(B|\text{outlier}) = \alpha$, while the probability of observing the behavior in the general population is just its prior (and lower) frequency $P(B|\text{typical}) = \beta < \alpha$. 
+
+Following [@Tenenbaum2001], one can assume that both hypotheses are equally likely a priori, and evaluate the evidence in favor of $H_1$ by comparing the likelihood ratio 
+
+$$
+\Lambda_{1,2} = \frac{P(B|H_1)}{P(B|H_2)}
+$$
+
+Assuming that the behavior is observed with $T$ different actors, this likelihood ratio becomes 
+
+$$
+\begin{eqnarray*}
+\Lambda_{1,2} & = & \frac{\left((1-\omega) \alpha + \omega \alpha\right)^T}{\left((1-\omega) \beta + \omega \alpha\right)^T} \\
+%
+& = & \frac{\alpha^T}{\left((1-\omega) \beta + \omega \alpha\right)^T} \\
+%
+& = &  \frac{1}{\left((1-\omega) \frac{\beta}{\alpha} + \omega\right)^T} \\
+%
+& \approx &  \left(\frac{\alpha}{\beta}\right)^T \left(1 - T \left(\frac{\alpha}{\beta} -1 \right) \omega \right)
+%
+\end{eqnarray*}
+$$
+
+where the last step is the Taylor expansion for small values of $\omega$.
+
+An illustration for some values of the $\beta/\alpha$ ratio are given in Figure \ref{fig:model-llr-plot-2d}. As $\frac{\beta}{\alpha} (1-\omega) + \omega$ is strictly smaller than 1 for $\alpha > \beta$ and $\omega < 1$, the likelihood ratio is always greater than 1, and grows exponentially as the type frequency increases. In other words, the model suggests that behaviors with a higher type frequency should be considered more representative. 
+
+
+```{r model-llr-plot-2d, fig.cap = "Likehood ratio in favor of the a behavior being representative as a function of the prior frequency of outliers ($\\omega$), the type frequency ($T$) and the ratio between $\\alpha$ and $\\beta$ (facets, see main text)."}
+
+plot.social.type.token.model.llr <- 
+    expand.grid (
+        # omega
+        o = seq (0, .5, .01),
+        # Type Frequencye
+        T = seq (1, 8, .1),
+        # alpha/beta 
+        alpha.beta = c(2, 4, 8, 16)) %>% 
+    mutate (L = 1/((1-o)/alpha.beta + o)^T) %>% 
+    mutate (L = pmin (16, L)) %>% 
+    ggplot (aes (x = o, y = T, fill = L))
+
+if (PRINT.LLR.3D) {
+    plot.social.type.token.model.llr <- plot.social.type.token.model.llr +   
+        theme_light (18) + 
+        theme (legend.position = "bottom")
+} else {
+    plot.social.type.token.model.llr <- plot.social.type.token.model.llr +  
+        theme_light (13) + 
+        theme (legend.position = "right") 
+}
+
+plot.social.type.token.model.llr <- plot.social.type.token.model.llr +       
+    geom_raster() +
+    scale_x_continuous(TeX("$\\epsilon$"), breaks=seq (0, .5, .1)) +
+    scale_y_continuous("T", breaks=seq(1,8,1), limits=c(1,8)) +
+    scale_fill_viridis_c(TeX("$\\Lambda$"), trans = "log2",
+                         breaks= c(1, 2, 4, 8, 16),
+                         labels = c("1", "2", "4", "8", "16"),
+                         option = "D") +
+    #ggtitle(TeX ("Likeihood ratio for $\\alpha / \\beta = 8$")) +
+    #theme(text = element_text(size=32))
+    facet_wrap (. ~ alpha.beta,
+                scales = "fixed",
+                strip.position = "bottom",
+                labeller = label_bquote(alpha/beta == .(alpha.beta)))
+
+if (!PRINT.LLR.3D) {
+    plot.social.type.token.model.llr
+}
+
+```
+
+```{r model-llr-plot-3d, fig.cap = "Likehood ratio in favor of the a behavior being representative as a function of the prior frequency of outliers ($\\omega$), the type frequency ($T$) and the ratio between $\\alpha$ and $\\beta$ (facets, see main text)."}
+if (PRINT.LLR.3D) {
+    library(rayshader)
+    # https://www.rayshader.com/
+    #devtools::install_github("tylermorganwall/rayshader")
+    #https://www.tylermw.com/3d-ggplots-with-rayshader/
+    #https://www.rayshader.com/
+    
+    
+    
+    plot_gg(plot.social.type.token.model.llr, 
+            multicore=TRUE, width=5, height=5, 
+            raytrace = FALSE, 
+            scale = 150, #windowsize = c(1400, 866), 
+            #zoom = 0.9, phi = -30, theta = 45,
+            preview = FALSE)
+    render_camera(zoom=.9,theta=-35,phi=55)
+    
+    render_snapshot() #clear = TRUE)
+    #render_snapshot("type_token_social_llr") #, clear = TRUE)
+}
+
+```
+
+In Supplementary Information XXX, we also use Bayes' rule to directly calculate the posterior probability of a behavior being typical of a population $P(H_1 | B)$ while assuming that the prior probability of the actor being an outlier is given by the prior probabilities of outliers. We show that is approximately $1 - \omega \left(\frac{\beta}{\alpha}\right)^T$, and thus exponentially converges to one as the type frequency of the actions increases. This confirms that, for an ideal observer model explaining behavior with consistent dispositions, the estimates of typicality grow exponentially with the type frequency of the behavior. 
+
+`r clearpge()`
+
+## New model
+
+```{r llr-function-binomial-define}
+
+llr.binomial <- function(e, N, a = 1 - e, b = e, k = NULL, r = NULL) {
+  # Check if necessary arguments are supplied
+  if (is.null(k) && is.null(r)) {
+    stop("Either k or r must be supplied.")
+  }
+  
+  # If r is supplied, compute k from r
+  if (!is.null(r)) {
+    k <- r * N
+  }
+  
+  # Ensure N and k are of the same length
+  if (length(N) != length(k)) {
+    stop("N and k must be of the same length.")
+  }
+
+  # Vectorized error checks
+  if (any(a < 0 | a > 1)) {
+    stop("a must be between 0 and 1.")
+  }
+  if (any(b < 0 | b > 1)) {
+    stop("b must be between 0 and 1.")
+  }
+  if (any(a < b)) {
+    stop("a must be greater than or equal to b.")
+  }
+  if (any(e >= 0.5)) {
+    stop("e must be less than 0.5.")
+  }
+  if (any(k > N)) {
+    stop("k must be less than or equal to N.")
+  }
+  if (any(k < 0 | N < 0)) {
+    stop("k and N must be non-negative.")
+  }
+  
+  # Calculate the log likelihood ratio
+  calculate_llr <- function(e, N, a, b, k) {
+    term1 <- ((1 - e) * (b / a) + e)^k
+    term2 <- ((1 - b) / (1 - a) * (1 - e * (a - b) / (1 - b)))^(N - k)
+    result <- 1 / (term1 * term2)
+    return(result)
+  }
+  
+  # Apply the function vectorized over N and k
+  results <- mapply(calculate_llr, e = e, N = N, a = a, b = b, k = k, SIMPLIFY = TRUE)
+  
+  return(results)
+}
+
+
+```
+
+
+```{r model-new-llr-plot-2d, fig.cap = "Likehood ratio in favor of the a behavior being representative as a function of the prior frequency of outliers ($\\omega$), the type frequency ($T$) and the ratio between $\\alpha$ and $\\beta$ (facets, see main text)."}
+
+
+
+plot.social.type.token.model.llr <- 
+    expand.grid (
+        # epsilon
+        e = seq(0.05, .5, .2),
+        # Total number of agents
+        N = seq(1, 10, .1),
+        # Proportion of agents showing the behavior k/N
+        r = seq(0, 1, .1)) %>% 
+    dplyr::mutate(L = llr.binomial(e = e, N = N, r  = r)) %>% 
+    dplyr::mutate(L = pmin(16, L)) %>% 
+    dplyr::mutate(L = pmax(1/16, L)) %>% 
+    ggplot(aes(x = N, y = r, fill = L))
+
+if (PRINT.LLR.3D) {
+    plot.social.type.token.model.llr <- plot.social.type.token.model.llr +   
+        theme_light (18) + 
+        theme(legend.position = "bottom")
+} else {
+    plot.social.type.token.model.llr <- plot.social.type.token.model.llr +  
+        theme_light (13) + 
+        theme(legend.position = "right") 
+}
+
+plot.social.type.token.model.llr <- plot.social.type.token.model.llr +       
+    geom_raster() +
+    scale_x_continuous("N", breaks = seq (1, 10, 1)) +
+    scale_y_continuous(TeX("$\\frac{k}{N}"), breaks = seq(0, 1, .2), limits = c(0, 1)) +
+    scale_fill_viridis_c(TeX("$\\Lambda$"), trans = "log2",
+                         breaks = 2^seq(-4, 4, 2),
+                         labels = paste0("2^", seq(-4, 4, 2)),
+                         option = "D") +
+    #ggtitle(TeX ("Likeihood ratio for $\\alpha / \\beta = 8$")) +
+    #theme(text = element_text(size=32))
+    facet_wrap (. ~ e,
+                scales = "fixed",
+                strip.position = "bottom",
+                labeller = label_bquote(epsilon == .(e)))
+
+if (!PRINT.LLR.3D) {
+    plot.social.type.token.model.llr
+}
+
+```
+
+```{r model-new-llr-plot-3d, fig.cap = "Likehood ratio in favor of the a behavior being representative as a function of the prior frequency of outliers ($\\omega$), the type frequency ($T$) and the ratio between $\\alpha$ and $\\beta$ (facets, see main text)."}
+
+NOT UPDATED
+
+
+if (PRINT.LLR.3D) {
+    library(rayshader)
+    # https://www.rayshader.com/
+    #devtools::install_github("tylermorganwall/rayshader")
+    #https://www.tylermw.com/3d-ggplots-with-rayshader/
+    #https://www.rayshader.com/
+    
+    
+    
+    plot_gg(plot.social.type.token.model.llr, 
+            multicore=TRUE, width=5, height=5, 
+            raytrace = FALSE, 
+            scale = 150, #windowsize = c(1400, 866), 
+            #zoom = 0.9, phi = -30, theta = 45,
+            preview = FALSE)
+    render_camera(zoom=.9,theta=-35,phi=55)
+    
+    render_snapshot() #clear = TRUE)
+    #render_snapshot("type_token_social_llr") #, clear = TRUE)
+}
+
+```
+

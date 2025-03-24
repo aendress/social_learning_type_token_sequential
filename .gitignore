@@ -8,6 +8,9 @@ trial_files/
 ## Keep testable data private
 data/994749_sequential_1/*.csv
 
+data/159771_sequential_testable/results.with_minds_ids/
+data/159771_sequential_testable/ids.csv
+
 ## Keep Bainbridge faces private
 stim/faces/*.jpg
 
