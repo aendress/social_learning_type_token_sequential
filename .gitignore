@@ -3,7 +3,9 @@
 paper/
 papers/
 ethics/
-trial_files/
+# don't upload trial files/lists but create the directory
+trial_files/*
+lists/*
 
 ## Keep testable data private
 data/994749_sequential_1/*.csv

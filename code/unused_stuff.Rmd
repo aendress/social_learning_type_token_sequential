@@ -1,0 +1,604 @@
+---
+title: "unuused_stuff"
+author: "Ansgar"
+date: "2025-05-09"
+output: pdf_document
+---
+
+# Maybe usable
+
+## Binarized ratings descriptives
+
+Descriptives for the binarized ratings are given in Table \ref{tab:print-descriptives-ratings-bin}
+
+```{r print-descriptives-ratings-bin, results = 'hide'}
+
+dat.social.type.token.sequential.m %>% 
+    dplyr::filter(scoring == "bin") %>% 
+    dplyr::select(-scoring) %>% 
+    dplyr::group_by(population, myValence, myQueriedActionStatus, question) %>% 
+    dplyr::summarize(
+        N = n(),
+        M = mean(rating),
+        SE = se(rating),
+        d = M/sd(rating),
+        # That's correct only for raw ratings, but I won't fit a GLMM here
+        p = wilcox.p(rating, mu = .5),
+        .groups = "drop") %>% 
+    tidyr::pivot_wider(id_cols = c(myValence, myQueriedActionStatus, question),
+                       names_from = population,
+                       values_from = c("N", "M", "SE", "d", "p"),
+                       names_vary = "slowest") %>%     
+    dplyr::arrange(question, myValence, myQueriedActionStatus) %>% 
+    relabel_conds(wrap = FALSE) %>% 
+    relabel_questions(wrap = FALSE) %>% 
+    tidyr::unite(pack.col, myValence, question, sep = " - ") %>% 
+    kable.packed("pack.col", 
+                 caption = "Descriptives for the binarized ratings. The p value reflects a Wilcoxon test against the  the chance level of .5. PUT TO APPENDIX",
+                 col.names = c("", rep(c("N", "M", "SE", "Cohen's d", "p"), 2)),
+                 booktabs = TRUE,
+                 longtable = TRUE) %>% 
+    kableExtra::add_header_above(header = c(" " = 1, "Students" = 5, "Testable" = 5), bold = TRUE) %>% 
+    kableExtra::kable_styling(latex_options = "repeat_header") %>% 
+    kableExtra::kable_classic_2()
+
+
+```
+
+## Binarized difference scores
+
+```{r plot-difference-vs-single-bin, fig.cap = "Binary difference scores vs. single occurrence actions"}
+
+dat.social.type.token.sequential.m.wide %>% 
+    group_by (myValence) %>% 
+    dplyr::select(starts_with(fixed ("d."))) %>% 
+    dplyr::select(ends_with(fixed ("_bin"))) %>% 
+    dplyr::select(contains (fixed ("vs.single"))) %>% 
+    tidyr::pivot_longer(-c(myValence),
+                        names_to = "contrast",
+                        values_to = "d") %>% 
+    dplyr::mutate(contrast = contrast %>% 
+                       str_remove ("_bin$") %>% 
+                       str_remove ("^d\\.vs\\.single\\_")) %>% 
+    tidyr::separate(contrast, c("myQueriedActionStatus", "question"), sep = "_") %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_wrap(question, 20)) %>% 
+    ggplot (aes (x = myQueriedActionStatus, y = d)) %>% 
+        violin_plot_template(yintercept = 0) +
+    theme (axis.title.x = element_blank(),
+           axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
+    ylab ("Difference score (binary)") + 
+    #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+    facet_grid(question ~ myValence)
+
+
+
+
+```
+
+
+```{r plot-difference-high-vs-low-type-frequency-bin, fig.cap = "Binary difference scores high vs. low type frequency actions"}
+
+dat.social.type.token.sequential.m.wide %>% 
+    group_by (myValence) %>% 
+    dplyr::select(starts_with(fixed ("d."))) %>% 
+    dplyr::select(ends_with(fixed ("_bin"))) %>% 
+    dplyr::select(-contains (fixed ("vs.single"))) %>% 
+    tidyr::pivot_longer(-c(myValence),
+                        names_to = "question",
+                        values_to = "d") %>%
+    dplyr::mutate(question = question %>% 
+                       str_remove ("_bin$") %>% 
+                       str_remove ("^d\\.high\\.vs\\.low\\.TypeFreq_")) %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    dplyr::mutate(question = str_wrap(question, 20)) %>% 
+    ggplot (aes (x = question, y = d)) %>% 
+    violin_plot_template(yintercept = 0) +
+    theme (axis.title.x = element_blank(),
+           axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) +
+    ylab ("Difference score (binary)") + 
+    #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+    facet_grid(. ~ myValence)
+
+
+
+
+```
+
+
+
+# Most likely junk
+
+### GLMMS REMOVE? 
+We analyze the binary ratings using two types of GLMMs. For valency, we set the reference level to neutral. For the frequency condition, we fit a GLMMM including all frequency conditions and setting the reference level to single occurrence events (corresponding to the first type of difference scores); we also fit a GLMM excluding the single occurrence events (corresponding to the second type of differences scores).
+
+
+### Binary ratings (analyzed using GLMER) 
+
+
+```{r prepare-data-for-bin-glmer-2-freq-conds}
+
+
+
+# Two frequency conditions (i.e., low type frequency, high type frequency, but not single)
+dat.social.type.token.sequential.for.glmm.bin.2freq.cond <- dat.social.type.token.sequential %>% 
+    dplyr::filter(scoring == "bin") %>% 
+    dplyr::filter(myQueriedActionStatus != "single") %>% 
+    dplyr::mutate(myQueriedActionStatus = factor(myQueriedActionStatus,
+                                                 levels = c("lowTypeFreq", "highTypeFreq")),
+                  myValence = factor(myValence, 
+                                     levels = c("neutral", "bad", "good")),
+                  question = factor(question,
+                                    levels = c("first.party.acceptability", "third.party.acceptability", "prevalence"))) %>% 
+    dplyr::mutate(across(c(filename, myQueriedAction), factor))
+
+
+
+```
+
+##### Overall
+
+```{r overall-glmer-bin-calculate-2freq-conds}
+
+
+lmer.social.type.token.sequential.bin.overall.2freq.cond.1 <- 
+    map.by.population(~  glmer(
+        rating ~ question * myQueriedActionStatus * myValence + 
+            (1|filename) + (1|myQueriedAction), 
+        control=glmerControl(optimizer="bobyqa"),
+        family="binomial",
+        data = dat.social.type.token.sequential.for.glmm.bin.2freq.cond %>% 
+            dplyr::filter(population == .x)))
+
+
+# Remove random factor; keep it
+# lmer.social.type.token.sequential.bin.overall.2freq.cond.2 <-
+#     lmer.social.type.token.sequential.bin.overall.2freq.cond.1 %>%
+#     purrr::map (~ update(.x,
+#                          ~ . - (1|myQueriedAction)))
+# 
+# purrr::map2(lmer.social.type.token.sequential.bin.overall.2freq.cond.1,
+#             lmer.social.type.token.sequential.bin.overall.2freq.cond.2,
+#             ~ anova(.x, .y))
+
+# Remove triple interactions; keep it
+# lmer.social.type.token.sequential.bin.overall.2freq.cond.3 <-
+#     lmer.social.type.token.sequential.bin.overall.2freq.cond.1 %>%
+#     purrr::map (~ update(.x,
+#                          ~ . - question:myQueriedActionStatus:myValence))
+#  
+# purrr::map2(lmer.social.type.token.sequential.bin.overall.2freq.cond.1,
+#             lmer.social.type.token.sequential.bin.overall.2freq.cond.3,
+#             ~ anova(.x, .y))
+
+lmer.social.type.token.sequential.bin.overall.2freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.overall.2freq.cond.1 %>%
+    purrr::map(~ extract.results.from.binary.model(.x)) %>%
+    purrr::list_rbind(names_to = "population") 
+
+
+```
+
+
+
+
+##### Prevalence
+
+```{r city-prevalence-glmer-bin-calculate-2-freq-conds}
+
+lmer.social.type.token.sequential.bin.prevalence.2freq.cond.1 <- 
+    map.by.population(~  glmer(
+        rating ~ myQueriedActionStatus * myValence + 
+            (1|filename) + (1|myQueriedAction), 
+        control=glmerControl(optimizer="bobyqa"),
+        family="binomial",
+        data = dat.social.type.token.sequential.for.glmm.bin.2freq.cond %>% 
+            dplyr::filter(population == .x) %>% 
+            dplyr::filter(question == "prevalence")))
+
+# Remove random factor  
+lmer.social.type.token.sequential.bin.prevalence.2freq.cond.2 <- 
+    lmer.social.type.token.sequential.bin.prevalence.2freq.cond.1 %>% 
+    purrr::map (~ update(.x,
+                         ~ . - (1|myQueriedAction)))
+
+# purrr::map2(lmer.social.type.token.sequential.bin.prevalence.2freq.cond.1,
+#             lmer.social.type.token.sequential.bin.prevalence.2freq.cond.2,
+#             ~ anova(.x, .y))
+    
+
+## Remove interaction
+lmer.social.type.token.sequential.bin.prevalence.2freq.cond.3 <- 
+    lmer.social.type.token.sequential.bin.prevalence.2freq.cond.1 %>% 
+    purrr::map(~ update(.x, ~ . - myQueriedActionStatus:myValence))
+
+# purrr::map2(
+#     lmer.social.type.token.sequential.bin.prevalence.2freq.cond.1,
+#     lmer.social.type.token.sequential.bin.prevalence.2freq.cond.3,
+#     ~ anova(.x, .y))
+
+# Keep full models
+
+lmer.social.type.token.sequential.bin.prevalence.2freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.prevalence.2freq.cond.1 %>% 
+    purrr::map(~ extract.results.from.binary.model(.x)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+
+
+##### Third-party acceptability
+
+```{r city-acceptability-other-glmer-bin-calculate-2-freq-conds}
+
+
+lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.1 <- 
+    map.by.population(~ glmer(rating ~ myQueriedActionStatus * myValence + 
+        (1|filename) + (1|myQueriedAction), 
+    control = glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.social.type.token.sequential.for.glmm.bin.2freq.cond %>% 
+        dplyr::filter(population == .x) %>% 
+        dplyr::filter(question == "third.party.acceptability")))
+
+    
+# Remove random factor  
+lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.2 <- 
+    lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.1 %>% 
+    purrr::map(~update(., ~ . - (1|myQueriedAction)))
+    
+# purrr:::map2(
+#     lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.1,
+#     lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.2,
+#     ~ anova(.x, .y))
+
+## Remove interaction
+lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.3 <- 
+    lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.1 %>% 
+    purrr::map(~ update(.x, ~ . - myQueriedActionStatus:myValence)  )
+
+# purrr::map2(lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.1,
+#             lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.3,
+#             ~ anova(.x, .y))
+
+# Keep full model in consistence with 3 freq condition model abvoe
+
+lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.1 %>% 
+    purrr::map(~ extract.results.from.binary.model(.x)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+
+```
+
+
+##### First-party acceptability
+
+
+```{r city-acceptability-self-glmer-bin-calculate-2-freq-conds}
+
+
+lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.1 <- 
+    map.by.population(~ glmer(rating ~ myQueriedActionStatus * myValence + 
+        (1|filename) + (1|myQueriedAction), 
+    control = glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.social.type.token.sequential.for.glmm.bin.2freq.cond %>% 
+        dplyr::filter(population == .x) %>% 
+        dplyr::filter(question == "first.party.acceptability")))
+
+    
+# Remove random factor  
+lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.2 <-
+    lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.1 %>% 
+    purrr::map(~  update(.x, ~ . - (1|myQueriedAction)))
+    
+# purrr::map2(lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.1,
+#       lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.2,
+#       ~ anova(.x, .y))
+
+## Remove interaction
+lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.3 <- 
+    lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.1 %>% 
+    purrr::map(~ update(.x, ~ . - myQueriedActionStatus:myValence))
+
+# purrr::map2(lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.1,
+#       lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.3,
+#        ~ anova(.x, .y))
+
+# Keep full model for consistency
+
+lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.1 %>% 
+    purrr::map(~ extract.results.from.binary.model(.x)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+
+```{r city-glmer-print-2-freq-conds}
+dplyr::bind_rows(
+    lmer.social.type.token.sequential.bin.overall.2freq.cond.results %>% 
+        dplyr::mutate(pack.col = "Overall", .before = 1),
+    
+    lmer.social.type.token.sequential.bin.prevalence.2freq.cond.results %>% 
+        dplyr::mutate(pack.col = "Prevalence", .before = 1),
+    
+    lmer.social.type.token.sequential.bin.acceptability.other.2freq.cond.results %>% 
+        dplyr::mutate(pack.col = "Third party acceptability", .before = 1),
+    
+    lmer.social.type.token.sequential.bin.acceptability.self.2freq.cond.results %>% 
+        dplyr::mutate(pack.col = "First party acceptability", .before = 1)
+) %>% 
+    dplyr::arrange(population, pack.col) %>% 
+    relabel_conds(cond_col = term, wrap = FALSE) %>%
+    relabel_questions(question_col = term, wrap = FALSE) %>% 
+    dplyr::mutate(term = term %>% 
+                      str_to_lower() %>% 
+                      str_replace_all("myvalence", "valence = ") %>% 
+                      str_replace_all("question", "question = ") %>% 
+                      str_replace_all("myqueriedactionstatus", "status = ") %>% 
+                      str_replace(":", " X ")) %>% 
+    dplyr::filter(population != "testable") %>% 
+    tidyr::unite(pack.col, population, pack.col, sep = " - ") %>% 
+    dplyr::select (-c("t_log", "p_log")) %>% 
+    dplyr::filter(p_or < .1) %>% 
+    #filter (!grepl ("Intercept", term)) %>% 
+    kable.packed (
+    "pack.col",
+    caption = "GLMER results, using the full models comparing the two frequency conditions. ONLY EFFECTS < .1 ARE SHOWN; CHANGE THIS",
+    col.names = str_remove(names (.[,-1]), "_.*$"),
+       booktabs = TRUE, escape = FALSE) %>%
+    kableExtra::kable_classic() %>%
+    kableExtra::add_header_above(c(" " = 1, "Log-odds" = 3, "Odd ratios" = 3, " " = 2),
+                                 bold = TRUE) %>% 
+    kableExtra::kable_styling(latex_options =
+                                  c("scale_down",
+                              "hold_position",
+                              "full_width"))
+
+```
+
+
+
+## GLMM with 3 frequency conditions 
+#### Binary ratings (analyzed using GLMER) ADD ORDINAL LATER
+##### Overall
+
+
+```{r prepare-data-for-bin-glmer-3-freq-conds}
+
+# All three frequency conditions (i.e., single, low type frequency, high type frequency)
+dat.social.type.token.sequential.for.glmm.bin.3freq.cond <- dat.social.type.token.sequential %>%
+    dplyr::filter(scoring == "bin") %>% 
+    dplyr::mutate(myQueriedActionStatus = factor(myQueriedActionStatus,
+                                                 levels = c("single", "lowTypeFreq", "highTypeFreq")),
+                  myValence = factor(myValence, 
+                                     levels = c("neutral", "bad", "good")),
+                  question = factor(question,
+                                    levels = c("prevalence", "first.party.acceptability", "third.party.acceptability"))) %>% 
+    dplyr::mutate(across(c(filename, myQueriedAction), factor))
+```
+
+
+```{r overall-glmer-bin-calculate-3-freq-conds}
+
+
+lmer.social.type.token.sequential.bin.overall.3freq.cond.1 <- 
+    map.by.population(~  glmer(
+        rating ~ question * myQueriedActionStatus * myValence + 
+            (1|filename) + (1|myQueriedAction), 
+        control=glmerControl(optimizer="bobyqa"),
+        family="binomial",
+        data = dat.social.type.token.sequential.for.glmm.bin.3freq.cond %>% 
+            dplyr::filter(population == .x)))
+
+
+# Remove random factor; keep it  
+# lmer.social.type.token.sequential.bin.overall.3freq.cond.2 <- 
+#     lmer.social.type.token.sequential.bin.overall.3freq.cond.1 %>% 
+#     purrr::map (~ update(.x,
+#                          ~ . - (1|myQueriedAction)))
+
+# purrr::map2(lmer.social.type.token.sequential.bin.overall.3freq.cond.1,
+#             lmer.social.type.token.sequential.bin.overall.3freq.cond.2,
+#             ~ anova(.x, .y))
+
+# Remove triple interactions; keep it
+# lmer.social.type.token.sequential.bin.overall.3freq.cond.3 <- 
+#     lmer.social.type.token.sequential.bin.overall.3freq.cond.1 %>% 
+#     purrr::map (~ update(.x,
+#                          ~ . - question:myQueriedActionStatus:myValence))
+# 
+# purrr::map2(lmer.social.type.token.sequential.bin.overall.3freq.cond.1,
+#             lmer.social.type.token.sequential.bin.overall.3freq.cond.3,
+#             ~ anova(.x, .y))
+
+lmer.social.type.token.sequential.bin.overall.3freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.overall.3freq.cond.1 %>%
+    purrr::map(~ extract.results.from.binary.model(.x)) %>%
+    purrr::list_rbind(names_to = "population") 
+
+
+```
+
+##### Prevalence (GLMM)
+
+
+```{r prevalence-glmer-bin-calculate-3-freq-conds}
+
+lmer.social.type.token.sequential.bin.prevalence.3freq.cond.1 <- 
+    map.by.population(~  glmer(
+        rating ~ myQueriedActionStatus * myValence + 
+            (1|filename) + (1|myQueriedAction), 
+        control=glmerControl(optimizer="bobyqa"),
+        family="binomial",
+        data = dat.social.type.token.sequential.for.glmm.bin.3freq.cond %>% 
+            dplyr::filter(population == .x) %>% 
+            dplyr::filter(question == "prevalence")))
+
+# Remove random factor  
+lmer.social.type.token.sequential.bin.prevalence.3freq.cond.2 <- 
+    lmer.social.type.token.sequential.bin.prevalence.3freq.cond.1 %>% 
+    purrr::map (~ update(.x,
+                         ~ . - (1|myQueriedAction)))
+
+# purrr::map2(lmer.social.type.token.sequential.bin.prevalence.3freq.cond.1,
+#             lmer.social.type.token.sequential.bin.prevalence.3freq.cond.2,
+#             ~ anova(.x, .y))
+    
+
+## Remove interaction
+lmer.social.type.token.sequential.bin.prevalence.3freq.cond.3 <- 
+    lmer.social.type.token.sequential.bin.prevalence.3freq.cond.1 %>% 
+    purrr::map(~ update(.x, ~ . - myQueriedActionStatus:myValence))
+
+# purrr::map2(
+#     lmer.social.type.token.sequential.bin.prevalence.3freq.cond.1,
+#     lmer.social.type.token.sequential.bin.prevalence.3freq.cond.3,
+#     ~ anova(.x, .y))
+
+# Keep full models
+
+lmer.social.type.token.sequential.bin.prevalence.3freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.prevalence.3freq.cond.1 %>% 
+    purrr::map(~ extract.results.from.binary.model(.x)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+
+##### Third-party acceptability
+
+```{r city-acceptability-other-glmer-bin-calculate-3-freqs-conds}
+
+
+lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.1 <- 
+    map.by.population(~ glmer(rating ~ myQueriedActionStatus * myValence + 
+        (1|filename) + (1|myQueriedAction), 
+    control = glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.social.type.token.sequential.for.glmm.bin.3freq.cond %>% 
+        dplyr::filter(population == .x) %>% 
+        dplyr::filter(question == "third.party.acceptability")))
+
+    
+# Remove random factor  
+lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.2 <- 
+    lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.1 %>% 
+    purrr::map(~update(., ~ . - (1|myQueriedAction)))
+    
+# purrr:::map2(
+#     lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.1,
+#     lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.2,
+#     ~ anova(.x, .y))
+
+## Remove interaction
+lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.3 <- 
+    lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.1 %>% 
+    purrr::map(~ update(.x, ~ . - myQueriedActionStatus:myValence)  )
+
+# purrr::map2(lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.1,
+#             lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.3,
+#             ~ anova(.x, .y))
+
+# Keep full model
+
+lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.1 %>% 
+    purrr::map(~ extract.results.from.binary.model(.x)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+
+    
+```
+
+##### First-party acceptability
+
+```{r city-acceptability-self-glmer-bin-calculate-3-freq-conds}
+
+
+lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.1 <- 
+    map.by.population(~ glmer(rating ~ myQueriedActionStatus * myValence + 
+        (1|filename) + (1|myQueriedAction), 
+    control = glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.social.type.token.sequential.for.glmm.bin.3freq.cond %>% 
+        dplyr::filter(population == .x) %>% 
+        dplyr::filter(question == "first.party.acceptability")))
+
+    
+# Remove random factor  
+lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.2 <-
+    lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.1 %>% 
+    purrr::map(~  update(.x, ~ . - (1|myQueriedAction)))
+    
+# purrr::map2(lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.1,
+#       lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.2,
+#       ~ anova(.x, .y))
+
+## Remove interaction
+lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.3 <- 
+    lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.1 %>% 
+    purrr::map(~ update(.x, ~ . - myQueriedActionStatus:myValence))
+
+# purrr::map2(lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.1,
+#       lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.3,
+#        ~ anova(.x, .y))
+
+# Keep full model for consistency
+
+lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.results <- 
+    lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.1 %>% 
+    purrr::map(~ extract.results.from.binary.model(.x)) %>% 
+    purrr::list_rbind(names_to = "population")
+
+```
+
+
+```{r city-glmer-print-3-freq-conds}
+
+dplyr::bind_rows(
+    lmer.social.type.token.sequential.bin.overall.3freq.cond.results %>% 
+        dplyr::mutate(pack.col = "Overall", .before = 1),
+    
+    lmer.social.type.token.sequential.bin.prevalence.3freq.cond.results %>% 
+        dplyr::mutate(pack.col = "Prevalence", .before = 1),
+    
+    lmer.social.type.token.sequential.bin.acceptability.other.3freq.cond.results %>% 
+        dplyr::mutate(pack.col = "Third party acceptability", .before = 1),
+    
+    lmer.social.type.token.sequential.bin.acceptability.self.3freq.cond.results %>% 
+        dplyr::mutate(pack.col = "First party acceptability", .before = 1)
+) %>% 
+    dplyr::arrange(population, pack.col) %>% 
+    relabel_conds(cond_col = term, wrap = FALSE) %>%
+    relabel_questions(question_col = term, wrap = FALSE) %>% 
+    dplyr::mutate(term = term %>% 
+                      str_replace_all("Myvalence", "valence = ") %>% 
+                      str_replace_all("Question", "question = ") %>% 
+                      str_replace_all("myqueriedactionstatus", "status = ") %>% 
+                      str_replace(":", " X ")) %>% 
+    dplyr::filter(population == "testable") %>% 
+    tidyr::unite(pack.col, population, pack.col, sep = " - ") %>% 
+    dplyr::select (-c("t_log", "p_log")) %>% 
+    #filter (!grepl ("Intercept", term)) %>% 
+    dplyr::filter(p_or < .1) %>% 
+    kable.packed(
+    "pack.col",
+    caption = "GLMER results, using the full models comparing the three frequency conditions. ONLY EFFECTS < .1 ARE SHOWN; CHANGE THIS",
+    col.names = str_remove(names (.[,-1]), "_.*$"),
+    booktabs = TRUE, 
+    escape = TRUE) %>%
+    kableExtra::kable_classic() %>%
+    kableExtra::column_spec(1, width = "2.5cm", latex_valign = "c") %>% 
+    kableExtra::kable_styling(latex_options =
+                                  c("scale_down",
+                                    "hold_position")) %>% 
+    kableExtra::add_header_above(c(" " = 1, "Log-odds" = 3, "Odd ratios" = 3, " " = 2),
+                                 bold = TRUE) 
+
+```
+
+

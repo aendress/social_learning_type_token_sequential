@@ -1,5 +1,5 @@
 ---
-title: "Social learning by type-token frequency - stimulus preparation"
+title: "Social learning by type-token frequency - stimulus preparation - actor focus experiment"
 author: |
   | Ansgar D. Endress
   | City, University of London
@@ -910,7 +910,7 @@ for (current.genderSubjectGroup in 1:2){
             
             # Print lists to file
             write.table(data.frame(current.stim.list.lines1),
-                       file=str_c("../lists/", stimList1.name, ".csv"),
+                       file=str_c("../lists/exp1/", stimList1.name, ".csv"),
                        row.names = FALSE,
                        col.names = FALSE,
                        quote=TRUE,
@@ -918,7 +918,7 @@ for (current.genderSubjectGroup in 1:2){
                        na = "")
             
             write.table(data.frame(current.stim.list.lines2),
-                       file=str_c("../lists/", stimList2.name, ".csv"),
+                       file=str_c("../lists/exp1/", stimList2.name, ".csv"),
                        row.names = FALSE,
                        col.names = FALSE,
                        quote=TRUE,

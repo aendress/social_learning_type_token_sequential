@@ -1,10 +1,12 @@
 % Options for packages loaded elsewhere
 \PassOptionsToPackage{unicode}{hyperref}
 \PassOptionsToPackage{hyphens}{url}
-%
 \documentclass[
 ]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{5}
 \usepackage{iftex}
 \ifPDFTeX
   \usepackage[T1]{fontenc}
@@ -35,8 +37,6 @@
 }{% if KOMA class
   \KOMAoptions{parskip=half}}
 \makeatother
-\usepackage{xcolor}
-\usepackage[margin=1in]{geometry}
 \usepackage{longtable,booktabs,array}
 \usepackage{calc} % for calculating minipage widths
 % Correct order of tables after \paragraph or \subparagraph
@@ -65,7 +65,8 @@
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\setcounter{secnumdepth}{5}
+\usepackage[]{natbib}
+\bibliographystyle{plainnat}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
@@ -80,18 +81,17 @@
 \usepackage[normalem]{ulem}
 \usepackage{makecell}
 \usepackage{xcolor}
-\usepackage[]{natbib}
-\bibliographystyle{plainnat}
 \usepackage{bookmark}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
 \hypersetup{
-  pdftitle={Social learning by type-token frequency - stimulus preparation},
+  pdftitle={Social learning by type-token frequency - stimulus preparation - actor focus experiment},
   pdfkeywords={Keywords},
   hidelinks,
   pdfcreator={LaTeX via pandoc}}
 
-\title{Social learning by type-token frequency - stimulus preparation}
+\title{Social learning by type-token frequency - stimulus preparation -
+actor focus experiment}
 \author{Ansgar D. Endress\\
 City, University of London}
 \date{}
@@ -390,11 +390,11 @@ Finally, participants had to estimate the prevalence of each actions
 (i.e., ``How likely are people in to \emph{}?''), its third-person
 acceptability (i.e., Would \emph{people in } consider it morally
 acceptable to \emph{}?``), and its first-person acceptability
-(i.e.,''Would \emph{you} consider it morally acceptable to \emph{}?{}``;
-all emphases in original). All question were answered on a four point
-scale. In each trial, I first queried the high type-frequency action,
-then the low type-frequency action, and finally the single occurrence
-action.
+(i.e.,''Would \emph{you} consider it morally acceptable to
+\emph{}?{\kern0pt}``; all emphases in original). All question were
+answered on a four point scale. In each trial, I first queried the high
+type-frequency action, then the low type-frequency action, and finally
+the single occurrence action.
 
 In the pilot experiment with students, I also included the Short Dark
 Triad (SD3) questionnaire \cite{Jones2014}, which was removed in the
@@ -617,6 +617,6 @@ Press NEXT to continue…\\
 \bottomrule
 \end{longtable}
 
-  \bibliography{/Users/endress/ansgar.bib}
+\bibliography{/Users/endress/ansgar.bib}
 
 \end{document}
