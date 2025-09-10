@@ -5,7 +5,13 @@ papers/
 ethics/
 # don't upload trial files/lists but create the directory
 trial_files/*
+<<<<<<< HEAD
 lists/*
+=======
+!trial_files/.gitkeep
+lists/*
+!lists/.gitkeep
+>>>>>>> 51d500d (Add placeholder files to keep empty directories in repo)
 
 ## Keep testable data private
 data/994749_sequential_1/*.csv
