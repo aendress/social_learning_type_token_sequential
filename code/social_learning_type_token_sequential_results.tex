@@ -202,6 +202,8 @@ I next turned to the question of whether type-frequency or token-frequency would
 
 The results are shown in Figures \ref{fig:plot-difference-vs-single-raw} and Table \ref{tab:difference-vs-single-raw-print2}. For first-party acceptability, ratings in the high type frequency condition differed reliably from those in the single occurrence condition, mainly for good and neutral actions. For bad actions, while the uncorrected effect was significant, it became marginal after correction in the testable sample, and non-significant in the student sample. In contrast, ratings in the low type frequency condition did not significantly differ from those in the single occurrence condition. First-party acceptability thus seems primarily driven by type rather than token frequency.
 
+To provide evidence for the null hypothesis, I fit two linear models to the first-party acceptability difference scores: one representing the null hypothesis (with the mean fixed at 0) and one representing the alternative hypothesis (with the mean estimated from the data). I then calculated the likelihood of the data under each model, applied corrections for the numbers of parameters using the Bayesian Information Criterion (BIC) and the Akaike Information Criterion (AIC), and computed the likelihood ratio, with values greater than one indicating support for the null hypothesis. As shown in Table \ref{tab:difference-vs-single-raw-print2}, the first-party acceptability difference scores comparing the low type-frequency condition to the single-occurrence condition generally provided weak to moderate evidence in favor of the null hypothesis, suggesting again that first-party acceptability is primarily driven by type frequency rather than token frequency.
+
 For both third-party acceptability and prevalence, ratings in both the high and low type frequency conditions differed from the single occurrence condition across all valence conditions, though the difference scores were roughly twice as large for the high type frequency condition compared to the low type frequency condition. Both type and token frequency thus affect these ratings, though I will demonstrate below that the effect of type frequency is substantially larger.
 
 \clearpage
@@ -648,15 +650,15 @@ As shown in Table \ref{tab:clmm-raw-effects-of-valency2}, acceptability ratings 
 
 \subsection{Comparisons of the high and low type-frequency conditions against the single occurrence condition}\label{comparisons-of-the-high-and-low-type-frequency-conditions-against-the-single-occurrence-condition-1}
 
-\begin{longtable}[t]{llrrrrrrl}
-\caption{\label{tab:difference-vs-single-raw-print2}Descriptives for the difference scores against the single occurrence condition ($\frac{\text{High Type-Frequency} - \text{Single Occurrence}}{\text{High Type-Frequency} + \text{Single Occurrence}}$ and $\frac{\text{Low Type-Frequency} - \text{Single Occurrence}}{\text{Low Type-Frequency} + \text{Single Occurrence}}$). The p-value reflects a Wilcoxon test against zero. $p_{\scriptsize{hb}}$ reflects the Holm-Bonferroni corrected p-value. The correction was applied separately for each sample. Significance codes: *** $p \leq .001$, ** $p \leq .01$, * $p \leq .05$, . $p \leq .10$, ns = not significant.}\\
+\begin{longtable}[t]{llrrrrrrlrr}
+\caption{\label{tab:difference-vs-single-raw-print2}Descriptives for the difference scores against the single occurrence condition ($\frac{\text{High Type-Frequency} - \text{Single Occurrence}}{\text{High Type-Frequency} + \text{Single Occurrence}}$ and $\frac{\text{Low Type-Frequency} - \text{Single Occurrence}}{\text{Low Type-Frequency} + \text{Single Occurrence}}$). The p-value reflects a Wilcoxon test against zero. $p_{\scriptsize{hb}}$ reflects the Holm-Bonferroni corrected p-value. The correction was applied separately for each sample. The likelihood ratios $LR_{01,\text{BIC}}$ and $LR_{01,\text{AIC}}$ reflect likelihood ratios in favor of the null hypothesis after correction with the Bayesian Information Criterion and the Akaike Information Criterion, respectively. Significance codes: *** $p \leq .001$, ** $p \leq .01$, * $p \leq .05$, . $p \leq .10$, ns = not significant.}\\
 \toprule
-Valence & Frequency Condition & N & $M$ & $\mathit{SE}$ & Cohen's $d$ & $p$ & $p_{\text{hb}}$ &  \\
+Valence & Frequency Condition & N & $M$ & $\mathit{SE}$ & Cohen's $d$ & $p$ & $p_{\text{hb}}$ &   & lr01.bic & lr01.aic\\
 \midrule
 \endfirsthead
-\caption[]{\label{tab:difference-vs-single-raw-print2}Descriptives for the difference scores against the single occurrence condition ($\frac{\text{High Type-Frequency} - \text{Single Occurrence}}{\text{High Type-Frequency} + \text{Single Occurrence}}$ and $\frac{\text{Low Type-Frequency} - \text{Single Occurrence}}{\text{Low Type-Frequency} + \text{Single Occurrence}}$). The p-value reflects a Wilcoxon test against zero. $p_{\scriptsize{hb}}$ reflects the Holm-Bonferroni corrected p-value. The correction was applied separately for each sample. Significance codes: *** $p \leq .001$, ** $p \leq .01$, * $p \leq .05$, . $p \leq .10$, ns = not significant. \textit{(continued)}}\\
+\caption[]{\label{tab:difference-vs-single-raw-print2}Descriptives for the difference scores against the single occurrence condition ($\frac{\text{High Type-Frequency} - \text{Single Occurrence}}{\text{High Type-Frequency} + \text{Single Occurrence}}$ and $\frac{\text{Low Type-Frequency} - \text{Single Occurrence}}{\text{Low Type-Frequency} + \text{Single Occurrence}}$). The p-value reflects a Wilcoxon test against zero. $p_{\scriptsize{hb}}$ reflects the Holm-Bonferroni corrected p-value. The correction was applied separately for each sample. The likelihood ratios $LR_{01,\text{BIC}}$ and $LR_{01,\text{AIC}}$ reflect likelihood ratios in favor of the null hypothesis after correction with the Bayesian Information Criterion and the Akaike Information Criterion, respectively. Significance codes: *** $p \leq .001$, ** $p \leq .01$, * $p \leq .05$, . $p \leq .10$, ns = not significant. \textit{(continued)}}\\
 \toprule
-Valence & Frequency Condition & N & $M$ & $\mathit{SE}$ & Cohen's $d$ & $p$ & $p_{\text{hb}}$ &  \\
+Valence & Frequency Condition & N & $M$ & $\mathit{SE}$ & Cohen's $d$ & $p$ & $p_{\text{hb}}$ &   & lr01.bic & lr01.aic\\
 \midrule
 \endhead
 
@@ -664,53 +666,53 @@ Valence & Frequency Condition & N & $M$ & $\mathit{SE}$ & Cohen's $d$ & $p$ & $p
 \bottomrule
 \endlastfoot
 \addlinespace[0.3em]
-\multicolumn{9}{l}{\textbf{First Party Acceptability - students}}\\
-\hspace{1em}bad & High Type-Frequency & 17 & 0.022 & 0.010 & 0.551 & 0.054 & 0.178 & ns\\
-\hspace{1em}bad & Low Type-Frequency & 17 & 0.007 & 0.011 & 0.147 & 0.551 & 0.551 & ns\\
-\hspace{1em}neutral & High Type-Frequency & 17 & 0.069 & 0.022 & 0.776 & 0.003 & 0.017 & *\\
-\hspace{1em}neutral & Low Type-Frequency & 17 & 0.029 & 0.014 & 0.530 & 0.045 & 0.178 & ns\\
-\hspace{1em}good & High Type-Frequency & 18 & 0.010 & 0.004 & 0.659 & 0.014 & 0.072 & .\\
-\hspace{1em}good & Low Type-Frequency & 18 & 0.007 & 0.005 & 0.330 & 0.213 & 0.426 & ns\\
+\multicolumn{11}{l}{\textbf{First Party Acceptability - students}}\\
+\hspace{1em}bad & High Type-Frequency & 17 & 0.022 & 0.010 & 0.551 & 0.054 & 0.178 & ns & 0.313 & 0.278\\
+\hspace{1em}bad & Low Type-Frequency & 17 & 0.007 & 0.011 & 0.147 & 0.551 & 0.551 & ns & 3.433 & 3.040\\
+\hspace{1em}neutral & High Type-Frequency & 17 & 0.069 & 0.022 & 0.776 & 0.003 & 0.017 & * &  & \\
+\hspace{1em}neutral & Low Type-Frequency & 17 & 0.029 & 0.014 & 0.530 & 0.045 & 0.178 & ns & 0.377 & 0.334\\
+\hspace{1em}good & High Type-Frequency & 18 & 0.010 & 0.004 & 0.659 & 0.014 & 0.072 & . & 0.085 & 0.072\\
+\hspace{1em}good & Low Type-Frequency & 18 & 0.007 & 0.005 & 0.330 & 0.213 & 0.426 & ns & 1.595 & 1.345\\
 \addlinespace[0.3em]
-\multicolumn{9}{l}{\textbf{First Party Acceptability - testable}}\\
-\hspace{1em}bad & High Type-Frequency & 41 & 0.022 & 0.009 & 0.382 & 0.024 & 0.096 & .\\
-\hspace{1em}bad & Low Type-Frequency & 41 & 0.009 & 0.007 & 0.211 & 0.165 & 0.495 & ns\\
-\hspace{1em}neutral & High Type-Frequency & 39 & 0.036 & 0.009 & 0.622 & 0.001 & 0.005 & **\\
-\hspace{1em}neutral & Low Type-Frequency & 39 & 0.014 & 0.008 & 0.281 & 0.173 & 0.495 & ns\\
-\hspace{1em}good & High Type-Frequency & 39 & 0.016 & 0.005 & 0.475 & 0.004 & 0.021 & *\\
-\hspace{1em}good & Low Type-Frequency & 39 & 0.006 & 0.005 & 0.176 & 0.313 & 0.495 & ns\\
+\multicolumn{11}{l}{\textbf{First Party Acceptability - testable}}\\
+\hspace{1em}bad & High Type-Frequency & 41 & 0.022 & 0.009 & 0.382 & 0.024 & 0.096 & . & 0.322 & 0.152\\
+\hspace{1em}bad & Low Type-Frequency & 41 & 0.009 & 0.007 & 0.211 & 0.165 & 0.495 & ns & 2.562 & 1.210\\
+\hspace{1em}neutral & High Type-Frequency & 39 & 0.036 & 0.009 & 0.622 & 0.001 & 0.005 & ** &  & \\
+\hspace{1em}neutral & Low Type-Frequency & 39 & 0.014 & 0.008 & 0.281 & 0.173 & 0.495 & ns & 1.342 & 0.654\\
+\hspace{1em}good & High Type-Frequency & 39 & 0.016 & 0.005 & 0.475 & 0.004 & 0.021 & * &  & \\
+\hspace{1em}good & Low Type-Frequency & 39 & 0.006 & 0.005 & 0.176 & 0.313 & 0.495 & ns & 3.402 & 1.658\\
 \addlinespace[0.3em]
-\multicolumn{9}{l}{\textbf{Third Party Acceptability - students}}\\
-\hspace{1em}bad & High Type-Frequency & 17 & 0.238 & 0.046 & 1.286 & 0.001 & 0.009 & **\\
-\hspace{1em}bad & Low Type-Frequency & 17 & 0.067 & 0.021 & 0.802 & 0.002 & 0.016 & *\\
-\hspace{1em}neutral & High Type-Frequency & 17 & 0.201 & 0.029 & 1.713 & 0.000 & 0.008 & **\\
-\hspace{1em}neutral & Low Type-Frequency & 17 & 0.084 & 0.021 & 0.997 & 0.002 & 0.017 & *\\
-\hspace{1em}good & High Type-Frequency & 18 & 0.126 & 0.026 & 1.171 & 0.000 & 0.008 & **\\
-\hspace{1em}good & Low Type-Frequency & 18 & 0.076 & 0.021 & 0.889 & 0.000 & 0.008 & **\\
+\multicolumn{11}{l}{\textbf{Third Party Acceptability - students}}\\
+\hspace{1em}bad & High Type-Frequency & 17 & 0.238 & 0.046 & 1.286 & 0.001 & 0.009 & ** &  & \\
+\hspace{1em}bad & Low Type-Frequency & 17 & 0.067 & 0.021 & 0.802 & 0.002 & 0.016 & * &  & \\
+\hspace{1em}neutral & High Type-Frequency & 17 & 0.201 & 0.029 & 1.713 & 0.000 & 0.008 & ** &  & \\
+\hspace{1em}neutral & Low Type-Frequency & 17 & 0.084 & 0.021 & 0.997 & 0.002 & 0.017 & * &  & \\
+\hspace{1em}good & High Type-Frequency & 18 & 0.126 & 0.026 & 1.171 & 0.000 & 0.008 & ** &  & \\
+\hspace{1em}good & Low Type-Frequency & 18 & 0.076 & 0.021 & 0.889 & 0.000 & 0.008 & ** &  & \\
 \addlinespace[0.3em]
-\multicolumn{9}{l}{\textbf{Third Party Acceptability - testable}}\\
-\hspace{1em}bad & High Type-Frequency & 41 & 0.221 & 0.025 & 1.418 & 0.000 & 0.000 & ***\\
-\hspace{1em}bad & Low Type-Frequency & 41 & 0.129 & 0.020 & 1.014 & 0.000 & 0.000 & ***\\
-\hspace{1em}neutral & High Type-Frequency & 39 & 0.131 & 0.020 & 1.066 & 0.000 & 0.000 & ***\\
-\hspace{1em}neutral & Low Type-Frequency & 39 & 0.058 & 0.019 & 0.485 & 0.002 & 0.010 & *\\
-\hspace{1em}good & High Type-Frequency & 39 & 0.072 & 0.012 & 0.970 & 0.000 & 0.000 & ***\\
-\hspace{1em}good & Low Type-Frequency & 39 & 0.047 & 0.010 & 0.794 & 0.000 & 0.000 & ***\\
+\multicolumn{11}{l}{\textbf{Third Party Acceptability - testable}}\\
+\hspace{1em}bad & High Type-Frequency & 41 & 0.221 & 0.025 & 1.418 & 0.000 & 0.000 & *** &  & \\
+\hspace{1em}bad & Low Type-Frequency & 41 & 0.129 & 0.020 & 1.014 & 0.000 & 0.000 & *** &  & \\
+\hspace{1em}neutral & High Type-Frequency & 39 & 0.131 & 0.020 & 1.066 & 0.000 & 0.000 & *** &  & \\
+\hspace{1em}neutral & Low Type-Frequency & 39 & 0.058 & 0.019 & 0.485 & 0.002 & 0.010 & * &  & \\
+\hspace{1em}good & High Type-Frequency & 39 & 0.072 & 0.012 & 0.970 & 0.000 & 0.000 & *** &  & \\
+\hspace{1em}good & Low Type-Frequency & 39 & 0.047 & 0.010 & 0.794 & 0.000 & 0.000 & *** &  & \\
 \addlinespace[0.3em]
-\multicolumn{9}{l}{\textbf{Prevalence - students}}\\
-\hspace{1em}bad & High Type-Frequency & 17 & 0.259 & 0.035 & 1.856 & 0.000 & 0.008 & **\\
-\hspace{1em}bad & Low Type-Frequency & 17 & 0.133 & 0.030 & 1.120 & 0.001 & 0.009 & **\\
-\hspace{1em}neutral & High Type-Frequency & 17 & 0.284 & 0.040 & 1.773 & 0.000 & 0.008 & **\\
-\hspace{1em}neutral & Low Type-Frequency & 17 & 0.130 & 0.025 & 1.299 & 0.001 & 0.009 & **\\
-\hspace{1em}good & High Type-Frequency & 18 & 0.172 & 0.026 & 1.580 & 0.000 & 0.004 & **\\
-\hspace{1em}good & Low Type-Frequency & 18 & 0.102 & 0.024 & 1.031 & 0.001 & 0.010 & **\\
+\multicolumn{11}{l}{\textbf{Prevalence - students}}\\
+\hspace{1em}bad & High Type-Frequency & 17 & 0.259 & 0.035 & 1.856 & 0.000 & 0.008 & ** &  & \\
+\hspace{1em}bad & Low Type-Frequency & 17 & 0.133 & 0.030 & 1.120 & 0.001 & 0.009 & ** &  & \\
+\hspace{1em}neutral & High Type-Frequency & 17 & 0.284 & 0.040 & 1.773 & 0.000 & 0.008 & ** &  & \\
+\hspace{1em}neutral & Low Type-Frequency & 17 & 0.130 & 0.025 & 1.299 & 0.001 & 0.009 & ** &  & \\
+\hspace{1em}good & High Type-Frequency & 18 & 0.172 & 0.026 & 1.580 & 0.000 & 0.004 & ** &  & \\
+\hspace{1em}good & Low Type-Frequency & 18 & 0.102 & 0.024 & 1.031 & 0.001 & 0.010 & ** &  & \\
 \addlinespace[0.3em]
-\multicolumn{9}{l}{\textbf{Prevalence - testable}}\\
-\hspace{1em}bad & High Type-Frequency & 41 & 0.207 & 0.018 & 1.803 & 0.000 & 0.000 & ***\\
-\hspace{1em}bad & Low Type-Frequency & 41 & 0.123 & 0.017 & 1.151 & 0.000 & 0.000 & ***\\
-\hspace{1em}neutral & High Type-Frequency & 39 & 0.227 & 0.024 & 1.521 & 0.000 & 0.000 & ***\\
-\hspace{1em}neutral & Low Type-Frequency & 39 & 0.111 & 0.018 & 0.977 & 0.000 & 0.000 & ***\\
-\hspace{1em}good & High Type-Frequency & 39 & 0.131 & 0.018 & 1.176 & 0.000 & 0.000 & ***\\
-\hspace{1em}good & Low Type-Frequency & 39 & 0.079 & 0.015 & 0.851 & 0.000 & 0.000 & ***\\*
+\multicolumn{11}{l}{\textbf{Prevalence - testable}}\\
+\hspace{1em}bad & High Type-Frequency & 41 & 0.207 & 0.018 & 1.803 & 0.000 & 0.000 & *** &  & \\
+\hspace{1em}bad & Low Type-Frequency & 41 & 0.123 & 0.017 & 1.151 & 0.000 & 0.000 & *** &  & \\
+\hspace{1em}neutral & High Type-Frequency & 39 & 0.227 & 0.024 & 1.521 & 0.000 & 0.000 & *** &  & \\
+\hspace{1em}neutral & Low Type-Frequency & 39 & 0.111 & 0.018 & 0.977 & 0.000 & 0.000 & *** &  & \\
+\hspace{1em}good & High Type-Frequency & 39 & 0.131 & 0.018 & 1.176 & 0.000 & 0.000 & *** &  & \\
+\hspace{1em}good & Low Type-Frequency & 39 & 0.079 & 0.015 & 0.851 & 0.000 & 0.000 & *** &  & \\*
 \end{longtable}
 
 \clearpage

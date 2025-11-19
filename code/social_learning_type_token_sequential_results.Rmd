@@ -865,16 +865,23 @@ dat.social.type.token.sequential.m.d.long.summary.vs.single  <-
                      SE = se(d),
                      cohen.d = M/sd(d),
                      p = wilcox.p(d, 0), 
+                     lr01.bic = lik.ratio(d, 0, correctionType = "BIC", verbose = FALSE),
+                     lr01.aic = lik.ratio(d, 0, correctionType = "AIC", verbose = FALSE),
                      .groups = "drop") %>% 
     dplyr::group_by(population, scoring) %>% 
     dplyr::mutate(p_hb = p.adjust(p, method = "holm")) %>% 
     dplyr::ungroup() %>% 
+    add_sig_stars(p_hb) %>% 
+    dplyr::mutate(dplyr::across(starts_with("lr01."),
+                                ~ dplyr::if_else(p_hb > .05,
+                                                 .x, NA_real_))) %>% 
+    dplyr::relocate(starts_with("lr01."), .after = "sig") 
     # tidyr::pivot_wider(id_cols = c(population, question, myValence, contrast),
     #                    names_from = scoring,
     #                    values_from = c(N, M, SE, cohen.d, p, p_hb),
     #                    names_vary = "slowest") %>% 
     # dplyr::select(-N_raw) %>% 
-    add_sig_stars(p_hb)
+
 
 ```
 
@@ -895,13 +902,14 @@ dat.social.type.token.sequential.m.d.long.for.table <-
         p_hb <= .05 ~ 2,
         TRUE ~ 0)) %>% 
     dplyr::rename_with(rename_col_names) %>% 
-    dplyr::rename(`Frequency Condition` = contrast)
+    dplyr::rename(`Frequency Condition` = contrast) 
     
 dat.social.type.token.sequential.m.d.long.for.table %>%  
     dplyr::select(-significance_color, -scoring) %>% 
     kable.packed("pack.col", 
-                 caption = "Descriptives for the difference scores against the single occurrence condition ($\\frac{\\text{High Type-Frequency} - \\text{Single Occurrence}}{\\text{High Type-Frequency} + \\text{Single Occurrence}}$ and $\\frac{\\text{Low Type-Frequency} - \\text{Single Occurrence}}{\\text{Low Type-Frequency} + \\text{Single Occurrence}}$). The p-value reflects a Wilcoxon test against zero. $p_{\\scriptsize{hb}}$ reflects the Holm-Bonferroni corrected p-value. The correction was applied separately for each sample. Significance codes: *** $p \\leq .001$, ** $p \\leq .01$, * $p \\leq .05$, . $p \\leq .10$, ns = not significant.",
+                 caption = "Descriptives for the difference scores against the single occurrence condition ($\\frac{\\text{High Type-Frequency} - \\text{Single Occurrence}}{\\text{High Type-Frequency} + \\text{Single Occurrence}}$ and $\\frac{\\text{Low Type-Frequency} - \\text{Single Occurrence}}{\\text{Low Type-Frequency} + \\text{Single Occurrence}}$). The p-value reflects a Wilcoxon test against zero. $p_{\\scriptsize{hb}}$ reflects the Holm-Bonferroni corrected p-value. The correction was applied separately for each sample. The likelihood ratios $LR_{01,\\text{BIC}}$ and $LR_{01,\\text{AIC}}$ reflect likelihood ratios in favor of the null hypothesis after correction with the Bayesian Information Criterion and the Akaike Information Criterion, respectively. Significance codes: *** $p \\leq .001$, ** $p \\leq .01$, * $p \\leq .05$, . $p \\leq .10$, ns = not significant.",
                  #col.names = c("Valency", "Action Status", "N", rep(c("M", "SE", "Cohen's d", "p", "$p_{HB}$"), 2)),
+                 escape = FALSE,
                  booktabs = TRUE,
                  longtable = TRUE) %>% 
     #kableExtra::add_header_above(header = c(" " = 3, "Binary ratings" = 5, "Raw ratings" = 5), bold = TRUE) %>%
@@ -965,6 +973,8 @@ ggpubr::ggarrange (plotlist = l_plot_difference_vs_single_raw,
 
 
 The results are shown in Figures \ref{fig:plot-difference-vs-single-raw} and Table \ref{tab:difference-vs-single-raw-print2}. For first-party acceptability, ratings in the high type frequency condition differed reliably from those in the single occurrence condition, mainly for good and neutral actions. For bad actions, while the uncorrected effect was significant, it became marginal after correction in the testable sample, and non-significant in the student sample. In contrast, ratings in the low type frequency condition did not significantly differ from those in the single occurrence condition. First-party acceptability thus seems primarily driven by type rather than token frequency.
+
+To provide evidence for the null hypothesis, I fit two linear models to the first-party acceptability difference scores: one representing the null hypothesis (with the mean fixed at 0) and one representing the alternative hypothesis (with the mean estimated from the data). I then calculated the likelihood of the data under each model, applied corrections for the numbers of parameters using the Bayesian Information Criterion (BIC) and the Akaike Information Criterion (AIC), and computed the likelihood ratio, with values greater than one indicating support for the null hypothesis. As shown in Table \ref{tab:difference-vs-single-raw-print2}, the first-party acceptability difference scores comparing the low type-frequency condition to the single-occurrence condition generally provided weak to moderate evidence in favor of the null hypothesis, suggesting again that first-party acceptability is primarily driven by type frequency rather than token frequency.
 
 For both third-party acceptability and prevalence, ratings in both the high and low type frequency conditions differed from the single occurrence condition across all valence conditions, though the difference scores were roughly twice as large for the high type frequency condition compared to the low type frequency condition. Both type and token frequency thus affect these ratings, though I will demonstrate below that the effect of type frequency is substantially larger.
 
