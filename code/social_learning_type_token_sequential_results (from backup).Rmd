@@ -33,6 +33,7 @@ output:
     highlight: tango
     mathjax: local
 csl: /Users/endress/csl_files/science.csl
+keywords: Keywords
 abstract: Abstract (to be written). Argument structure - See below. Analysis structure - 1. Descriptives of difference scores and tests against zero. 2. GLMMs, with reference to ANOVA. Discuss quorum sensing [@Sumpter2009] Discuss moral repetition effect, and tolerance principle and submit to psych sci. In intro. Different formal perspectives suggest that mere frequency should not be relevant, From a learning perspective,  [Explanation of tolerance principle; argue later that threshold is 8/ln(8) = 3.8, but that we did not vary this experimentally as it's too long; general explanation of tolerance principle- When having a productive rule is faster than listing all items as exception]. From a representational perspective, dispositions. intrinsic properties of banana; bayesian argument. From a social perspective, majority. Whatever the moral frequency guy argues.
 ---
 
@@ -62,8 +63,6 @@ knitr::opts_chunk$set(
     fig.align = 'center',
     # Default image width
     out.width = '80%')
-
-knitr::opts_knit$set(kable.force.latex = TRUE)
 
 # other knits options are here:
 # https://yihui.name/knitr/options/
@@ -685,33 +684,7 @@ dat.social.type.token.sequential %>%
     caption = "Demographics of the final sample",
         escape = FALSE) %>%
     kableExtra::add_header_above(c(" " = 5, "Age" = 2), bold = TRUE) %>% 
-    kableExtra::kable_classic_2()
-
-```
-
-
-```{r add-combined-population}
-
-
-list(
-    dat.social.type.token.sequential          = dat.social.type.token.sequential,
-    dat.social.type.token.sequential.m        = dat.social.type.token.sequential.m,
-    dat.social.type.token.sequential.m.wide   = dat.social.type.token.sequential.m.wide,
-    dat.social.type.token.sequential.m.d.long = dat.social.type.token.sequential.m.d.long
-) %>%
-    purrr::map(
-        \(dat) {
-            dplyr::bind_rows(
-                dat, 
-                dat %>% 
-                    dplyr::mutate(
-                        population = "combined"
-                    )
-            )
-        }
-    ) %>% 
-    list2env(envir = .GlobalEnv) %>%
-    invisible()
+    kableExtra::kable_classic_2() 
 
 ```
 
@@ -722,37 +695,29 @@ list(
 ## Raw ratings 
 
 
-```{r plot-ratings-raw-prepare}
-
-l_plot_ratings_raw <- levels2(dat.social.type.token.sequential.m$population) %>%
-    sort %>%
-    purrr::set_names() %>%
-    purrr::map(
-        \(current_population) {
-
-            dat.social.type.token.sequential.m %>%
-                dplyr::filter(population == current_population) %>%
-                dplyr::filter(scoring == "raw") %>%
-                relabel_conds %>%
-                relabel_questions(wrap = TRUE, sort = TRUE, sort_order = c(2, 3, 1)) %>%
-                ggplot(aes (x = myQueriedActionStatus, y = rating)) %>%
-                violin_plot_template(yintercept = 2.5, add.dot.plot = (current_population != "combined")) +
-                theme(axis.title.x = element_blank(),
-                      axis.text.x = element_text(angle = 60, vjust = .5, hjust=.5)) +
-                labs(y = "Rating",
-                     title = str_to_title(current_population)) +
-                #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
-                facet_grid(question ~ myValence, labeller = labeller(.default = title_case_labeller))
-
-        })
-```
-
 ```{r plot-ratings-raw, fig.cap = "Ratings for (a) testable participants and (b) students. The dots, error bars and violin represent the sample average, 95\\% bootstrap confidence intervals and the distribution of the individual responses, respectively. Open circles represent individual participants.", fig.height=6.5, fig.width=9.5}
 
+levels2(dat.social.type.token.sequential.m$population) %>% 
+    sort %>% 
+    purrr::map(~ {
+        
+        dat.social.type.token.sequential.m %>% 
+            dplyr::filter(population == .x) %>% 
+            dplyr::filter(scoring == "raw") %>% 
+            relabel_conds %>% 
+            relabel_questions(wrap = TRUE, sort = TRUE, sort_order = c(2, 3, 1)) %>% 
+            ggplot(aes (x = myQueriedActionStatus, y = rating)) %>% 
+            violin_plot_template(yintercept = 2.5) +
+            theme(axis.title.x = element_blank(),
+                  axis.text.x = element_text(angle = 60, vjust = .5, hjust=.5)) + 
+            labs(y = "Rating", 
+                 title = str_to_title(.x)) + 
+            #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+            facet_grid(question ~ myValence, labeller = labeller(.default = title_case_labeller))
+        
+    }) %>% 
+ggpubr::ggarrange (plotlist = .,
 
-ggpubr::ggarrange(
-    plotlist = l_plot_ratings_raw %>% 
-        purrr::discard_at("combined"),
     nrow = 1,
     labels = "auto",
     common.legend = TRUE,
@@ -764,26 +729,26 @@ ggpubr::ggarrange(
 The raw ratings are shown in Figure \ref{fig:plot-ratings-raw} and Table \ref{tab:print-descriptives-ratings-raw2}. As shown in Table \ref{tab:clmm-raw-effects-of-valency2}, a  CLMM with a logit link function, including the fixed predictors Valence and Frequency Condition, their interaction, and a random slope for participants—showed that, for both acceptability questions and both samples, good deeds were judged more positively than neutral ones, and neutral ones more positively than bad ones. The valence manipulation was thus successful.
 
 
-```{r clmm-raw-effects-of-valency-calculate, results = 'hide'}
+```{r clmm-raw-effects-of-valency, results = 'hide'}
 
-clmm.social.type.token.sequential.raw.effects.of.valency <- tidyr::crossing(
+tidyr::crossing(
     # Avoid clashes with the column names below
     pop = levels2(dat.social.type.token.sequential.m$population),
-    Q = levels2(dat.social.type.token.sequential.m$question) %>%
-        grepv("accept", .)) %>%
+    Q = levels2(dat.social.type.token.sequential.m$question) %>% 
+        grepv("accept", .)) %>% 
     purrr::pmap_df(function(pop, Q){
-
-
-        tmp_model <- ordinal::clmm(rating ~ myValence * myQueriedActionStatus +
-                                       (1|filename),
-                                   data = dat.social.type.token.sequential %>%
-                                       dplyr::filter(scoring == "raw") %>%
-                                       dplyr::filter(population == pop) %>%
-                                       dplyr::filter(str_detect(as.character(question), Q)) %>%
+        
+        
+        tmp_model <- ordinal::clmm(rating ~ myValence * myQueriedActionStatus + 
+                                       (1|filename), 
+                                   data = dat.social.type.token.sequential %>% 
+                                       dplyr::filter(scoring == "raw") %>% 
+                                       dplyr::filter(population == pop) %>% 
+                                       dplyr::filter(str_detect(as.character(question), Q)) %>% 
                                        dplyr::mutate(
                                            rating = factor(rating, ordered = TRUE),
-                                           myValence = factor(myValence, levels = c("neutral", "bad", "good"))) %>%
-                                       relabel_conds(wrap = FALSE) %>%
+                                           myValence = factor(myValence, levels = c("neutral", "bad", "good"))) %>% 
+                                       relabel_conds(wrap = FALSE) %>% 
                                        relabel_questions(wrap = FALSE, sort = TRUE),
                                    control = clmm.control(
                                        method = "nlminb",
@@ -796,37 +761,29 @@ clmm.social.type.token.sequential.raw.effects.of.valency <- tidyr::crossing(
                                        checkRanef = "warn"
                                    ),
                                     Hess = TRUE,
-                                   link = "logit")
-
-        parameters::model_parameters(tmp_model) %>%
+                                   link = "logit") 
+        
+        parameters::model_parameters(tmp_model) %>% 
         # Maybe cleaner with parameters
         # coefficients(summary(tmp_model)) %>%
         #     as.data.frame %>%
         #     tibble::rownames_to_column("Parameter") %>%
-            dplyr::filter(str_detect(Parameter, "\\|", negate = TRUE)) %>%
-            dplyr::mutate(population = pop,
+            dplyr::filter(str_detect(Parameter, "\\|", negate = TRUE)) %>% 
+            dplyr::mutate(population = pop, 
                           question = Q,
                           .before = 1)
     }
     ) %>%
     dplyr::filter(str_detect(Parameter, "^myValence(good|bad)$")) %>%
-    add_sig_stars(p)
-
-```
-
-```{r clmm-raw-effects-of-valency, results = 'hide'}
-
-clmm.social.type.token.sequential.raw.effects.of.valency %>%
-    dplyr::filter(population != "combined") %>%
-    dplyr::rename_with(rename_col_names) %>%
-    relabel_questions(wrap = FALSE, sort = TRUE) %>%
-    relabel_terms %>%
+    add_sig_stars(p) %>% 
+    dplyr::rename_with(rename_col_names) %>% 
+    relabel_questions(wrap = FALSE, sort = TRUE) %>% 
+    relabel_terms %>% 
     tidyr::unite(pack.col, question, population, sep = " - ") %>%
-    dplyr::select(-Effects, -Group, -df_error) %>%
+    dplyr::select(-Effects, -Group, -df_error) %>% 
     kable.packed("pack.col",
-                 caption = "Results of a set of cumulative linear mixed model, fitted separately for each sample (online or students) and domain (first-part acceptability and third-party acceptability), with the fixed factor predictors valence and frequency condition as well as their interaction, as well as a random slope for participants. Only the main effect of valence is shown. Significance codes: *** $p \\\\leq .001$, ** $p \\\\leq .01$, * $p \\\\leq .05$, . $p \\\\leq .10$, ns = not significant.",
+                 caption = "Results on a set of cumulative linear mixed model, fitted separately for each sample (online or students) and domain (first-part acceptability and third-party acceptability), with the fixed factor predictors valence and frequency condition as well as their interaction, as well as a random slope for participants. Only the main effect of valence is shown. Significance codes: *** $p \\\\leq .001$, ** $p \\\\leq .01$, * $p \\\\leq .05$, . $p \\\\leq .10$, ns = not significant.",
                  #col.names = c("", rep(c("N", "M", "SE", "Cohen's d", "p"), 2)),
-                 escape = FALSE,
                  booktabs = TRUE,
                  longtable = TRUE) %>%
     #kableExtra::add_header_above(header = c(" " = 1, "Students" = 5, "Testable" = 5), bold = TRUE) %>%
@@ -839,13 +796,13 @@ clmm.social.type.token.sequential.raw.effects.of.valency %>%
 
 ```
 
-```{r descriptives-ratings-raw-calculate, results = 'hide'}
+```{r print-descriptives-ratings-raw, results = 'hide'}
 
-dat.social.type.token.sequential.m.for.table <- dat.social.type.token.sequential.m %>%
-    dplyr::filter(scoring == "raw") %>%
-    dplyr::select(-scoring) %>%
-    dplyr::group_by(population, myValence, myQueriedActionStatus, question) %>%
-    relabel_conds(wrap = FALSE) %>%
+dat.social.type.token.sequential.m.for.table <- dat.social.type.token.sequential.m %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    dplyr::select(-scoring) %>% 
+    dplyr::group_by(population, myValence, myQueriedActionStatus, question) %>% 
+    relabel_conds(wrap = FALSE) %>% 
     dplyr::summarize(
         N = n(),
         M = mean(rating),
@@ -853,38 +810,34 @@ dat.social.type.token.sequential.m.for.table <- dat.social.type.token.sequential
         d = M/sd(rating),
         # That's correct only for raw ratings
         p = wilcox.p(rating, mu = 2.5),
-        .groups = "drop") %>%
-    add_sig_stars(p) %>%
+        .groups = "drop") %>% 
+    add_sig_stars(p) %>% 
     tidyr::pivot_wider(id_cols = c(myValence, myQueriedActionStatus, question),
                        names_from = population,
                        values_from = c("N", "M", "SE", "d", "p", "sig"),
-                       names_vary = "slowest") %>%
-    relabel_questions(wrap = FALSE, sort = TRUE) %>%
-    dplyr::arrange(desc(question), myValence, myQueriedActionStatus) %>%
-    tidyr::unite(pack.col, question, myValence, sep = " - ") %>%
+                       names_vary = "slowest") %>%     
+    relabel_questions(wrap = FALSE, sort = TRUE) %>% 
+    dplyr::arrange(desc(question), myValence, myQueriedActionStatus) %>% 
+    tidyr::unite(pack.col, question, myValence, sep = " - ") %>% 
     dplyr::mutate(is_above_chance = p_testable <= 0.05 & M_testable > 2.5,
                   is_below_chance = p_testable <= 0.05 & M_testable < 2.5)
 
-```
 
-```{r print-descriptives-ratings-raw, results = 'hide'}
-
-dat.social.type.token.sequential.m.for.table %>%
-    dplyr::select(-dplyr::ends_with("_combined")) %>%
-    dplyr::rename_with(rename_col_names) %>%
-    dplyr::select(-is_above_chance, -is_below_chance) %>%
-    kable.packed("pack.col",
+dat.social.type.token.sequential.m.for.table %>% 
+    dplyr::rename_with(rename_col_names) %>% 
+    dplyr::select(-is_above_chance, -is_below_chance) %>% 
+    kable.packed("pack.col", 
                  caption = "Descriptives for the raw ratings. The p value reflects a Wilcoxon test against the scale midpoint of 2.5. Lines in bold face and with a clear background reflect ratings that are significantly above 2.5 in the online sample. Lines in bold face, red font color and a gray background reflect ratings that are significantly below 2.5 in the online sample. Significance codes: *** $p \\leq .001$, ** $p \\leq .01$, * $p \\leq .05$, . $p \\leq .10$, ns = not significant.",
                  col.names = c("", rep(c("N", "M", "SE", "Cohen's d", "p", " "), 2)),
                  booktabs = TRUE,
                  escape = FALSE,
-                 longtable = TRUE) %>%
-    kableExtra::add_header_above(header = c(" " = 1, "Students" = 6, "Testable" = 6), bold = TRUE) %>%
-    kableExtra::kable_styling(latex_options = "repeat_header") %>%
-#    kableExtra::row_spec(which(dat.social.type.token.sequential.m.for.table$is_above_chance),
+                 longtable = TRUE) %>% 
+    kableExtra::add_header_above(header = c(" " = 1, "Students" = 6, "Testable" = 6), bold = TRUE) %>% 
+    kableExtra::kable_styling(latex_options = "repeat_header") %>% 
+#    kableExtra::row_spec(which(dat.social.type.token.sequential.m.for.table$is_above_chance), 
 #                         bold = TRUE) %>%
-#    kableExtra::row_spec(which(dat.social.type.token.sequential.m.for.table$is_below_chance),
-#                         bold = TRUE, color = "red", background = "gray!20") %>%
+#    kableExtra::row_spec(which(dat.social.type.token.sequential.m.for.table$is_below_chance), 
+#                         bold = TRUE, color = "red", background = "gray!20") %>% 
     kableExtra::kable_classic_2()
 
 
@@ -932,94 +885,73 @@ dat.social.type.token.sequential.m.d.long.summary.vs.single  <-
 
 ```
 
-```{r difference-vs-single-raw-prepare, results = 'hide'}
-
-dat.social.type.token.sequential.m.d.long.for.table <-
-    dat.social.type.token.sequential.m.d.long.summary.vs.single %>%
-    dplyr::filter(scoring == "raw") %>%
-    dplyr::mutate(contrast = str_replace(contrast, "d\\.(.*)\\.vs.*", "\\1")) %>%
-    dplyr::mutate(question = str_replace_all(question, fixed("."), " ")) %>%
-    relabel_conds(cond_col = contrast, wrap = FALSE) %>%
-    relabel_questions(wrap = FALSE, sort = TRUE) %>%
-    dplyr::arrange(question, population, myValence, contrast)
-    # Note: tidyr::unite(pack.col, ...) deferred to display chunk so population can be filtered
-
-```
-
 ```{r difference-vs-single-raw-print, results = 'hide'}
 
-dat.social.type.token.sequential.m.d.long.for.table %>%
-    dplyr::filter(population != "combined") %>%
-    tidyr::unite(pack.col, question, population, sep = " - ") %>%
+
+dat.social.type.token.sequential.m.d.long.for.table <-
+    dat.social.type.token.sequential.m.d.long.summary.vs.single %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    dplyr::mutate(contrast = str_replace(contrast, "d\\.(.*)\\.vs.*", "\\1")) %>% 
+    dplyr::mutate(question = str_replace_all(question, fixed ("."), " ")) %>% 
+    relabel_conds(cond_col = contrast, wrap = FALSE) %>% 
+    relabel_questions(wrap = FALSE, sort = TRUE) %>% 
+    dplyr::arrange(question, population, myValence, contrast) %>% 
+    tidyr::unite(pack.col, question, population,  sep = " - ") %>% 
     dplyr::mutate(significance_color = dplyr::case_when(
         (p <= .06 & p_hb > .05) ~ 1,
         p_hb <= .05 ~ 2,
-        TRUE ~ 0)) %>%
-    dplyr::rename_with(rename_col_names) %>%
-    dplyr::rename(`Frequency Condition` = contrast) %>%
-    dplyr::select(-significance_color, -scoring) %>%
-    kable.packed("pack.col",
+        TRUE ~ 0)) %>% 
+    dplyr::rename_with(rename_col_names) %>% 
+    dplyr::rename(`Frequency Condition` = contrast) 
+    
+dat.social.type.token.sequential.m.d.long.for.table %>%  
+    dplyr::select(-significance_color, -scoring) %>% 
+    kable.packed("pack.col", 
                  caption = "Descriptives for the difference scores against the single occurrence condition ($\\frac{\\text{High Type-Frequency} - \\text{Single Occurrence}}{\\text{High Type-Frequency} + \\text{Single Occurrence}}$ and $\\frac{\\text{Low Type-Frequency} - \\text{Single Occurrence}}{\\text{Low Type-Frequency} + \\text{Single Occurrence}}$). The p-value reflects a Wilcoxon test against zero. $p_{\\scriptsize{hb}}$ reflects the Holm-Bonferroni corrected p-value. The correction was applied separately for each sample. The likelihood ratios $LR_{01,\\text{BIC}}$ and $LR_{01,\\text{AIC}}$ reflect likelihood ratios in favor of the null hypothesis after correction with the Bayesian Information Criterion and the Akaike Information Criterion, respectively. Significance codes: *** $p \\leq .001$, ** $p \\leq .01$, * $p \\leq .05$, . $p \\leq .10$, ns = not significant.",
                  #col.names = c("Valency", "Action Status", "N", rep(c("M", "SE", "Cohen's d", "p", "$p_{HB}$"), 2)),
                  escape = FALSE,
                  booktabs = TRUE,
-                 longtable = TRUE) %>%
+                 longtable = TRUE) %>% 
     #kableExtra::add_header_above(header = c(" " = 3, "Binary ratings" = 5, "Raw ratings" = 5), bold = TRUE) %>%
-    #kableExtra::add_header_above(header = c(" " = 3, "Raw ratings" = 6), bold = TRUE) %>%
-    kableExtra::kable_styling(latex_options = "repeat_header") %>%
-    # kableExtra::row_spec(which(dat.social.type.token.sequential.m.d.long.for.table$significance_color == 1),
+    #kableExtra::add_header_above(header = c(" " = 3, "Raw ratings" = 6), bold = TRUE) %>% 
+    kableExtra::kable_styling(latex_options = "repeat_header") %>% 
+    # kableExtra::row_spec(which(dat.social.type.token.sequential.m.d.long.for.table$significance_color == 1), 
     #                      bold = TRUE, color = "orange") %>%
     # kableExtra::row_spec(which(dat.social.type.token.sequential.m.d.long.for.table$significance_color == 2),
-    #                      bold = TRUE, color = "red", background = "gray!20") %>%
+    #                      bold = TRUE, color = "red", background = "gray!20") %>% 
     kableExtra::kable_classic_2()
+
+
+
 
 ```
 
-```{r plot-difference-vs-single-raw-prepare}
+```{r plot-difference-vs-single-raw, fig.cap = "Difference scores against the single occurrence condition ($\\frac{\\text{High Type-Frequency} - \\text{Single Occurrence}}{\\text{High Type-Frequency} + \\text{Single Occurrence}}$ and $\\frac{\\text{Low Type-Frequency} - \\text{Single Occurrence}}{\\text{Low Type-Frequency} + \\text{Single Occurrence}}$). The dot, error bars and violin represent the sample average, 95\\% bootstrap confidence intervals and the distribution of the individual responses, respectively. Open circles represent individual participants. Significance codes: *** $p \\leq .001$, ** $p \\leq .01$, * $p \\leq .05$, . $p \\leq .10$, ns = not significant.", fig.width=9.5, fig.height=15}
 
-l_plot_difference_vs_single_raw <- levels2(dat.social.type.token.sequential.m$population) %>%
-    sort %>%
-    purrr::set_names() %>%
-    purrr::map(
-        \(current_population) {
-            
+l_plot_difference_vs_single_raw <- levels2(dat.social.type.token.sequential.m$population) %>% 
+    sort %>% 
+    purrr::map(~ {
+        
+        
         plot_temp <- dat.social.type.token.sequential.m.d.long %>% 
-            dplyr::filter(
-                scoring == "raw", 
-                population == current_population, 
-                str_detect(contrast, "vs.single")
-            ) %>% 
-            dplyr::mutate(
-                contrast = str_replace(contrast, "d\\.(.*)\\.vs.*", "\\1")
-            ) %>% 
-            relabel_conds(
-                cond_col = contrast
-            ) %>% 
-            relabel_questions(
-                wrap = TRUE, 
-                sort = TRUE
-            ) %>%     
-            ggplot(aes (x = contrast, y = d)) %>%
-            violin_plot_template(yintercept = 0, add.dot.plot = (current_population != "combined")) +
+            dplyr::filter(scoring == "raw", population == .x, str_detect(contrast, "vs.single")) %>% 
+            dplyr::mutate(contrast = str_replace(contrast, "d\\.(.*)\\.vs.*", "\\1")) %>% 
+            relabel_conds(cond_col = contrast) %>% 
+            relabel_questions(wrap = TRUE, sort = TRUE) %>%     
+            ggplot(aes (x = contrast, y = d)) %>% 
+            violin_plot_template(yintercept = 0) +
             theme(axis.title.x = element_blank(),
                   axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) + 
-            labs (
-                y = "Difference score (vs. single occurrence)",
-                title = str_to_title(current_population)
-            ) + 
-            facet_grid(
-                question ~ myValence, 
-                scale = "free", 
-                labeller = labeller(.default = title_case_labeller)
-            )
+            labs (y = "Difference score (vs. single occurrence)",
+                  title = str_to_title(.x)) + 
+            facet_grid(question ~ myValence, scale = "free", labeller = labeller(.default = title_case_labeller))
+        
+        
         
         plot_temp  <- plot_temp  %>% 
             add_sig_labels(
                 dat.social.type.token.sequential.m.d.long.summary.vs.single %>% 
-                    dplyr::filter(scoring == "raw", 
-                                  population == current_population, 
-                                  str_detect(contrast, "vs.single")
-                    ) %>% 
+                    dplyr::filter(scoring == "raw", population == .x, str_detect(contrast, "vs.single")) %>% 
                     relabel_questions(wrap = TRUE, sort = TRUE) %>%    
                     dplyr::mutate(contrast = str_replace(contrast, "d\\.(.*)\\.vs.*", "\\1")) %>% 
                     relabel_conds(cond_col = contrast)  %>% 
@@ -1027,13 +959,9 @@ l_plot_difference_vs_single_raw <- levels2(dat.social.type.token.sequential.m$po
         
         plot_temp
     })
-```
 
-```{r plot-difference-vs-single-raw, fig.cap = "Difference scores against the single occurrence condition ($\\frac{\\text{High Type-Frequency} - \\text{Single Occurrence}}{\\text{High Type-Frequency} + \\text{Single Occurrence}}$ and $\\frac{\\text{Low Type-Frequency} - \\text{Single Occurrence}}{\\text{Low Type-Frequency} + \\text{Single Occurrence}}$). The dot, error bars and violin represent the sample average, 95\\% bootstrap confidence intervals and the distribution of the individual responses, respectively. Open circles represent individual participants. Significance codes: *** $p \\leq .001$, ** $p \\leq .01$, * $p \\leq .05$, . $p \\leq .10$, ns = not significant.", fig.width=9.5, fig.height=15}
 
-ggpubr::ggarrange(
-    plotlist = l_plot_difference_vs_single_raw %>% 
-        purrr::discard_at("combined"),
+ggpubr::ggarrange (plotlist = l_plot_difference_vs_single_raw,
     nrow = 2,
     labels = "auto",
     common.legend = TRUE,
@@ -1087,84 +1015,17 @@ dat.social.type.token.sequential.for.clmm.vs.single.occurrence <- purrr::map_dfr
 ```{r clmm-vs-single-occurrence-calculate}
 
 
-clmm.social.type.token.sequential.vs.single.occurrence <- dat.social.type.token.sequential.for.clmm.vs.single.occurrence %>%
-    dplyr::group_by(question, targetActionStatus, population) %>%
+clmm.social.type.token.sequential.vs.single.occurrence <- dat.social.type.token.sequential.for.clmm.vs.single.occurrence %>% 
+    dplyr::group_by(question, targetActionStatus, population) %>% 
     dplyr::group_modify(~ {
-        # For lowTypeFreq x third.party.acceptability, the testable sample has zero
-        # observations at rating=1 for good actions, causing complete separation and
-        # non-convergence of the interaction term. Use an additive model for all
-        # populations in this condition for consistency.
-        use_interaction <- !(.y$targetActionStatus == "lowTypeFreq" &
-                              .y$question == "third.party.acceptability")
-
-        clmm_formula <- if (use_interaction) {
-            rating ~ myValence * myQueriedActionStatus + (1|filename)
-        } else {
-            rating ~ myValence + myQueriedActionStatus + (1|filename)
-        }
-
-        ordinal::clmm(clmm_formula,
-                      data = .x,
+        ordinal::clmm(rating ~ myValence * myQueriedActionStatus + 
+                                       (1|filename),
+                                   data = .x, 
                       control = clmm.control(
                           method = "nlminb",
                           trace = 0,
                           maxIter = 100, # Default 50
-                          gradTol = 1e-6, # Default 1e-4
-                          maxLineIter = 100, # Default 50
-                          useMatrix = FALSE,
-                          innerCtrl = "warnOnly",
-                          checkRanef = "warn"
-                      ),
-                      Hess = TRUE,
-                      link = "logit") %>%
-            parameters::model_parameters(.) %>%
-            # Maybe cleaner with parameters
-            # coefficients(summary(tmp_model)) %>%
-            #     as.data.frame %>%
-            #     tibble::rownames_to_column("Parameter") %>%
-            dplyr::filter(str_detect(Parameter, "\\|", negate = TRUE),
-                          Effects == "fixed")
-            # dplyr::mutate(population = pop,
-            #               question = Q,
-            #               .before = 1)
-            #
-    }) %>%
-    dplyr::ungroup()
-
-
-
-# Diagnose non-convergence
-# clmm.social.type.token.sequential.vs.single.occurrence  %>% 
-#     dplyr::filter(is.na(z))
-
-
-# dat_bad_cells <- dat.social.type.token.sequential.for.clmm.vs.single.occurrence %>% 
-#     dplyr::filter(
-#         population %in% c("testable", "combined"),
-#         question == "third.party.acceptability", 
-#         targetActionStatus %in% c("lowTypeFreq", "single")
-#     )
-# 
-# 
-# dat_bad_cells
-# table(dat_bad_cells$rating)    
-# table(dat_bad_cells$myValence, dat_bad_cells$myQueriedActionStatus, dat_bad_cells$rating)    
-```
-
-```{r clmm-vs-single-occurrence-by-valence-calculate}
-
-
-clmm.social.type.token.sequential.vs.single.occurrence.by.valence <- dat.social.type.token.sequential.for.clmm.vs.single.occurrence %>% 
-    dplyr::group_by(question, targetActionStatus, population, myValence) %>% 
-    dplyr::group_modify(~ {
-        ordinal::clmm(rating ~ myQueriedActionStatus + 
-                          (1|filename),
-                      data = .x, 
-                      control = clmm.control(
-                          method = "nlminb",
-                          trace = 0,
-                          maxIter = 100, # Default 50
-                          gradTol = 1e-5, # Default 1e-4
+                          gradTol = 1e-7, # Default 1e-4
                           maxLineIter = 100, # Default 50
                           useMatrix = FALSE,
                           innerCtrl = "warnOnly",
@@ -1179,26 +1040,23 @@ clmm.social.type.token.sequential.vs.single.occurrence.by.valence <- dat.social.
             #     tibble::rownames_to_column("Parameter") %>%
             dplyr::filter(str_detect(Parameter, "\\|", negate = TRUE),
                           Effects == "fixed") 
-        # dplyr::mutate(population = pop, 
-        #               question = Q,
-        #               .before = 1)
-        # 
-    }) %>% 
-    dplyr::ungroup()
+            # dplyr::mutate(population = pop, 
+            #               question = Q,
+            #               .before = 1)
+            # 
+    })  
 
-
-# clmm.social.type.token.sequential.vs.single.occurrence.by.valence  %>%
-#     dplyr::filter(is.na(z))
 
 
 ```
 
+
+
 ```{r clmm-vs-single-occurrence-print}
 
 
-clmm.social.type.token.sequential.vs.single.occurrence %>%
-    dplyr::filter(population != "combined") %>%
-    #filter(p <=.05) %>%
+clmm.social.type.token.sequential.vs.single.occurrence %>% 
+    #filter(p <=.05) %>% 
     relabel_questions(wrap = FALSE, sort = TRUE) %>%
     relabel_conds(cond_col = targetActionStatus, wrap = FALSE) %>% 
     relabel_terms() %>% 
@@ -1212,7 +1070,7 @@ clmm.social.type.token.sequential.vs.single.occurrence %>%
     tidyr::unite(pack.col, question, targetActionStatus, population, sep = " - ") %>%
     dplyr::select(-Effects, -Group, -df_error) %>% 
     kable.packed("pack.col",
-                 caption = "Results from a set of cumulative link mixed models, fitted separately for each sample (testable and students), domain (First-Party Acceptability, Third-Party Acceptability, and Prevalence), and frequency contrast (High Type-Frequency vs. Single Occurrence and Low Type-Frequency vs. Single Occurrence), with fixed factor predictors Frequency Condition and Valence, their interaction, and a random slope for participants. For the Low Type-Frequency vs. Single Occurrence contrast in Third-Party Acceptability, the Valence $\\times$ Frequency Condition interaction was omitted (additive model used) due to complete separation caused by zero observations at the lowest rating for good actions in the testable sample. Significance codes: *** $p \\leq .001$, ** $p \\leq .01$, * $p \\leq .05$, . $p \\leq .10$, ns = not significant.",
+                 caption = "Results from a set of cumulative link mixed models, fitted separately for each sample (testable and students), domain (First-Party Acceptability, Third-Party Acceptability, and Prevalence), and frequency contrast (High Type-Frequency vs. Single Occurrence and Low Type-Frequency vs. Single Occurrence), with fixed factor predictors Frequency Condition and Valence, their interaction, and a random slope for participants. Significance codes: *** $p \\leq .001$, ** $p \\leq .01$, * $p \\leq .05$, . $p \\leq .10$, ns = not significant.",
                  #col.names = c("", rep(c("N", "M", "SE", "Cohen's d", "p"), 2)),
                  booktabs = TRUE,
                  longtable = TRUE) %>%
@@ -1260,15 +1118,14 @@ dat.social.type.token.sequential.m.d.long.summary.high.vs.low.tf <- dat.social.t
     
 ```{r difference-high-vs-low-type-frequency-print, results = 'hide'}
 
-dat.social.type.token.sequential.m.d.long.summary.high.vs.low.tf %>%
-    dplyr::filter(population != "combined") %>%
-    dplyr::filter(scoring == "raw") %>%
-    relabel_questions(wrap = FALSE, sort = TRUE) %>%
-    dplyr::rename_with(rename_col_names) %>%
+dat.social.type.token.sequential.m.d.long.summary.high.vs.low.tf %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    relabel_questions(wrap = FALSE, sort = TRUE) %>% 
+    dplyr::rename_with(rename_col_names) %>% 
     dplyr::mutate(
-        population = str_to_title(population)) %>%
-    dplyr::arrange(question, population) %>%
-    dplyr::select(-scoring, -contrast) %>%
+        population = str_to_title(population)) %>% 
+    dplyr::arrange(question, population) %>% 
+    dplyr::select(-scoring, -contrast) %>% 
     tidyr::unite(pack.col, question, population, sep = " - ") %>% 
     kable.packed("pack.col", 
                  caption = "Descriptive statistics for the difference scores comparing the High and Low Type-Frequency Conditions ($\\frac{\\text{High Type-Frequency} - \\text{Low Type-Frequency}}{\\text{High Type-Frequency} + \\text{Low Type-Frequency}}$). The p-value reflects a Wilcoxon test against zero. $p_{\\scriptsize{hb}}$ reflects the Holm-Bonferroni corrected p-value. The correction was applied separately for each sample. Significance codes: *** $p \\leq .001$, ** $p \\leq .01$, * $p \\leq .05$, . $p \\leq .10$, ns = not significant.",
@@ -1283,53 +1140,29 @@ dat.social.type.token.sequential.m.d.long.summary.high.vs.low.tf %>%
     
 ```
 
-```{r plot-difference-high-vs-low-type-frequency-raw-create}
+```{r plot-difference-high-vs-low-type-frequency-raw, fig.cap = "Difference scores comparing the High and Low Type-Frequency Conditions ($\\frac{\\text{High Type-Frequency} - \\text{Low Type-Frequency}}{\\text{High Type-Frequency} + \\text{Low Type-Frequency}}$). The dots, error bars and violin represent the sample average, 95\\% bootstrap confidence intervals and the distribution of the individual responses, respectively. Open circles represent individual participants. Significance codes: *** $p \\leq .001$, ** $p \\leq .01$, * $p \\leq .05$, . $p \\leq .10$, ns = not significant.", message=TRUE, warning=TRUE}
 
-l_plot_difference_high_vs_low_type_frequency_raw <- 
-    list(
-        separate = "students|testable",
-        combined = "combined"
-    ) %>% 
-    purrr::imap( 
-    \(current_population_filter, current_label) {
+plot_difference_high_vs_low_type_frequency_raw <- dat.social.type.token.sequential.m.d.long %>% 
+    dplyr::filter(scoring == "raw") %>% 
+    dplyr::filter(!str_detect(contrast, "vs.single")) %>% 
+    relabel_questions(wrap = FALSE, sort = TRUE) %>% 
+    ggplot(aes(x = myValence, y = d)) %>% 
+    violin_plot_template(yintercept = 0) +
+    theme (axis.title.x = element_blank(),
+           axis.text.x = element_text(angle = 35, vjust = .5, hjust=.5)) +
+    ylab ("Difference score (High vs. low TF)") + 
+    #scale_x_discrete(labels = c("Pre-segmented", "Continuous (1)", "Continuous (2)"))
+    facet_grid(population ~ question, scales = "free")
 
-        plot_temp <- dat.social.type.token.sequential.m.d.long %>%
-            dplyr::filter(
-                scoring == "raw", 
-                stringr::str_detect(population, current_population_filter)
-            ) %>%
-            dplyr::filter(!str_detect(contrast, "vs.single")) %>%
-            relabel_questions(wrap = FALSE, sort = TRUE) %>%
-            ggplot2::ggplot(ggplot2::aes(x = myValence, y = d)) %>%
-            violin_plot_template(yintercept = 0, add.dot.plot = (current_label != "combined")) +
-            theme(axis.title.x = element_blank(),
-                  axis.text.x = element_text(angle = 35, vjust = .5, hjust = .5)) +
-            ylab("Difference score (High vs. low TF)")
-        
-        if(current_label == "separate") 
-            plot_temp <- plot_temp + facet_grid(population ~ question, scales = "free")
-        else 
-            plot_temp <- plot_temp + facet_grid(. ~ question, scales = "free")
-        
-        plot_temp %>%
-            add_sig_labels(
-                dat.sig.summary = dat.social.type.token.sequential.m.d.long.summary.high.vs.low.tf %>%
-                    dplyr::filter(
-                        scoring == "raw", 
-                        stringr::str_detect(population, current_population_filter)
-                    ) %>%
-                    relabel_questions(wrap = FALSE, sort = TRUE) %>%
-                    dplyr::select(population, question, myValence, sig))
-    })
-
-```
-
-```{r plot-difference-high-vs-low-type-frequency-raw, fig.cap = "Difference scores comparing the High and Low Type-Frequency Conditions ($\\frac{\\text{High Type-Frequency} - \\text{Low Type-Frequency}}{\\text{High Type-Frequency} + \\text{Low Type-Frequency}}$). The dots, error bars and violin represent the sample average, 95\\% bootstrap confidence intervals and the distribution of the individual responses, respectively. Open circles represent individual participants. Significance codes: *** $p \\leq .001$, ** $p \\leq .01$, * $p \\leq .05$, . $p \\leq .10$, ns = not significant.", message=FALSE, warning=FALSE}
-
-
-
-l_plot_difference_high_vs_low_type_frequency_raw$separate
-
+plot_difference_high_vs_low_type_frequency_raw <- 
+    plot_difference_high_vs_low_type_frequency_raw %>% 
+    add_sig_labels(
+        dat.sig.summary = dat.social.type.token.sequential.m.d.long.summary.high.vs.low.tf %>% 
+            dplyr::filter(scoring == "raw") %>%
+            relabel_questions(wrap = FALSE, sort = TRUE) %>% 
+            dplyr::select(population, question, myValence, sig))
+ 
+plot_difference_high_vs_low_type_frequency_raw
 ```
 
 The results are shown in Figure \ref{fig:plot-difference-high-vs-low-type-frequency-raw} and Table \ref{tab:difference-high-vs-low-type-frequency-print1}. For first-party acceptability, the difference scores were significantly greater than zero for good and neutral actions in the testable sample, and for neutral actions only in the student sample. First-party acceptability ratings thus increase when the type frequency of an action is increased, even when the frequency of occurrence is held constant.
@@ -1403,61 +1236,18 @@ clmm.social.type.token.sequential.for.clmm.high.vs.low.type.frequency <- dat.soc
         #               question = Q,
         #               .before = 1)
         # 
-    })  %>% 
-    dplyr::ungroup()
+    })  
 
  
 
-# clmm.social.type.token.sequential.for.clmm.high.vs.low.type.frequency %>% 
-#     dplyr::filter(is.na(z))
+
 ```
 
-```{r clmm-high-vs-low-type-frequency-by-valence-calculate}
 
-
-clmm.social.type.token.sequential.for.clmm.high.vs.low.type.frequency.by.valence <- dat.social.type.token.sequential.for.clmm.high.vs.low.type.frequency %>% 
-    dplyr::group_by(question, population, myValence) %>% 
-    dplyr::group_modify(~ {
-        ordinal::clmm(rating ~ myQueriedActionStatus + 
-                          (1|filename), 
-                      data = .x, 
-                      control = clmm.control(
-                          #method = "nlminb",
-                          method = "ucminf", 
-                          trace = 0,
-                          maxIter = 100, # Default 50
-                          gradTol = 1e-4, # Default 1e-4
-                          maxLineIter = 100, # Default 50
-                          useMatrix = FALSE,
-                          innerCtrl = "warnOnly",
-                          checkRanef = "warn"
-                      ),
-                      Hess = TRUE,
-                      link = "logit") %>% 
-            parameters::model_parameters(.) %>% 
-            # Maybe cleaner with parameters
-            # coefficients(summary(tmp_model)) %>%
-            #     as.data.frame %>%
-            #     tibble::rownames_to_column("Parameter") %>%
-            dplyr::filter(str_detect(Parameter, "\\|", negate = TRUE),
-                          Effects == "fixed") 
-        # dplyr::mutate(population = pop, 
-        #               question = Q,
-        #               .before = 1)
-        # 
-    })  %>% 
-    dplyr::ungroup()
-
- 
-
-# clmm.social.type.token.sequential.for.clmm.high.vs.low.type.frequency.by.valence %>%
-#     dplyr::filter(is.na(z))
-```
 
 ```{r clmm-high-vs-low-type-frequency-print}
 
-clmm.social.type.token.sequential.for.clmm.high.vs.low.type.frequency %>%
-    dplyr::filter(population != "combined") %>%
+clmm.social.type.token.sequential.for.clmm.high.vs.low.type.frequency %>% 
     relabel_questions(wrap = FALSE, sort = FALSE) %>%
     relabel_terms() %>% 
     add_sig_stars(p) %>% 
@@ -1594,8 +1384,7 @@ glmm.social.type.token.sequential.vs.single.occurrence <- dat.social.type.token.
             #     as.data.frame %>%
             #     tibble::rownames_to_column("Parameter") %>%
             dplyr::filter(Effects == "fixed") 
-    }) %>% 
-    dplyr::ungroup()
+    })  
 
 
 
@@ -1604,10 +1393,9 @@ glmm.social.type.token.sequential.vs.single.occurrence <- dat.social.type.token.
 
 ```{r glmm-vs-single-occurrence-print}
 
-glmm.social.type.token.sequential.vs.single.occurrence %>%
-    dplyr::filter(population != "combined") %>%
+glmm.social.type.token.sequential.vs.single.occurrence %>% 
     relabel_questions(wrap = FALSE, sort = FALSE) %>%
-    relabel_conds(cond_col = targetActionStatus, wrap = FALSE) %>%
+    relabel_conds(cond_col = targetActionStatus, wrap = FALSE) %>% 
     relabel_terms() %>% 
     add_sig_stars(p) %>% 
     dplyr::rename_with(rename_col_names) %>% 
@@ -1722,8 +1510,7 @@ aov.social.type.token.sequential.vs.single.occurrence <-  purrr::map_dfr(
             message("Error in group: ", paste(unique(.x$question), unique(.x$targetActionStatus), unique(.x$population), collapse = " / "))
             return(tibble())
         })
-    }) %>% 
-    dplyr::ungroup()
+    })
 
 
 ```
@@ -1731,13 +1518,12 @@ aov.social.type.token.sequential.vs.single.occurrence <-  purrr::map_dfr(
 
 ```{r anova-vs-single-occurrence-print}
 
-aov.social.type.token.sequential.vs.single.occurrence %>%
-    dplyr::filter(population != "combined") %>%
+aov.social.type.token.sequential.vs.single.occurrence %>% 
     relabel_questions(wrap = FALSE, sort = TRUE) %>%
-    relabel_conds(cond_col = targetActionStatus, wrap = FALSE) %>%
-    relabel_terms(type = "aov", term_col = Effect) %>%
-    # add_sig_stars(p.value) %>%  # afex::nice() already embeds stars in p.value string
-    dplyr::rename_with(rename_col_names) %>%
+    relabel_conds(cond_col = targetActionStatus, wrap = FALSE) %>% 
+    relabel_terms(type = "aov", term_col = Effect) %>% 
+    add_sig_stars(p.value) %>% 
+    dplyr::rename_with(rename_col_names) %>% 
     dplyr::mutate(
         targetActionStatus = str_c(targetActionStatus, " (vs. Single Occurrence)"),
         population = str_to_title(population)) %>% 
@@ -1816,8 +1602,7 @@ glmm.social.type.token.sequential.for.glmm.high.vs.low.type.frequency <- dat.soc
             #     as.data.frame %>%
             #     tibble::rownames_to_column("Parameter") %>%
             dplyr::filter(Effects == "fixed") 
-    })  %>% 
-    dplyr::ungroup()
+    })  
 
  
 
@@ -1826,10 +1611,9 @@ glmm.social.type.token.sequential.for.glmm.high.vs.low.type.frequency <- dat.soc
 
 ```{r glmm-high-vs-low-type-frequency-print}
 
-glmm.social.type.token.sequential.for.glmm.high.vs.low.type.frequency %>%
-    dplyr::filter(population != "combined") %>%
+glmm.social.type.token.sequential.for.glmm.high.vs.low.type.frequency %>% 
     relabel_questions(wrap = FALSE, sort = FALSE) %>%
-    relabel_terms() %>%
+    relabel_terms() %>% 
     add_sig_stars(p) %>% 
     dplyr::rename_with(rename_col_names) %>% 
     dplyr::mutate(
@@ -1889,8 +1673,7 @@ aov.social.type.token.sequential.high.vs.low.type.frequency <-
             message("Error in group: ", paste(unique(.x$question), unique(.x$targetActionStatus), unique(.x$population), collapse = " / "))
             return(tibble())
         })
-    }) %>% 
-    dplyr::ungroup()
+    })
 
 
 ```
@@ -1898,14 +1681,13 @@ aov.social.type.token.sequential.high.vs.low.type.frequency <-
 ```{r anova-high-vs-low-type-frequency-print}
 
 
-aov.social.type.token.sequential.high.vs.low.type.frequency %>%
-    dplyr::filter(population != "combined") %>%
+aov.social.type.token.sequential.high.vs.low.type.frequency %>% 
     relabel_questions(wrap = FALSE, sort = FALSE) %>%
-    relabel_terms(type = "aov", term_col = Effect) %>%
-    # add_sig_stars(p.value) %>%  # afex::nice() already embeds stars in p.value string
-    dplyr::rename_with(rename_col_names) %>%
+    relabel_terms(type = "aov", term_col = Effect) %>% 
+    add_sig_stars(p.value) %>% 
+    dplyr::rename_with(rename_col_names) %>% 
     dplyr::mutate(
-        population = str_to_title(population)) %>%
+        population = str_to_title(population)) %>% 
     dplyr::arrange(question, population) %>% 
     tidyr::unite(pack.col, question, population, sep = " - ") %>%
     abbreviate_cols() %>% 
@@ -1929,10 +1711,6 @@ As shown in Table \ref{tab:anova-high-vs-low-type-frequency-print}, results from
 
 `r clearpage()`
 
-# Combined Sample
-
-```{r, child='social_learning_type_token_sequential_results_addon_combined.Rmd'}
-```
 
 ```{r xxx}
 knit_exit()

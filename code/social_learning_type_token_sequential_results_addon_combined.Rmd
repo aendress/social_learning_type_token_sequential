@@ -1,0 +1,598 @@
+
+```{r combined-helpers, include = FALSE}
+
+question_to_str <- function(question_code) {
+    dplyr::case_when(
+        question_code == "first.party.acceptability" ~ "First-Party Acceptability",
+        question_code == "third.party.acceptability" ~ "Third-Party Acceptability",
+        question_code == "prevalence"                ~ "Prevalence",
+        TRUE ~ NA_character_
+    )
+}
+
+SIG_CODES <- "Significance codes: *** $p \\leq .001$, ** $p \\leq .01$, * $p \\leq .05$, . $p \\leq .10$, ns = not significant."
+
+```
+
+
+## Raw ratings
+
+
+```{r plot-ratings-combined-raw, fig.cap = "Ratings for the combined sample. See Figure~\\ref{fig:plot-ratings-raw} for separate results for each sample. The dots, error bars and violin represent the sample average, 95\\% bootstrap confidence intervals and the distribution of the individual responses, respectively.", fig.height=6.5, fig.width=9.5}
+
+
+ggpubr::ggarrange(
+    plotlist = l_plot_ratings_raw %>% 
+        purrr::keep_at("combined") %>% 
+        purrr::map(~ .x + ggplot2::labs(title = ggplot2::element_blank())),
+    nrow = 1,
+    labels = "auto",
+    common.legend = TRUE,
+    legend = "bottom")
+
+
+```
+
+The raw ratings are shown in Figure \ref{fig:plot-ratings-combined-raw} and Table \ref{tab:print-descriptives-ratings-combined-raw2}. As shown in Table \ref{tab:clmm-raw-effects-of-valency-combined2}, a CLMM with a logit link function, including the fixed predictors Valence and Frequency Condition, their interaction, and a random slope for participants, showed that, for both acceptability questions, good deeds were judged more positively than neutral ones, and neutral ones more positively than bad ones. The valence manipulation was thus successful.
+
+
+```{r clmm-raw-effects-of-valency-combined, results = 'hide'}
+
+clmm.social.type.token.sequential.raw.effects.of.valency %>%
+    dplyr::filter(population == "combined") %>%
+    dplyr::select(-population) %>% 
+    dplyr::rename_with(rename_col_names) %>%
+    relabel_questions(wrap = FALSE, sort = TRUE) %>%
+    relabel_terms %>%
+    tidyr::unite(pack.col, question, sep = " - ") %>%
+    dplyr::select(-Effects, -Group, -df_error) %>%
+    kable.packed("pack.col",
+                 caption = paste0("Results from a set of cumulative link mixed models for the combined sample, fit separately for each domain (first-party acceptability and third-party acceptability), with the fixed factor predictors valence and frequency condition as well as their interaction, as well as a random slope for participants. See Table~\\ref{tab:clmm-raw-effects-of-valency2} for separate results for each sample. Only the main effect of valence is shown. ", SIG_CODES),
+                 #col.names = c("", rep(c("N", "M", "SE", "Cohen's d", "p"), 2)),
+                 booktabs = TRUE,
+                 escape = FALSE,
+                 longtable = TRUE) %>%
+    #kableExtra::add_header_above(header = c(" " = 1, "Students" = 5, "Testable" = 5), bold = TRUE) %>%
+    kableExtra::kable_styling(latex_options = "repeat_header") %>%
+    # kableExtra::row_spec(which(dat.social.type.token.sequential.m.for.table$is_below_chance),
+    #                      bold = TRUE, color = "red", background = "gray!20") %>%
+    kableExtra::kable_classic_2()
+
+
+
+```
+
+
+
+```{r print-descriptives-ratings-combined-raw, results = 'hide'}
+
+dat.social.type.token.sequential.m.for.table %>%
+    dplyr::select(
+        -dplyr::ends_with("_students"),
+        -dplyr::ends_with("_testable")          
+        ) %>%
+    dplyr::rename_with(rename_col_names) %>%
+    dplyr::select(-is_above_chance, -is_below_chance) %>%
+    kable.packed("pack.col",
+                 caption = paste0("Descriptives for the raw ratings for the combined sample. The p value reflects a Wilcoxon test against the scale midpoint of 2.5. See Table~\\ref{tab:print-descriptives-ratings-raw2} for separate results for each sample. ", SIG_CODES),
+                 col.names = c("", rep(c("N", "M", "SE", "Cohen's d", "p", " "), 1)),
+                 booktabs = TRUE,
+                 escape = FALSE,
+                 longtable = TRUE) %>%
+    kableExtra::kable_styling(latex_options = "repeat_header") %>%
+    kableExtra::kable_classic_2()
+
+
+```
+
+
+`r clearpage()`
+
+
+## Comparisons of the High and Low Type-Frequency conditions against the Single-Occurrence condition
+
+I next turn to the question of whether type-frequency or token-frequency affects acceptability and prevalence judgments, using difference scores comparing each frequency condition to the single-occurrence condition.
+
+### Difference scores
+
+
+
+```{r difference-vs-single-raw-combined-print, results = 'hide'}
+
+dat.social.type.token.sequential.m.d.long.for.table %>%
+    dplyr::filter(population == "combined") %>%
+    dplyr::select(-population) %>% 
+    tidyr::unite(pack.col, question, sep = " - ") %>%
+    dplyr::mutate(significance_color = dplyr::case_when(
+        (p <= .06 & p_hb > .05) ~ 1,
+        p_hb <= .05 ~ 2,
+        TRUE ~ 0)) %>%
+    dplyr::rename_with(rename_col_names) %>%
+    dplyr::rename(`Frequency Condition` = contrast) %>%
+    dplyr::select(-significance_color, -scoring) %>%
+    kable.packed("pack.col",
+                 caption = paste0("Descriptives for the difference scores against the Single-Occurrence condition for the combined sample ($\\frac{\\text{High Type-Frequency} - \\text{Single-Occurrence}}{\\text{High Type-Frequency} + \\text{Single-Occurrence}}$ and $\\frac{\\text{Low Type-Frequency} - \\text{Single-Occurrence}}{\\text{Low Type-Frequency} + \\text{Single-Occurrence}}$). The p-value reflects a Wilcoxon test against zero. $p_{\\scriptsize{hb}}$ reflects the Holm-Bonferroni corrected p-value. See Table~\\ref{tab:difference-vs-single-raw-print2} for separate results for each sample. The likelihood ratios $LR_{01,\\text{BIC}}$ and $LR_{01,\\text{AIC}}$ reflect the evidence in favor of the null hypothesis, after correction using the Bayesian Information Criterion and the Akaike Information Criterion, respectively. Different participants took part in each of the valence conditions. ", SIG_CODES),
+                 #col.names = c("Valency", "Action Status", "N", rep(c("M", "SE", "Cohen's d", "p", "$p_{HB}$"), 2)),
+                 escape = FALSE,
+                 booktabs = TRUE,
+                 longtable = TRUE) %>%
+    #kableExtra::add_header_above(header = c(" " = 3, "Binary ratings" = 5, "Raw ratings" = 5), bold = TRUE) %>%
+    #kableExtra::add_header_above(header = c(" " = 3, "Raw ratings" = 6), bold = TRUE) %>%
+    kableExtra::kable_styling(latex_options = "repeat_header") %>%
+    # kableExtra::row_spec(which(dat.social.type.token.sequential.m.d.long.for.table$significance_color == 1),
+    #                      bold = TRUE, color = "orange") %>%
+    # kableExtra::row_spec(which(dat.social.type.token.sequential.m.d.long.for.table$significance_color == 2),
+    #                      bold = TRUE, color = "red", background = "gray!20") %>%
+    kableExtra::kable_classic_2()
+
+```
+
+
+
+```{r plot-difference-vs-single-combined-raw, fig.cap = paste0("Difference scores against the Single-Occurrence condition for the combined sample ($\\frac{\\text{High Type-Frequency} - \\text{Single-Occurrence}}{\\text{High Type-Frequency} + \\text{Single-Occurrence}}$ and $\\frac{\\text{Low Type-Frequency} - \\text{Single-Occurrence}}{\\text{Low Type-Frequency} + \\text{Single-Occurrence}}$). See Figure~\\ref{fig:plot-difference-vs-single-raw} for separate results for each sample. The dots, error bars and violin represent the sample average, 95\\% bootstrap confidence intervals and the distribution of the individual responses, respectively. ", SIG_CODES), fig.width=9.5, fig.height=15}
+
+ggpubr::ggarrange(
+    plotlist = l_plot_difference_vs_single_raw %>% 
+        purrr::keep_at("combined") %>% 
+        purrr::map(~ .x + ggplot2::labs(title = ggplot2::element_blank())),
+    nrow = 2,
+    labels = "auto",
+    common.legend = TRUE,
+    legend = "bottom")
+
+
+```
+
+
+
+The results are shown in Figure \ref{fig:plot-difference-vs-single-combined-raw} and Table \ref{tab:difference-vs-single-raw-combined-print2}. For \emph{first-party acceptability}, ratings in the high type-frequency condition differed reliably from those in the single-occurrence condition for all valences. In contrast, ratings in the low type-frequency condition did not significantly differ from those in the single-occurrence condition; for neutral actions, the difference score was significantly different from zero before correction, but not after correction with the Holm-Bonferroni method. First-party acceptability thus seems primarily driven by type- rather than token-frequency.
+
+To provide evidence for the null hypothesis, I fit two linear models to the first-party acceptability difference scores: one representing the null hypothesis (with the mean fixed at 0) and one representing the alternative hypothesis (with the mean estimated from the data). I then calculated the likelihood of the data under each model, applied corrections for the numbers of parameters using the Bayesian Information Criterion (BIC) and the Akaike Information Criterion (AIC), and computed the likelihood ratio, with values greater than one indicating support for the null hypothesis. As shown in Table \ref{tab:difference-vs-single-raw-combined-print2}, the first-party acceptability difference scores comparing the low type-frequency condition to the single-occurrence condition generally provided weak to moderate evidence in favor of the null hypothesis, suggesting again that first-party acceptability is primarily driven by type-frequency rather than token-frequency.
+
+For both \emph{third-party acceptability} and \emph{prevalence}, ratings in both the high and low type-frequency conditions differed from the single-occurrence condition across all valence conditions, though the difference scores were roughly twice as large for the high type-frequency condition compared to the low type-frequency condition. Both type- and token-frequency thus affect these ratings, though I will demonstrate below that the effect of type-frequency is substantially larger.
+
+
+`r clearpage()`
+### Confirmation with ordinal model
+
+I confirmed these results with a series of CLMMs. For each domain (acceptability and prevalence), I included the fixed factor predictors Frequency Condition (High Type-Frequency vs. Single Occurrence and Low Type-Frequency vs. Single Occurrence) and Valence (with the reference level set to neutral), as well as a random slope for participants.
+
+
+
+
+```{r clmm-vs-single-occurrence-combined-print, results = 'asis'}
+
+# This chunk produces a list of tables (for each domain), that are then printed. 
+# In the pdf, this produces 3 separate tables. 
+
+
+# Questions where Valence x Frequency Condition interaction is significant (combined sample);
+# by-valence follow-ups are suppressed for other domains.
+vs_single_valence_interaction_questions <- c("first.party.acceptability", "third.party.acceptability", "prevalence")
+
+dplyr::bind_rows(
+    clmm.social.type.token.sequential.vs.single.occurrence,
+    clmm.social.type.token.sequential.vs.single.occurrence.by.valence %>%
+        dplyr::filter(question %in% vs_single_valence_interaction_questions) %>%
+        dplyr::mutate(myValence = stringr::str_c(myValence, " valence only"))
+) %>%
+    dplyr::filter(population == "combined") %>%
+    dplyr::select(-population) %>%
+    relabel_terms(wrap = FALSE) %>%
+    add_sig_stars(p) %>%
+    dplyr::rename_with(rename_col_names) %>%
+    dplyr::mutate(question = forcats::fct_relevel(question, "first.party.acceptability", "third.party.acceptability", "prevalence")) %>%
+    dplyr::arrange(question, targetActionStatus) %>%
+    dplyr::group_split(
+        question,
+        .keep = TRUE) %>%
+    purrr::walk(
+        \(current_dat){
+
+            current_question <- levels2(current_dat$question)
+
+            current_question_str <- question_to_str(current_question)
+
+            current_ref_label <- paste0(
+                "tab:clmm-vs-single-occurrence-combined-print-",
+                stringr::str_replace_all(current_question, "\\.", "-")
+            )
+
+            separation_note <- if (current_question == "third.party.acceptability") {
+                " For the Low Type-Frequency vs. Single Occurrence contrast, the Valence $\\times$ Frequency Condition interaction was omitted (additive model used) due to complete separation encountered in one of the individual samples (zero observations at the lowest rating for good actions)."
+            } else {
+                ""
+            }
+
+            current_caption <- glue::glue(
+                "\\label{{{current_ref_label}}}",
+                "Results from a set of cumulative link mixed models fit on the combined sample for \\textbf{{{current_question_str}}}, for the High Type-Frequency vs. Single Occurrence and Low Type-Frequency vs. Single Occurrence contrasts, with fixed factor predictors Frequency Condition and Valence, their interaction, and a random slope for participants.",
+                "{separation_note} ",
+                "See Table~\\ref{{tab:clmm-vs-single-occurrence-print}} for separate results for each sample. {SIG_CODES}"
+            )
+
+            # relabel_questions() must be called here, after extracting the raw
+            # question value above; calling it in the outer pipeline transforms
+            # "first.party.acceptability" -> "First Party Acceptability" before
+            # the case_when and str_replace_all() above can match the original strings.
+            current_dat %>%
+                relabel_questions(wrap = FALSE, sort = TRUE) %>%
+                dplyr::arrange(targetActionStatus, !is.na(Valence),
+                               factor(Valence, levels = c("bad valence only", "neutral valence only", "good valence only"))) %>% # FALSE sorts before TRUE: NA rows (main model) first; factor overrides alphabetical
+                relabel_conds(cond_col = targetActionStatus, wrap = FALSE) %>%
+                dplyr::mutate(targetActionStatus = stringr::str_c(targetActionStatus, " vs. Single Occurrence")) %>% 
+                tidyr::unite(pack.col, targetActionStatus, Valence, sep = " - ", na.rm = TRUE) %>%
+                dplyr::select(-Effects, -Group, -df_error, -question) %>%
+                kable.packed(
+                    "pack.col",
+                    caption = current_caption,
+                    booktabs = TRUE,
+                    longtable = FALSE,
+                    label = NA) %>%
+                kableExtra::kable_styling(latex_options = "repeat_header") %>%
+                kableExtra::kable_classic_2() %>%
+                print()
+        }
+    )
+
+```
+
+For \emph{first-party acceptability}, Table \ref{tab:clmm-vs-single-occurrence-combined-print-first-party-acceptability} shows that ratings differed significantly from the single-occurrence condition in both the high type-frequency condition and the low type-frequency condition, though the coefficient in the high type-frequency condition was more than twice as high. This suggests that first-party acceptability is primarily driven by type-frequency. For the high type-frequency vs. single occurrence contrast, there was an interaction with valence. Valence-specific CLMMs suggested that the effect of the difference between the high type-frequency condition and the single-occurrence condition was reduced and only marginal for bad actions. In contrast, the contrast between the low type-frequency condition and the single-occurrence condition was not significant for bad or good actions, and only marginal for neutral actions.
+
+For \emph{third-party acceptability} (Table \ref{tab:clmm-vs-single-occurrence-combined-print-third-party-acceptability}), both the high and low type-frequency conditions differed from the single-occurrence condition. However, the parameter estimate was approximately two times greater for the high type-frequency condition than for the low type-frequency condition.
+
+For \emph{prevalence} (Table \ref{tab:clmm-vs-single-occurrence-combined-print-prevalence}), both the high and low type-frequency conditions differed from the single-occurrence condition. However, the parameter estimates were approximately 2.3 times greater for the high type-frequency condition than for the low type-frequency condition.
+
+## Comparisons of the High and Low Type-Frequency conditions
+
+I now turn to the question of whether type and token frequency affect ratings differentially. I first address this question using difference scores, and then confirm these results using a CLMM.
+
+### Difference scores
+
+
+
+```{r difference-high-vs-low-type-frequency-combined-print, results = 'hide'}
+
+dat.social.type.token.sequential.m.d.long.summary.high.vs.low.tf %>%
+    dplyr::filter(population == "combined") %>%
+    dplyr::select(-population) %>% 
+    dplyr::filter(scoring == "raw") %>%
+    relabel_questions(wrap = FALSE, sort = TRUE) %>%
+    dplyr::rename_with(rename_col_names) %>%
+    dplyr::arrange(question) %>%
+    dplyr::select(-scoring, -contrast) %>%
+    tidyr::unite(pack.col, question, sep = " - ") %>% 
+    kable.packed("pack.col", 
+                 caption = paste0("Descriptive statistics for the difference scores comparing the High and Low Type-Frequency Conditions for the combined sample ($\\frac{\\text{High Type-Frequency} - \\text{Low Type-Frequency}}{\\text{High Type-Frequency} + \\text{Low Type-Frequency}}$). The p-value reflects a Wilcoxon test against zero. $p_{\\scriptsize{hb}}$ reflects the Holm-Bonferroni corrected p-value. See Table~\\ref{tab:difference-high-vs-low-type-frequency-print2} for separate results for each sample. ", SIG_CODES),
+                 booktabs = TRUE,
+                 escape = FALSE,
+                 longtable = TRUE) %>% 
+    kableExtra::kable_styling(latex_options = "repeat_header") %>% 
+    kableExtra::kable_classic_2()
+    
+```
+
+
+```{r plot-difference-high-vs-low-type-frequency-combined-raw, fig.cap = paste0("Difference scores comparing the High and Low Type-Frequency Conditions for the combined sample ($\\frac{\\text{High Type-Frequency} - \\text{Low Type-Frequency}}{\\text{High Type-Frequency} + \\text{Low Type-Frequency}}$). See Figure~\\ref{fig:plot-difference-high-vs-low-type-frequency-raw} for separate results for each sample. The dots, error bars and violin represent the sample average, 95\\% bootstrap confidence intervals and the distribution of the individual responses, respectively. ", SIG_CODES), message=FALSE, warning=FALSE}
+
+
+
+l_plot_difference_high_vs_low_type_frequency_raw$combined
+
+```
+
+The results are shown in Figure \ref{fig:plot-difference-high-vs-low-type-frequency-combined-raw} and Table \ref{tab:difference-high-vs-low-type-frequency-combined-print2}. For first-party acceptability, the difference scores were significantly greater than zero for neutral and good actions; for bad actions, the effect was only marginal after Holm-Bonferroni correction. First-party acceptability ratings thus increase when the type frequency of an action is increased, even when the frequency of occurrence is held constant.
+
+For \emph{third-party acceptability} and \emph{prevalence}, the difference scores were significantly greater than zero for all valence conditions, showing again that type-frequency has an effect over and above frequency of occurrence.
+
+
+
+`r clearpage()`
+
+### Confirmation with ordinal model
+
+I confirmed these results with a series of CLMMs. For each domain, I fitted a model including the fixed factor predictors Frequency Condition (High Type-Frequency vs. Low Type-Frequency) and Valence, with the reference level set to neutral.
+
+
+
+
+```{r clmm-high-vs-low-type-frequency-combined-print, results = 'asis'}
+
+
+
+dplyr::bind_rows(
+    clmm.social.type.token.sequential.for.clmm.high.vs.low.type.frequency,
+    clmm.social.type.token.sequential.for.clmm.high.vs.low.type.frequency.by.valence %>%
+        # Questions where Valence x Frequency Condition interaction is significant (combined sample).
+        # Don't print follow up models where this is not the case.
+        dplyr::filter(
+            question %in% c("third.party.acceptability", "prevalence")
+        ) %>% 
+        dplyr::mutate(
+            myValence = stringr::str_c(myValence, " valence only")
+        )
+) %>%
+    dplyr::filter(population == "combined") %>%
+    dplyr::select(-population) %>%
+    relabel_terms(wrap = FALSE) %>%
+    add_sig_stars(p) %>%
+    dplyr::rename_with(rename_col_names) %>%
+    dplyr::mutate(question = forcats::fct_relevel(question, "first.party.acceptability", "third.party.acceptability", "prevalence")) %>%
+    dplyr::arrange(question) %>%
+    dplyr::group_split(question, .keep = TRUE) %>%
+    purrr::walk(
+        \(current_dat) {
+
+            current_question <- levels2(current_dat$question)
+
+            current_question_str <- question_to_str(current_question)
+
+            current_ref_label <- paste0(
+                "tab:clmm-high-vs-low-type-frequency-combined-print-",
+                stringr::str_replace_all(current_question, "\\.", "-")
+            )
+
+            current_caption <- glue::glue(
+                "\\label{{{current_ref_label}}}",
+                "Results from a set of cumulative link mixed models for the combined sample for \\textbf{{{current_question_str}}}, contrasting the High Type-Frequency condition with the Low Type-Frequency condition, with fixed factor predictors Valence, Frequency Condition, and their interaction, as well as a random slope for participants. ",
+                "See Table~\\ref{{tab:clmm-high-vs-low-type-frequency-print}} for separate results for each sample. {SIG_CODES}"
+            )
+
+            # relabel_questions() deferred to here so raw question value is
+            # available for case_when and str_replace_all above.
+            current_dat %>%
+                relabel_questions(wrap = FALSE, sort = TRUE) %>%
+                # FALSE sorts before TRUE: NA rows (main model) first; factor overrides alphabetical
+                dplyr::arrange(!is.na(Valence),
+                               factor(Valence, levels = c("bad valence only", "neutral valence only", "good valence only"))) %>%
+                dplyr::mutate(contrast_label = "High Type-Frequency vs. Low Type-Frequency") %>%
+                tidyr::unite(pack.col, contrast_label, Valence, sep = " - ", na.rm = TRUE) %>%
+                dplyr::select(-Effects, -Group, -df_error, -question) %>%
+                kable.packed(
+                    "pack.col",
+                    caption = current_caption,
+                    booktabs = TRUE,
+                    longtable = FALSE,
+                    label = NA) %>%
+                kableExtra::kable_styling(latex_options = "repeat_header") %>%
+                kableExtra::kable_classic_2() %>%
+                print()
+        }
+    )
+
+```
+
+
+For first-party acceptability (Table \ref{tab:clmm-high-vs-low-type-frequency-combined-print-first-party-acceptability}), third-party acceptability (Table \ref{tab:clmm-high-vs-low-type-frequency-combined-print-third-party-acceptability}), and prevalence (Table \ref{tab:clmm-high-vs-low-type-frequency-combined-print-prevalence}), ratings in the high type-frequency condition were higher than those in the low type-frequency condition.
+
+I also observed main effects of valence, showing that good actions were rated higher than neutral ones, while neutral ones were rated higher than bad ones (except for prevalence ratings, where the latter two conditions did not differ).
+These results thus mirror those of the difference scores above.
+
+For third-party acceptability and prevalence, an interaction between Frequency Condition and Valence suggested that the effect of Frequency Condition was somewhat reduced for bad and good actions compared to neutral actions, though the effect was significant for all valences.
+
+`r clearpage()`
+
+## Alternative analyses
+
+In~\ref{app:alternative-analyses}, I report two alternative sets of analyses in addition to the difference score analyses and the CLMMs. First, I fit a series of generalized linear mixed models (GLMMs) using binarized responses, where ratings of 1 or 2 were coded as "unacceptable" and ratings of 3 or 4 as "acceptable." These models compared both the high type-frequency (TF) and low TF conditions to the single-occurrence condition, as well as directly compared the high TF and low TF conditions. Second, I conducted a set of equivalent mixed ANOVAs to assess the robustness of the results. The results were largely consistent with those of the main analyses.
+
+`r clearpage()`
+
+# Appendix
+# Descriptives 
+## Raw ratings
+
+```{r print-descriptives-ratings-combined-raw2, ref.label = 'print-descriptives-ratings-combined-raw', echo = FALSE, results = 'markup'}
+
+```
+
+First-party and third-party acceptability ratings were below the midpoint of 2.5 for bad actions, and above the midpoint for neutral and good actions. 
+
+Prevalence ratings showed a more complex relationship to valence. For bad and neutral actions, high- and low-type-frequency actions showed ratings above the midpoints, while single-occurrence actions showed ratings below the midpoint. For good actions, ratings were above the midpoint for all frequency conditions.
+
+```{r clmm-raw-effects-of-valency-combined2, ref.label = 'clmm-raw-effects-of-valency-combined', echo = FALSE, results = 'markup'}
+```
+
+As shown in Table \ref{tab:clmm-raw-effects-of-valency-combined2}, acceptability ratings were higher for good actions than for neutral actions, and for neutral actions than for bad actions.
+
+
+
+`r clearpage()`
+
+## Comparisons of the High and Low Type-Frequency conditions against the Single-Occurrence condition
+
+
+```{r difference-vs-single-raw-combined-print2, ref.label = 'difference-vs-single-raw-combined-print', echo = FALSE, results = 'markup'}
+```
+
+
+`r clearpage()`
+
+## Comparisons of the High and Low Type-Frequency conditions
+
+```{r difference-high-vs-low-type-frequency-combined-print2, ref.label = 'difference-high-vs-low-type-frequency-combined-print', echo = FALSE, results = 'markup'}
+```
+
+
+
+`r clearpage()`
+
+# Alternative analyses {#app:alternative-analyses}
+
+
+
+## Comparisons of the High and Low Type-Frequency conditions against the Single-Occurrence condition
+### GLMMs
+
+I analyzed the results using a series of generalized linear mixed models (GLMMs), in which responses were converted to binary outcomes on each trial: ratings of 1 or 2 were coded as "unacceptable," and ratings of 3 or 4 as "acceptable." The models included fixed factor predictors for Frequency Condition and Valence, their interaction, and a random slope for participants. The results are shown in Tables \ref{tab:glmm-vs-single-occurrence-combined-print-first-party-acceptability} (First-Party Acceptability), \ref{tab:glmm-vs-single-occurrence-combined-print-third-party-acceptability} (Third-Party Acceptability), and \ref{tab:glmm-vs-single-occurrence-combined-print-prevalence} (Prevalence).
+
+
+
+```{r glmm-vs-single-occurrence-combined-print, results = 'asis'}
+
+glmm.social.type.token.sequential.vs.single.occurrence %>%
+    dplyr::filter(population == "combined") %>%
+    dplyr::select(-population) %>%
+    relabel_conds(cond_col = targetActionStatus, wrap = FALSE) %>%
+    relabel_terms() %>%
+    add_sig_stars(p) %>%
+    dplyr::rename_with(rename_col_names) %>%
+    dplyr::mutate(question = forcats::fct_relevel(question, "first.party.acceptability", "third.party.acceptability", "prevalence")) %>%
+    dplyr::arrange(question, targetActionStatus) %>%
+    dplyr::group_split(question, .keep = TRUE) %>%
+    purrr::walk(\(current_dat) {
+
+        current_question <- levels2(current_dat$question)
+
+        current_question_str <- question_to_str(current_question)
+
+        current_ref_label <- paste0(
+            "tab:glmm-vs-single-occurrence-combined-print-",
+            stringr::str_replace_all(current_question, "\\.", "-")
+        )
+
+        current_caption <- glue::glue(
+            "\\label{{{current_ref_label}}}",
+            "Results from a set of generalized linear mixed models fit to the binarized trial-by-trial data on the combined sample for \\textbf{{{current_question_str}}}, for the High Type-Frequency vs. Single Occurrence and Low Type-Frequency vs. Single Occurrence contrasts. The models included the fixed factor predictors Valence and Frequency Condition, their interaction, and random slopes for participants and actions. See Table~\\ref{{tab:glmm-vs-single-occurrence-print}} for separate results for each sample. {SIG_CODES}"
+        )
+
+        # relabel_questions() deferred to here so raw question value is
+        # available for case_when and str_replace_all above.
+        current_dat %>%
+            relabel_questions(wrap = FALSE, sort = TRUE) %>%
+            dplyr::mutate(targetActionStatus = stringr::str_c(targetActionStatus, " (vs. Single Occurrence)")) %>%
+            dplyr::rename(pack.col = targetActionStatus) %>%
+            dplyr::select(-Effects, -Group, -df_error, -question) %>%
+            kable.packed(
+                "pack.col",
+                caption = current_caption,
+                booktabs = TRUE,
+                longtable = FALSE,
+                label = NA) %>%
+            kableExtra::kable_styling(latex_options = "repeat_header") %>%
+            kableExtra::kable_classic_2() %>%
+            print()
+    })
+
+```
+
+When comparing the high type-frequency and low type-frequency conditions to the single-occurrence condition, the results of the GLMMs were similar to those of the CLMMs. For \emph{first-party acceptability}, high type-frequency actions but not low type-frequency actions were rated higher than single-occurrence actions; there were also main effects of Valence.
+
+For \emph{third-party acceptability} and \emph{prevalence}, repeated actions were rated more highly than single-occurrence actions, though the coefficient for high type-frequency actions was more than twice as large as for low type-frequency actions. There were main effects of Valence, as well as interactions between Frequency Condition and Valence.
+
+
+### ANOVAs
+The results were also analyzed using a series of mixed ANOVAs, with Frequency Condition (High Type-Frequency vs. Single Occurrence and Low Type-Frequency vs. Single Occurrence) as a within-participant factor, and Valence as a between-participant factor, including their interaction.
+
+
+
+```{r anova-vs-single-occurrence-combined-print}
+
+aov.social.type.token.sequential.vs.single.occurrence %>%
+    dplyr::filter(population == "combined") %>%
+    dplyr::select(-population) %>% 
+    relabel_questions(wrap = FALSE, sort = TRUE) %>%
+    relabel_conds(cond_col = targetActionStatus, wrap = FALSE) %>%
+    relabel_terms(type = "aov", term_col = Effect) %>%
+    # add_sig_stars(p.value) %>%  # p.value from afex::nice() is a string; stars already embedded
+    dplyr::rename_with(rename_col_names) %>%
+    dplyr::mutate(
+        targetActionStatus = str_c(targetActionStatus, " (vs. Single Occurrence)")
+        ) %>% 
+    tidyr::unite(pack.col, question, targetActionStatus, sep = " - ") %>%
+    abbreviate_cols() %>% 
+    kable.packed("pack.col",
+                 caption = paste0("Results from a set of mixed ANOVAs fit on the combined sample, separately for each domain (First-Party Acceptability, Third-Party Acceptability, and Prevalence) and frequency contrast (High Type-Frequency vs. Single Occurrence and Low Type-Frequency vs. Single Occurrence). The models included Valence (between-subjects) and Frequency Condition (within-subjects) as fixed factors, along with their interaction. See Table~\\ref{tab:anova-vs-single-occurrence-print} for separate results for each sample. ", SIG_CODES),
+                 #col.names = c("", rep(c("N", "M", "SE", "Cohen's d", "p"), 2)),
+                 booktabs = TRUE,
+                 longtable = TRUE) %>%
+    #kableExtra::add_header_above(header = c(" " = 1, "Students" = 5, "Testable" = 5), bold = TRUE) %>%
+    kableExtra::kable_styling(latex_options = "repeat_header") %>%
+    # kableExtra::row_spec(which(dat.social.type.token.sequential.m.for.table$is_below_chance),
+    #                      bold = TRUE, color = "red", background = "gray!20") %>%
+    kableExtra::kable_classic_2()
+
+```
+
+
+As shown in Table \ref{tab:anova-vs-single-occurrence-combined-print}, the results of these ANOVAs were similar to those from the CLMMs. As in the CLMMs, there was a main effect of Frequency Condition. However, the effect was also significant for the low type-frequency condition, though the effect size was approximately 7 times greater for first-party acceptability, 3.6 times greater for third-party acceptability, and 2.9 times greater for prevalence, for the high type-frequency condition.
+
+There was also a main effect of Valence, as well as a significant interaction between Valence and Frequency Condition for many domains and frequency contrasts.
+
+
+## Comparisons of the High and Low Type-Frequency conditions
+
+### GLMMs
+
+I also analyzed the results using a series of generalized linear mixed models (GLMMs), in which responses were converted to binary outcomes on each trial: ratings of 1 or 2 were coded as "unacceptable," and ratings of 3 or 4 as "acceptable." The models included fixed factor predictors for Frequency Condition and Valence, their interaction, and a random slope for participants and actions.
+
+When comparing the high type-frequency condition to the low type-frequency condition, the results of the GLMMs were broadly similar to those obtained from the CLMMs and the mixed ANOVAs. For first-party acceptability, third-party acceptability and prevalence, ratings in the high type-frequency condition were higher than in the low type-frequency condition.
+
+
+
+I also observed main effects of Valence, indicating that good actions were rated higher than neutral ones, and neutral actions higher than bad ones, except in prevalence ratings, where neutral and bad actions did not differ. For prevalence ratings, there was also an interaction between Valence and Frequency Condition.
+
+
+
+```{r glmm-high-vs-low-type-frequency-combined-print}
+
+glmm.social.type.token.sequential.for.glmm.high.vs.low.type.frequency %>%
+    dplyr::filter(population == "combined") %>%
+    dplyr::select(-population) %>% 
+    relabel_questions(wrap = FALSE, sort = FALSE) %>%
+    relabel_terms() %>%
+    add_sig_stars(p) %>% 
+    dplyr::rename_with(rename_col_names) %>% 
+    dplyr::arrange(question) %>% 
+    tidyr::unite(pack.col, question, sep = " - ") %>%
+    dplyr::select(-Effects, -Group, -df_error) %>% 
+    kable.packed("pack.col",
+                 caption = paste0("Results from a set of generalized linear mixed models for the combined sample using binarized data (ratings of 1–2 coded as unacceptable, and 3–4 as acceptable), comparing the High Type-Frequency condition to the Low Type-Frequency condition. Models were fit separately for each domain (First-Party Acceptability and Third-Party Acceptability), with fixed factor predictors Valence and Frequency Condition, their interaction, and a random slope for participants. See Table~\\ref{tab:glmm-high-vs-low-type-frequency-print} for separate results for each sample. ", SIG_CODES),
+                 #col.names = c("", rep(c("N", "M", "SE", "Cohen's d", "p"), 2)),
+                 booktabs = TRUE,
+                 longtable = TRUE) %>%
+    #kableExtra::add_header_above(header = c(" " = 1, "Students" = 5, "Testable" = 5), bold = TRUE) %>%
+    kableExtra::kable_styling(latex_options = "repeat_header") %>%
+    # kableExtra::row_spec(which(dat.social.type.token.sequential.m.for.table$is_below_chance),
+    #                      bold = TRUE, color = "red", background = "gray!20") %>%
+    kableExtra::kable_classic_2()
+
+```
+
+### ANOVAs
+
+
+```{r anova-high-vs-low-type-frequency-combined-print}
+
+
+aov.social.type.token.sequential.high.vs.low.type.frequency %>%
+    dplyr::filter(population == "combined") %>%
+    dplyr::select(-population) %>% 
+    relabel_questions(wrap = FALSE, sort = FALSE) %>%
+    relabel_terms(type = "aov", term_col = Effect) %>%
+    # add_sig_stars(p.value) %>%  # p.value from afex::nice() is a string; stars already embedded
+    dplyr::rename_with(rename_col_names) %>%
+    dplyr::arrange(question) %>%
+    tidyr::unite(pack.col, question, sep = " - ") %>%
+    abbreviate_cols() %>%
+    kable.packed("pack.col",
+                 caption = paste0("Results from a set of mixed ANOVAs for the combined sample, comparing the High Type-Frequency condition to the Low Type-Frequency condition, fit separately for each domain (First-Party Acceptability and Third-Party Acceptability). The models included Valence (between-subjects) and Frequency Condition (within-subjects) as fixed factors, along with their interaction. See Table~\\ref{tab:anova-high-vs-low-type-frequency-print} for separate results for each sample. ", SIG_CODES),
+                 #col.names = c("", rep(c("N", "M", "SE", "Cohen's d", "p"), 2)),
+                 booktabs = TRUE,
+                 longtable = TRUE) %>%
+    #kableExtra::add_header_above(header = c(" " = 1, "Students" = 5, "Testable" = 5), bold = TRUE) %>%
+    kableExtra::kable_styling(latex_options = c(#"striped",
+                                                "scale_down",
+                                                "hold_position",
+                                                "repeat_header")) %>%
+    # kableExtra::row_spec(which(dat.social.type.token.sequential.m.for.table$is_below_chance),
+    #                      bold = TRUE, color = "red", background = "gray!20") %>%
+    kableExtra::kable_classic_2()
+
+```
+
+As shown in Table \ref{tab:anova-high-vs-low-type-frequency-combined-print}, results from a set of mixed ANOVAs comparing the high type-frequency condition to the low type-frequency condition were similar to those of the CLMMs and GLMMs reported above. There were significant main effects of Frequency Condition and Valence across all domains, as well as an interaction between them.
+
+`r clearpage()`
+
+

@@ -9,6 +9,7 @@ Endress, A.D. (in press). *[Title]*. Psychological Science. [DOI/link]
 ### `code`: RMarkdown stimulus generation and analysis scripts
 - `social_learning_type_token_sequential.Rmd`: Stimulus generation script
 - `social_learning_type_token_sequential_results.Rmd`: Analysis script
+- `social_learning_type_token_sequential_results_addon_combined.Rmd`: Analysis for the combined sample (requested for revision). Loaded as a child chunk
 - `raw_materials`: Stimuli used for generating the experiment  
   *(faces from Bainbridge et al., 2013, are not shared here)*  
   - `placeNames.csv`: City names  
